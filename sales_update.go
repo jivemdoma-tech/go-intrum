@@ -13,7 +13,7 @@ type SalesUpdateParams struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
-func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams map[uint64]*SalesUpdateParams) (*SalesUpdateResponse, error) {
+func SalesUpdate(ctx context.Context, subdomain, apiKey string, timeoutSec int, inputParams map[uint64]*SalesUpdateParams) (*SalesUpdateResponse, error) {
 	var (
 		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/update", subdomain)
 		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/sales/update", subdomain)
@@ -42,8 +42,8 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams map[
 
 	var resp SalesUpdateResponse
 
-	if err := rawRequest(ctx, primaryURL, apiKey, params, &resp); err != nil {
-		if err := rawRequest(ctx, backupURL, apiKey, params, &resp); err != nil {
+	if err := rawRequest(ctx, primaryURL, apiKey, timeoutSec, params, &resp); err != nil {
+		if err := rawRequest(ctx, backupURL, apiKey, timeoutSec, params, &resp); err != nil {
 			return nil, err
 		}
 	}

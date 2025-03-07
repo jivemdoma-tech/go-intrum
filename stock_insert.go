@@ -27,7 +27,7 @@ type StockInsertParams struct {
 }
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
-func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams []*StockInsertParams) (*StockInsertResponse, error) {
+func StockInsert(ctx context.Context, subdomain, apiKey string, timeoutSec int, inputParams []*StockInsertParams) (*StockInsertResponse, error) {
 	var (
 		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
 		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/stock/insert", subdomain)
@@ -85,8 +85,8 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams []*S
 
 	var resp StockInsertResponse
 
-	if err := rawRequest(ctx, primaryURL, apiKey, params, &resp); err != nil {
-		if err := rawRequest(ctx, backupURL, apiKey, params, &resp); err != nil {
+	if err := rawRequest(ctx, primaryURL, apiKey, timeoutSec, params, &resp); err != nil {
+		if err := rawRequest(ctx, backupURL, apiKey, timeoutSec, params, &resp); err != nil {
 			return nil, err
 		}
 	}

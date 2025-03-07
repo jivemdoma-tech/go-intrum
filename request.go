@@ -14,11 +14,18 @@ import (
 const contentType string = "application/x-www-form-urlencoded"
 
 var (
-	timeout = time.Duration(60 * time.Second)
-	client  = &http.Client{Timeout: timeout}
+	stdTimeout = time.Duration(time.Second * 300)
+	client  = &http.Client{Timeout: stdTimeout}
 )
 
-func rawRequest(ctx context.Context, methodURL, apiKey string, params map[string]string, r any) error {
+func rawRequest(ctx context.Context, methodURL, apiKey string, timeoutSec int, params map[string]string, r any) error {
+	var timeout time.Duration
+	switch timeoutSec {
+	case 0:
+		timeout = stdTimeout
+	default:
+		timeout = time.Duration(time.Second * 300)
+	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
