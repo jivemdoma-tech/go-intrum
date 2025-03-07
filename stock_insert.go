@@ -27,7 +27,7 @@ type StockInsertParams struct {
 }
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
-func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams map[uint64]*StockInsertParams) (*StockInsertResponse, error) {
+func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams []*StockInsertParams) (*StockInsertResponse, error) {
 	var (
 		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
 		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/stock/insert", subdomain)
@@ -37,16 +37,13 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams map[
 
 	params := make(map[string]string, getParamsSize(inputParams))
 
-	objectCount := 0
-	for saleID, objectParams := range inputParams {
+	for objectCount, objectParams := range inputParams {
 		if objectParams.Parent == 0 {
 			log.Println("error create request for method stock insert: parent param in required")
 			continue
 		}
 
 		// TODO: унифицировать добавление параметров внешней функцией
-
-		params[fmt.Sprintf("params[%d][id]", objectCount)] = strconv.FormatUint(saleID, 10)
 
 		// parent
 		params[fmt.Sprintf("params[%d][parent]", objectCount)] = strconv.FormatUint(objectParams.Parent, 10)
