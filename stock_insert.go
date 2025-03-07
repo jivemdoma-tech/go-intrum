@@ -23,7 +23,7 @@ type StockInsertParams struct {
 	// 	Ключ uint64 == ID поля
 	// 	Значение any == Значение поля
 	//		[]any (Для значений с типом "множественных выбор")
-	Fields map[uint64]any
+	Fields map[uint64]string
 }
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
@@ -74,7 +74,7 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams []*S
 		fieldCount := 0
 		for k, v := range objectParams.Fields {
 			params[fmt.Sprintf("params[%d][fields][%d][id]", objectCount, fieldCount)] = fmt.Sprint(k)
-			params[fmt.Sprintf("params[%d][fields][%d][value]", objectCount, fieldCount)] = fmt.Sprint(v)
+			params[fmt.Sprintf("params[%d][fields][%d][value]", objectCount, fieldCount)] = v
 			fieldCount++
 		}
 
