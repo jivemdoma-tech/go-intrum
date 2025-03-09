@@ -47,6 +47,11 @@ func getParamsSize(data interface{}) int {
 	case reflect.Struct:
 		count := 0
 		for i := 0; i < v.NumField(); i++ {
+			// Проверка на публичность поля
+			if !v.Field(i).CanInterface() {
+				continue
+			}
+
 			f := v.Field(i)
 			if f.IsZero() {
 				continue
