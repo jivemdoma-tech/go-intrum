@@ -1,4 +1,4 @@
-package intrumgo
+package gointrum
 
 import (
 	"context"
@@ -15,7 +15,7 @@ const contentType string = "application/x-www-form-urlencoded"
 
 var (
 	stdTimeout = time.Duration(time.Second * 300)
-	client  = &http.Client{Timeout: stdTimeout}
+	client     = &http.Client{Timeout: stdTimeout}
 )
 
 func rawRequest(ctx context.Context, methodURL, apiKey string, timeoutSec int, params map[string]string, r any) error {
