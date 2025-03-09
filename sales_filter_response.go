@@ -1,4 +1,4 @@
-package intrumgo
+package gointrum
 
 import (
 	"strconv"

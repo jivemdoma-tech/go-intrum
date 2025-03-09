@@ -1,4 +1,4 @@
-package intrumgo
+package gointrum
 
 type SalesGetByChangeStageResponse struct {
 	Status string                     `json:"status"`
