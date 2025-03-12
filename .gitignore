@@ -24,4 +24,5 @@ go.work.sum
 # env file
 .env
 
-**test.go
+*test.go
+*test.json
