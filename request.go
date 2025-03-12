@@ -11,22 +11,24 @@ import (
 	"time"
 )
 
-const contentType string = "application/x-www-form-urlencoded"
+// Стандартное время ожидания ответа от Intrum API
+const stdTimeout time.Duration = time.Duration(10 * time.Minute)
 
-var (
-	stdTimeout = time.Duration(time.Second * 300)
-	client     = &http.Client{Timeout: stdTimeout}
-)
+// Клиент для запросов к Intrum API
+var client = &http.Client{
+	Timeout: stdTimeout,
+}
 
-func rawRequest(ctx context.Context, methodURL, apiKey string, timeoutSec int, params map[string]string, r any) error {
-	var timeout time.Duration
-	switch timeoutSec {
-	case 0:
-		timeout = stdTimeout
-	default:
-		timeout = time.Duration(time.Second * 300)
-	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+type responseStruct interface {
+	// Объекты
+	*StockInsertResponse |
+		// Сделки
+		*SalesTypesResponse | *SalesGetByChangeStageResponse |
+		*SalesFilterResponse | *SalesUpdateResponse
+}
+
+func rawRequest[T responseStruct](ctx context.Context, apiKey, methodURL string, params map[string]string, r T) error {
+	ctx, cancel := context.WithTimeout(ctx, stdTimeout)
 	defer cancel()
 
 	// Параметры запроса
@@ -44,7 +46,7 @@ func rawRequest(ctx context.Context, methodURL, apiKey string, timeoutSec int, p
 	if err != nil {
 		return fmt.Errorf("error create request for method %s: %w", methodURL, err)
 	}
-	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Отправка запроса на сервер
 
