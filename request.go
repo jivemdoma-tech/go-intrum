@@ -19,7 +19,7 @@ var client = &http.Client{
 	Timeout: stdTimeout,
 }
 
-type responseStruct interface {
+type respStruct interface {
 	// Объекты
 	*StockInsertResponse |
 		// Сделки
@@ -27,24 +27,24 @@ type responseStruct interface {
 		*SalesFilterResponse | *SalesUpdateResponse
 }
 
-func rawRequest[T responseStruct](ctx context.Context, apiKey, methodURL string, params map[string]string, r T) error {
+func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[string]string, r T) error {
 	ctx, cancel := context.WithTimeout(ctx, stdTimeout)
 	defer cancel()
 
 	// Параметры запроса
 
-	p := make(url.Values, len(params)+1)
-	p.Set("apikey", apiKey)
-	for k, v := range params {
-		p.Set(k, v)
+	params := make(url.Values, len(p)+1)
+	params.Set("apikey", apiKey)
+	for k, v := range p {
+		params.Set(k, v)
 	}
-	httpBody := strings.NewReader(p.Encode())
+	httpBody := strings.NewReader(params.Encode())
 
 	// Новый запрос
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, methodURL, httpBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, httpBody)
 	if err != nil {
-		return fmt.Errorf("error create request for method %s: %w", methodURL, err)
+		return fmt.Errorf("error create request for method %s: %w", u, err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -52,7 +52,7 @@ func rawRequest[T responseStruct](ctx context.Context, apiKey, methodURL string,
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("error do request for method %s: %w", methodURL, err)
+		return fmt.Errorf("error do request for method %s: %w", u, err)
 	}
 	defer resp.Body.Close()
 
@@ -60,19 +60,21 @@ func rawRequest[T responseStruct](ctx context.Context, apiKey, methodURL string,
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("error read response body for method %s: %w", methodURL, err)
+		return fmt.Errorf("error read response body for method %s: %w", u, err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error response from intrum for method %s: %d", methodURL, resp.StatusCode)
+		return fmt.Errorf("error response from intrum for method %s: %d", u, resp.StatusCode)
 	}
 
 	// Декодирование ответа
 
 	err = json.Unmarshal(body, r)
 	if err != nil {
-		return fmt.Errorf("error decode response body for method %s: %w", methodURL, err)
+		return fmt.Errorf("error decode response body for method %s: %w", u, err)
 	}
+
+	// TODO: Добавить запрос на альтернативный порт 80 при определенных ответах от сервера
 
 	return nil
 }
