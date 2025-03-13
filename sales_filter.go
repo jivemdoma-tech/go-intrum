@@ -41,35 +41,29 @@ type SalesFilterParams struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
-func SalesFilter(ctx context.Context, subdomain, apiKey string, timeoutSec int, inputParams *SalesFilterParams) (*SalesFilterResponse, error) {
-	var (
-		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/filter", subdomain)
-		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/sales/filter", subdomain)
-	)
+func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *SalesFilterParams) (*SalesFilterResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/filter", subdomain)
 
 	// Параметры запроса
 
-	params := make(map[string]string, getParamsSize(inputParams))
+	params := make(map[string]string, len(inputParams.Manager)+
+		len(inputParams.Type)+
+		len(inputParams.Stage)+
+		len(inputParams.ByIDs)+
+		len(inputParams.SliceFields)+
+		1+ // limit
+		len(inputParams.Fields)*2)
 
 	// manager
-	addSliceToParams(params, "manager", inputParams.Manager)
+	addSliceToParams("manager", params, inputParams.Manager)
 	// type
-	addSliceToParams(params, "type", inputParams.Type)
+	addSliceToParams("type", params, inputParams.Type)
 	// stage
-	addSliceToParams(params, "stage", inputParams.Stage)
+	addSliceToParams("stage", params, inputParams.Stage)
 	// by_ids
-	addSliceToParams(params, "by_ids", inputParams.ByIDs)
+	addSliceToParams("by_ids", params, inputParams.ByIDs)
 	// slice_fields
-	addSliceToParams(params, "slice_fields", inputParams.SliceFields)
-	// fields
-	if len(inputParams.Fields) > 0 {
-		var count int
-		for k, v := range inputParams.Fields {
-			params[fmt.Sprintf("params[fields][%d][id]", count)] = fmt.Sprint(k)
-			params[fmt.Sprintf("params[fields][%d][value]", count)] = fmt.Sprint(v)
-			// TODO: Добавить внешнюю функцию обработки value под формат php
-		}
-	}
+	addSliceToParams("slice_fields", params, inputParams.SliceFields)
 	// limit (макс. 500)
 	switch {
 	case inputParams.Limit > 500:
@@ -77,15 +71,19 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, timeoutSec int, 
 	case inputParams.Limit != 0:
 		params["params[limit]"] = strconv.FormatUint(uint64(inputParams.Limit), 10)
 	}
+	// fields
+	var count int
+	for k, v := range inputParams.Fields {
+		params[fmt.Sprintf("params[fields][%d][id]", count)] = fmt.Sprint(k)
+		params[fmt.Sprintf("params[fields][%d][value]", count)] = fmt.Sprint(v)
+		// TODO: Добавить внешнюю функцию обработки value под формат php
+	}
 
 	// Получение ответа
 
 	var resp SalesFilterResponse
-
-	if err := rawRequest(ctx, primaryURL, apiKey, timeoutSec, params, &resp); err != nil {
-		if err := rawRequest(ctx, backupURL, apiKey, timeoutSec, params, &resp); err != nil {
-			return nil, err
-		}
+	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+		return nil, err
 	}
 
 	return &resp, nil

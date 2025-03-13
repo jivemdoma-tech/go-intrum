@@ -1,6 +1,7 @@
 package gointrum
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -11,20 +12,20 @@ type SalesFilterResponse struct {
 	Data   *SalesFilterData `json:"data"`
 }
 type SalesFilterData struct {
-	List  []*Sale `json:"list"`
-	Count any     `json:"count"`
+	List []*Sale `json:"list"`
+	// Count any `json:"count"` // TODO
 }
 type Sale struct {
-	ID                   string                `json:"id"`                     // ID сделки
-	CustomersID          string                `json:"customers_id"`           // ID контакта
-	EmployeeID           string                `json:"employee_id"`            // ID ответственного
-	AdditionalEmployeeID []string              `json:"additional_employee_id"` // Массив ID дополнительных ответственных
-	DateCreate           string                `json:"date_create"`            // Дата создания
-	SalesTypeID          string                `json:"sales_type_id"`          // ID типа активности
-	SaleStageID          string                `json:"sale_stage_id"`          // ID стадии
+	ID                   uint64                `json:"id,string"`              // ID сделки
+	CustomersID          uint64                `json:"customers_id,string"`    // ID контакта
+	EmployeeID           uint64                `json:"employee_id,string"`     // ID ответственного
+	AdditionalEmployeeID []uint64              `json:"additional_employee_id"` // Массив ID доп. ответственных
+	DateCreate           time.Time             `json:"date_create"`            // Дата создания
+	SalesTypeID          uint16                `json:"sales_type_id,string"`   // ID типа активности
+	SaleStageID          uint16                `json:"sale_stage_id,string"`   // ID стадии
 	SaleName             string                `json:"sale_name"`              // Название сделки
 	SaleActivityType     string                `json:"sale_activity_type"`     // Тип последней активности
-	SaleActivityDate     string                `json:"sale_activity_date"`     // Дата последней активности сделк
+	SaleActivityDate     time.Time             `json:"sale_activity_date"`     // Дата последней активности сделк
 	Fields               map[string]*SaleField `json:"fields"`                 // Данные полей
 }
 type SaleField struct {
@@ -32,92 +33,50 @@ type SaleField struct {
 	Value    any    `json:"value"`
 }
 
-// Методы получения значений Sale
+func (s *Sale) UnmarshalJSON(data []byte) error {
+	// Оригинальная структура типа Alias для предовтращения рекурсии
+	type Alias Sale
 
-func (s *Sale) GetSaleID() uint64 {
-	r, err := strconv.ParseUint(s.ID, 10, 64)
-	if err != nil {
-		return 0
+	// Вспомогательная структура
+	var aux = &struct {
+		*Alias
+		AdditionalEmployeeID []string `json:"additional_employee_id"`
+		DateCreate           string   `json:"date_create"`
+		SaleActivityDate     string   `json:"sale_activity_date"`
+	}{
+		Alias: (*Alias)(s), // Приведение типа к Alias
+	}
+	// Декодирование JSON во вспомогательную структуру
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
 	}
 
-	return r
-}
+	// Замена
 
-func (s *Sale) GetCustomersID() uint64 {
-	r, err := strconv.ParseUint(s.CustomersID, 10, 64)
+	parsedDate, err := time.Parse(datetimeLayout, aux.DateCreate)
 	if err != nil {
-		return 0
+		return err
 	}
+	s.DateCreate = parsedDate
 
-	return r
-}
-
-func (s *Sale) GetEmployeeID() uint64 {
-	r, err := strconv.ParseUint(s.EmployeeID, 10, 64)
+	parsedDate, err = time.Parse(datetimeLayout, aux.SaleActivityDate)
 	if err != nil {
-		return 0
+		return err
 	}
+	s.SaleActivityDate = parsedDate
 
-	return r
-}
-
-func (s *Sale) GetAdditionalEmployeeID() []uint64 {
-	r := make([]uint64, 0, len(s.AdditionalEmployeeID))
-	for _, v := range s.AdditionalEmployeeID {
-		id, err := strconv.ParseUint(v, 10, 64)
-		if err != nil {
-			continue
+	newSlice := make([]uint64, 0, len(aux.AdditionalEmployeeID))
+	for _, v := range aux.AdditionalEmployeeID {
+		if newValue, err := strconv.ParseUint(v, 10, 64); err == nil {
+			newSlice = append(newSlice, newValue)
 		}
-
-		r = append(r, id)
 	}
+	s.AdditionalEmployeeID = newSlice
 
-	return r
+	return nil
 }
 
-func (s *Sale) GetDateCreate() time.Time {
-	r, err := time.Parse(datetimeLayout, s.DateCreate)
-	if err != nil {
-		return time.Time{}
-	}
-
-	return r
-}
-
-func (s *Sale) GetSalesTypeID() uint16 {
-	r, err := strconv.ParseUint(s.SalesTypeID, 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return uint16(r)
-}
-
-func (s *Sale) GetSaleStageID() uint16 {
-	r, err := strconv.ParseUint(s.SaleStageID, 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return uint16(r)
-}
-
-func (s *Sale) GetSaleName() string {
-	return s.SaleName
-}
-
-func (s *Sale) GetSaleActivityType() string {
-	return s.SaleActivityType
-}
-
-func (s *Sale) GetSaleActivityDate() time.Time {
-	r, err := time.Parse(datetimeLayout, s.SaleActivityDate)
-	if err != nil {
-		return time.Time{}
-	}
-
-	return r
-}
+// Методы получения значений Sale
 
 func (f *SaleField) getFieldStr() string {
 	if v, ok := f.Value.(string); ok {
