@@ -13,75 +13,72 @@ const (
 	timeLayout     string = "15:04:05"
 )
 
-func addSliceToParams[T uint16 | uint64](params map[string]string, fieldName string, values []T) {
-	if len(values) == 0 {
-		return
-	}
-
-	switch any(values[0]).(type) {
-	case uint16, uint64:
-		for i, v := range values {
-			k := fmt.Sprintf("params[%s][%d]", fieldName, i)
-			params[k] = strconv.FormatUint(uint64(v), 10)
-		}
-	}
+func getParamsSize(data any) int {
+	return countSize(reflect.ValueOf(data))
 }
 
-func getParamsSize(data interface{}) int {
-	v := reflect.ValueOf(data)
-
-	if !v.IsValid() {
+func countSize(v reflect.Value) int {
+	if !v.IsValid() || v.IsZero() {
 		return 0
 	}
 
-	// Если передан pointer - разыменовывается
-	if v.Kind() == reflect.Pointer {
+	// Разыменовывание если передан указатель
+	for v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return 0
 		}
 		v = v.Elem()
 	}
 
-	// Обработка структуры, мапы, слайса и массива
 	switch v.Kind() {
+	// Рекурсивный подсчет структуры
 	case reflect.Struct:
 		count := 0
-		for i := 0; i < v.NumField(); i++ {
-			// Проверка на публичность поля
-			if !v.Field(i).CanInterface() {
-				continue
+		for i, n := 0, v.NumField(); i < n; i++ {
+			field := v.Field(i)
+			if field.CanInterface() && !field.IsZero() {
+				count += countSize(field)
 			}
-
-			f := v.Field(i)
-			if f.IsZero() {
-				continue
-			}
-			count += getParamsSize(f.Interface())
 		}
 		return count
 
+	// Рекурсивный подсчет мапы
 	case reflect.Map:
-		count := 0
-		for _, key := range v.MapKeys() {
-			val := v.MapIndex(key)
-			count += getParamsSize(val.Interface())
+		count := v.Len()
+		for iter := v.MapRange(); iter.Next(); {
+			val := iter.Value()
+			count += countSize(val)
 		}
-		return count + v.Len()
+		return count
 
+	// Рекурсивный подсчет массива или слайса
 	case reflect.Slice, reflect.Array:
-		count := 0
+		count := v.Len()
 		for i := 0; i < v.Len(); i++ {
-			elem := v.Index(i)
-			count += getParamsSize(elem.Interface())
+			count += countSize(v.Index(i))
 		}
-		return count + v.Len()
+		return count
 
+	// +1 в счетчик
 	default:
-		// Для базовых типов просто считаем их как 1 элемент
-		if v.IsZero() {
-			return 0
-		}
 		return 1
+	}
+}
+
+func addSliceToParams[T string | uint64 | uint16](fieldName string, params map[string]string, slice []T) {
+	if len(slice) == 0 {
+		return
+	}
+
+	for i, v := range slice {
+		switch v := any(v).(type) {
+		case string:
+			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = v
+		case uint16:
+			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = strconv.FormatUint(uint64(v), 10)
+		case uint64:
+			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = strconv.FormatUint(v, 10)
+		}
 	}
 }
 
