@@ -14,6 +14,6 @@ type SalesStage struct {
 	Name      string `json:"name"`
 	Color     string `json:"color"`
 	Order     uint16 `json:"order,string"`
-	IsSuccess *bool   `json:"is_success,omitempty"`
-	IsFail    *bool   `json:"is_fail,omitempty"`
+	IsSuccess *bool  `json:"is_success,omitempty"`
+	IsFail    *bool  `json:"is_fail,omitempty"`
 }
