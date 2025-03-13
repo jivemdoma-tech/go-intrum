@@ -7,16 +7,16 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-types
 func SalesTypes(ctx context.Context, subdomain, apiKey string) (*SalesTypesResponse, error) {
-	var u string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/types", subdomain)
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/types", subdomain)
 
 	// Параметры запроса
 
-	params := make(map[string]string, 0)
+	var params map[string]string
 
 	// Получение ответа
 
 	var resp SalesTypesResponse
-	if err := rawRequest(ctx, apiKey, u, params, &resp); err != nil {
+	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 
