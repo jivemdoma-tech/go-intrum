@@ -13,58 +13,6 @@ const (
 	timeLayout     string = "15:04:05"
 )
 
-func getParamsSize(data any) int {
-	return countSize(reflect.ValueOf(data))
-}
-
-func countSize(v reflect.Value) int {
-	if !v.IsValid() || v.IsZero() {
-		return 0
-	}
-
-	// Разыменовывание если передан указатель
-	for v.Kind() == reflect.Pointer {
-		if v.IsNil() {
-			return 0
-		}
-		v = v.Elem()
-	}
-
-	switch v.Kind() {
-	// Рекурсивный подсчет структуры
-	case reflect.Struct:
-		count := 0
-		for i, n := 0, v.NumField(); i < n; i++ {
-			field := v.Field(i)
-			if field.CanInterface() && !field.IsZero() {
-				count += countSize(field)
-			}
-		}
-		return count
-
-	// Рекурсивный подсчет мапы
-	case reflect.Map:
-		count := v.Len()
-		for iter := v.MapRange(); iter.Next(); {
-			val := iter.Value()
-			count += countSize(val)
-		}
-		return count
-
-	// Рекурсивный подсчет массива или слайса
-	case reflect.Slice, reflect.Array:
-		count := v.Len()
-		for i := 0; i < v.Len(); i++ {
-			count += countSize(v.Index(i))
-		}
-		return count
-
-	// +1 в счетчик
-	default:
-		return 1
-	}
-}
-
 func addSliceToParams[T string | uint64 | uint16](fieldName string, params map[string]string, slice []T) {
 	if len(slice) == 0 {
 		return
