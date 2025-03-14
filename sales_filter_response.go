@@ -28,6 +28,7 @@ type Sale struct {
 	SaleActivityDate     time.Time             `json:"sale_activity_date"`     // Дата последней активности сделк
 	Fields               map[string]*SaleField `json:"fields"`                 // Данные полей
 }
+// Использовать метод GetField для получения значения поля // TODO
 type SaleField struct {
 	DataType string `json:"datatype"`
 	Value    any    `json:"value"`
