@@ -33,7 +33,7 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	// Обязательность параметров
 	switch {
 	case inputParams.Parent == 0:
-		return nil, fmt.Errorf("error creare request for method stock insert: parent param is required")
+		return nil, fmt.Errorf("error create request for method stock insert: parent param is required")
 	}
 
 	// Параметры запроса
