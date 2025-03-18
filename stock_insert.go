@@ -72,6 +72,7 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	for k, v := range inputParams.Fields {
 		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
 		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
+		countFields++
 	}
 
 	// Получение ответа
