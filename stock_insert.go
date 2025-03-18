@@ -3,9 +3,7 @@ package gointrum
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
-	"strings"
 )
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
@@ -27,68 +25,60 @@ type StockInsertParams struct {
 }
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
-func StockInsert(ctx context.Context, subdomain, apiKey string, timeoutSec int, inputParams []*StockInsertParams) (*StockInsertResponse, error) {
-	var (
-		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
-		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/stock/insert", subdomain)
-	)
+//
+// Ограничение 1 запрос == 1 объект
+func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *StockInsertParams) (*StockInsertResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
+
+	// Обязательность параметров
+	switch {
+	case inputParams.Parent == 0:
+		return nil, fmt.Errorf("error creare request for method stock insert: parent param is required")
+	}
 
 	// Параметры запроса
 
-	params := make(map[string]string, getParamsSize(inputParams))
+	params := make(map[string]string, 8+
+		len(inputParams.Fields)*2)
 
-	for objectCount, objectParams := range inputParams {
-		if objectParams.Parent == 0 {
-			log.Println("error create request for method stock insert: parent param in required")
-			continue
-		}
-
-		// TODO: унифицировать добавление параметров внешней функцией
-
-		// parent
-		params[fmt.Sprintf("params[%d][parent]", objectCount)] = strconv.FormatUint(objectParams.Parent, 10)
-
-		// name
-		params[fmt.Sprintf("params[%d][name]", objectCount)] = objectParams.Name
-
-		// author
-		params[fmt.Sprintf("params[%d][author]", objectCount)] = strconv.FormatUint(objectParams.Author, 10)
-
-		// additional_author
-		addAuthorStr := make([]string, 0, len(objectParams.AdditionalAuthor))
-		for _, id := range objectParams.AdditionalAuthor {
-			addAuthorStr = append(addAuthorStr, strconv.FormatUint(id, 10))
-		}
-		params[fmt.Sprintf("params[%d][additional_author]", objectCount)] = strings.Join(addAuthorStr, ",")
-
-		// related_with_customer
-		params[fmt.Sprintf("params[%d][related_with_customer]", objectCount)] = strconv.FormatUint(objectParams.RelatedWithCustomer, 10)
-
-		// group_id
-		params[fmt.Sprintf("params[%d][group_id]", objectCount)] = strconv.FormatUint(uint64(objectParams.GroupID), 10)
-
-		// copy
-		params[fmt.Sprintf("params[%d][copy]", objectCount)] = strconv.FormatUint(objectParams.Copy, 10)
-
-		// Fields
-		fieldCount := 0
-		for k, v := range objectParams.Fields {
-			params[fmt.Sprintf("params[%d][fields][%d][id]", objectCount, fieldCount)] = fmt.Sprint(k)
-			params[fmt.Sprintf("params[%d][fields][%d][value]", objectCount, fieldCount)] = v
-			fieldCount++
-		}
-
-		objectCount++
+	// parent
+	params["params[0][parent]"] = strconv.FormatUint(inputParams.Parent, 10)
+	// name
+	if inputParams.Name != "" {
+		params["params[0][name]"] = inputParams.Name
+	}
+	// author
+	if inputParams.Author != 0 {
+		params["params[0][author]"] = strconv.FormatUint(inputParams.Author, 10)
+	}
+	// additional_author
+	for i, v := range inputParams.AdditionalAuthor {
+		params[fmt.Sprintf("params[0][additional_author][%d]", i)] = strconv.FormatUint(v, 10)
+	}
+	// related_with_customer
+	if inputParams.RelatedWithCustomer != 0 {
+		params["params[0][related_with_customer]"] = strconv.FormatUint(inputParams.RelatedWithCustomer, 10)
+	}
+	// group_id
+	if inputParams.GroupID != 0 {
+		params["params[0][group_id]"] = strconv.FormatUint(uint64(inputParams.GroupID), 10)
+	}
+	// copy
+	if inputParams.Copy != 0 {
+		params["params[0][copy]"] = strconv.FormatUint(inputParams.Copy, 10)
+	}
+	// fields
+	countFields := 0
+	for k, v := range inputParams.Fields {
+		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 	}
 
 	// Получение ответа
 
 	var resp StockInsertResponse
-
-	if err := rawRequest(ctx, primaryURL, apiKey, timeoutSec, params, &resp); err != nil {
-		if err := rawRequest(ctx, backupURL, apiKey, timeoutSec, params, &resp); err != nil {
-			return nil, err
-		}
+	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+		return nil, err
 	}
 
 	return &resp, nil
