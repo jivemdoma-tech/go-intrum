@@ -8,44 +8,55 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
 type SalesUpdateParams struct {
-	Fields map[uint64]any
-	// TODO: Добавить больше параметров
+	ID            uint64 // ID существующего объекта // ! Обязательно
+	SalesStatusID uint16 // ID стадии сделки
+
+	// Дополнительные поля
+	//
+	// 	Ключ uint64 == ID поля
+	// 	Значение any == Значение поля
+	//		"знач1,знач2,знач3" (Для значений с типом "множественный выбор")
+	Fields map[uint64]string // Дополнительные поля
+
+	// TODO: Добавить больше параметров запроса
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
-func SalesUpdate(ctx context.Context, subdomain, apiKey string, timeoutSec int, inputParams map[uint64]*SalesUpdateParams) (*SalesUpdateResponse, error) {
-	var (
-		primaryURL string = fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/update", subdomain)
-		backupURL  string = fmt.Sprintf("http://%s.intrumnet.com:80/sharedapi/sales/update", subdomain)
-	)
+//
+// Ограничение 1 запрос == 1 сделка
+func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *SalesUpdateParams) (*SalesUpdateResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/update", subdomain)
+
+	// Обязательность параметров
+	switch {
+	case inputParams.ID == 0:
+		return nil, fmt.Errorf("error create request for method sales update: id param is required")
+	}
 
 	// Параметры запроса
 
-	params := make(map[string]string, getParamsSize(inputParams))
+	params := make(map[string]string, 8+
+		len(inputParams.Fields)*2)
 
-	var count1 int
-	for saleID, saleParams := range inputParams {
-		// TODO: Унифицировать добавление параметров (напр. id) внешней функцией
-		params[fmt.Sprintf("params[%d][id]", count1)] = strconv.FormatUint(saleID, 10)
-
-		var count2 int
-		for k, v := range saleParams.Fields {
-			params[fmt.Sprintf("params[%d][fields][%d][id]", count1, count2)] = fmt.Sprint(k)
-			params[fmt.Sprintf("params[%d][fields][%d][value]", count1, count2)] = fmt.Sprint(v)
-			count2++
-		}
-
-		count1++
+	// id
+	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
+	// sales_status_id
+	if inputParams.SalesStatusID != 0 {
+		params["params[0][sales_status_id]"] = strconv.FormatUint(uint64(inputParams.SalesStatusID), 10)
+	}
+	// fields
+	countFields := 0
+	for k, v := range inputParams.Fields {
+		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
+		countFields++
 	}
 
 	// Получение ответа
 
 	var resp SalesUpdateResponse
-
-	if err := rawRequest(ctx, primaryURL, apiKey, timeoutSec, params, &resp); err != nil {
-		if err := rawRequest(ctx, backupURL, apiKey, timeoutSec, params, &resp); err != nil {
-			return nil, err
-		}
+	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+		return nil, err
 	}
 
 	return &resp, nil
