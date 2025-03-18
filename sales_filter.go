@@ -15,6 +15,15 @@ type SalesFilterParams struct {
 	SliceFields []uint64 // Массив ID дополнительных полей, которые будут в ответе (по умолчанию выводятся все)
 	Limit       uint16   // Число записей в выборке (Макс. 500)
 
+	/*
+			Массив условий поиска, где ключ - ID поля, значение - значение поля
+			Для полей с типом integer,decimal,price,time,date,datetime возможно указывать границы:
+		    Value: ">= значение" - больше или равно
+		    Value: "<= значение" - меньше или равно
+		    Value: "значение_1 & значение_2" - между значением 1 и 2
+	*/
+	Fields map[uint64]any
+
 	// TODO: Добавить больше параметров запроса
 	// Search         string       // Поисковая строка
 	// Customer       uint32       // ID контакта
@@ -29,18 +38,11 @@ type SalesFilterParams struct {
 	// DateField      string       // Если в качестве значения указать sale_activity_date выборка по параметру активности
 	// CountTotal     bool         // Подсчет общего количества найденых записей, 1 - считать, 0 - нет (по умолчанию 0)
 	// OnlyCountField bool         // 1 - вывести в ответе только количество, 0 - стандартный вывод (по умолчанию 0)
-
-	/*
-			Массив условий поиска, где ключ - ID поля, значение - значение поля
-			Для полей с типом integer,decimal,price,time,date,datetime возможно указывать границы:
-		    Value: ">= значение" - больше или равно
-		    Value: "<= значение" - меньше или равно
-		    Value: "значение_1 & значение_2" - между значением 1 и 2
-	*/
-	Fields map[uint64]any
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
+//
+// Ограничение 1 запрос == 1 сделка
 func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *SalesFilterParams) (*SalesFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/filter", subdomain)
 
