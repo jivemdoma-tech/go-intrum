@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+// Debug
+type rrd string
+
+const RawRequestDebug rrd = "debug"
+
 // Стандартное время ожидания ответа от Intrum API
 const stdTimeout time.Duration = time.Duration(10 * time.Minute)
 
@@ -42,7 +47,7 @@ func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[strin
 	httpBody := strings.NewReader(params.Encode())
 
 	// ? Debug
-	if debug, ok := ctx.Value("debug").(bool); ok && debug {
+	if debug, ok := ctx.Value(RawRequestDebug).(bool); ok && debug {
 		bodyBytes, err := io.ReadAll(httpBody)
 		if err == nil {
 			log.Printf("Строка запроса:\n%s", string(bodyBytes))
