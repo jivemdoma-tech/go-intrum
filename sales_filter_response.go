@@ -28,6 +28,7 @@ type Sale struct {
 	SaleActivityDate     time.Time             `json:"sale_activity_date"`     // Дата последней активности сделк
 	Fields               map[string]*SaleField `json:"fields"`                 // Данные полей
 }
+
 // Использовать метод GetField для получения значения поля // TODO
 type SaleField struct {
 	DataType string `json:"datatype"`
@@ -79,156 +80,172 @@ func (s *Sale) UnmarshalJSON(data []byte) error {
 
 // Методы получения значений Sale
 
-func (f *SaleField) getFieldStr() string {
-	if v, ok := f.Value.(string); ok {
-		return strings.Join(strings.Fields(v), " ")
-	}
-	return ""
+// Вспомогательная функция получения структуры поля
+func (s *Sale) getField(fieldID uint64) (*SaleField, bool) {
+	f, exists := s.Fields[strconv.FormatUint(fieldID, 10)]
+	return f, exists
 }
 
-func (s *Sale) GetField(fieldID uint64) any {
-	f, exists := s.Fields[strconv.FormatUint(fieldID, 10)]
+func (s *Sale) getFieldMap(fieldID uint64) (map[string]string, bool) {
+	f, exists := s.getField(fieldID)
+	if !exists {
+		return nil, false
+	}
+	m, ok := f.Value.(map[string]string)
+	if !ok {
+		return nil, false
+	}
+	return m, true
+}
+
+// text
+func (s *Sale) GetFieldText(fieldID uint64) string {
+	f, exists := s.getField(fieldID)
 	if !exists {
 		return ""
 	}
-
-	// В сделках не передаются типы "integer_range", "decimal_range", "datetime_range", "date_range", "time_range"
-	// Вместо этого передается базовый тип + хэш-таблица со значениями "from", "to":
-	/*
-		"datatype": "integer",
-		"value": {
-			"from": "2",
-			"to": "64"
-		}
-	*/
-	// Поэтому для типов "integer", "decimal", "datetime", "date", "time" добавил дополнительные проверки
-	switch f.DataType {
-	// bool
-	case "radio":
-		if v, err := strconv.ParseBool(f.getFieldStr()); err == nil {
-			return v
-		}
-		return false
-
-	// string
-	case "text", "select", "file":
-		return f.getFieldStr()
-
-	// []string
-	case "multiselect":
-		return strings.Split(f.getFieldStr(), ",")
-
-	// [2]string
-	case "point":
-		if m, ok := f.Value.(map[string]string); ok && len(m) >= 2 {
-			return [2]string{m["x"], m["y"]}
-		}
-		return [2]string{}
-
-	// int64 | [2]int64
-	case "integer":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, parseInt)
-		}
-		return parseInt(f.getFieldStr())
-
-	// [2]int64
-	case "integer_range":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, parseInt)
-		}
-		return [2]int64{}
-
-	// float64 | [2]float64
-	case "decimal":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, parseFloat)
-		}
-		return parseFloat(f.getFieldStr())
-
-	// [2]float64
-	case "decimal_range":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, parseFloat)
-		}
-		return [2]float64{}
-
-	// float64
-	case "price":
-		return parseFloat(f.getFieldStr())
-
-	// time.Time | [2]time.Time
-	case "datetime":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, datetimeLayout)
-			})
-		}
-		return parseTime(f.getFieldStr(), datetimeLayout)
-
-	// [2]time.Time
-	case "datetime_range":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, datetimeLayout)
-			})
-		}
-		return [2]time.Time{}
-
-	// time.Time | [2]time.Time
-	case "date":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, dateLayout)
-			})
-		}
-		return parseTime(f.getFieldStr(), dateLayout)
-
-	// [2]time.Time
-	case "date_range":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, dateLayout)
-			})
-		}
-		return [2]time.Time{}
-
-	// time.Time | [2]time.Time
-	case "time":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, timeLayout)
-			})
-		}
-		return parseTime(f.getFieldStr(), timeLayout)
-
-	// [2]time.Time
-	case "time_range":
-		if m, ok := f.Value.(map[string]string); ok {
-			return parseRange(m, func(s string) time.Time {
-				return parseTime(s, timeLayout)
-			})
-		}
-		return [2]time.Time{}
-
-	// time.Duration
-	case "duration":
-		v := parseInt(f.getFieldStr())
-		return v * int64(time.Minute)
-
-	// []uint64
-	case "attach":
-		if vAttach, ok := f.Value.([]map[string]string); ok && len(vAttach) > 0 {
-			vIDs := make([]uint64, 0, len(vAttach))
-			for _, v := range vAttach {
-				if id, err := strconv.ParseUint(v["id"], 10, 64); err == nil {
-					vIDs = append(vIDs, id)
-				}
-			}
-			return vIDs
-		}
-		return []uint64{}
+	vStr, ok := f.Value.(string)
+	if !ok {
+		return ""
 	}
+	return vStr
+}
 
-	return ""
+// radio
+func (s *Sale) GetFieldRadio(fieldID uint64) bool {
+	vStr := s.GetFieldText(fieldID)
+	if v, err := strconv.ParseBool(vStr); err == nil {
+		return v
+	}
+	return false
+}
+
+// select
+func (s *Sale) GetFieldSelect(fieldID uint64) string {
+	return s.GetFieldText(fieldID)
+}
+
+// multiselect
+func (s *Sale) GetFieldMultiselect(fieldID uint64) []string {
+	return strings.Split(s.GetFieldText(fieldID), ",")
+}
+
+// date
+func (s *Sale) GetFieldDate(fieldID uint64) time.Time {
+	vStr := s.GetFieldText(fieldID)
+	return parseTime(vStr, dateLayout)
+}
+
+// datetime
+func (s *Sale) GetFieldDatetime(fieldID uint64) time.Time {
+	vStr := s.GetFieldText(fieldID)
+	return parseTime(vStr, datetimeLayout)
+}
+
+// time
+func (s *Sale) GetFieldTime(fieldID uint64) time.Time {
+	vStr := s.GetFieldText(fieldID)
+	return parseTime(vStr, timeLayout)
+}
+
+// integer
+func (s *Sale) GetFieldInteger(fieldID uint64) int64 {
+	vStr := s.GetFieldText(fieldID)
+	return parseInt(vStr)
+}
+
+// decimal
+func (s *Sale) GetFieldDecimal(fieldID uint64) float64 {
+	vStr := s.GetFieldText(fieldID)
+	return parseFloat(vStr)
+}
+
+// price
+func (s *Sale) GetFieldPrice(fieldID uint64) float64 {
+	vStr := s.GetFieldText(fieldID)
+	return parseFloat(vStr)
+}
+
+// file
+func (s *Sale) GetFieldFile(fieldID uint64) string {
+	return s.GetFieldText(fieldID)
+}
+
+// point
+func (s *Sale) GetFieldPoint(fieldID uint64) [2]string {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]string{}
+	}
+	return [2]string{m["x"], m["y"]}
+}
+
+// integer_range
+func (s *Sale) GetFieldIntegerRange(fieldID uint64) [2]int64 {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]int64{}
+	}
+	return parseRange(m, parseInt)
+}
+
+// decimal_range
+func (s *Sale) GetFieldDecimalRange(fieldID uint64) [2]float64 {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]float64{}
+	}
+	return parseRange(m, parseFloat)
+}
+
+// date_range
+func (s *Sale) GetFieldDateRange(fieldID uint64) [2]time.Time {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]time.Time{}
+	}
+	return parseRange(m, func(s string) time.Time {
+		return parseTime(s, dateLayout)
+	})
+}
+
+// time_range
+func (s *Sale) GetFieldTimeRange(fieldID uint64) [2]time.Time {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]time.Time{}
+	}
+	return parseRange(m, func(s string) time.Time {
+		return parseTime(s, dateLayout)
+	})
+}
+
+// datetime_range
+func (s *Sale) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
+	m, ok := s.getFieldMap(fieldID)
+	if !ok {
+		return [2]time.Time{}
+	}
+	return parseRange(m, func(s string) time.Time {
+		return parseTime(s, dateLayout)
+	})
+}
+
+// attach
+func (s *Sale) GetFieldAttach(fieldID uint64) []uint64 {
+	f, exists := s.getField(fieldID)
+	if !exists {
+		return nil
+	}
+	vAttach, ok := f.Value.([]map[string]string)
+	if !ok || len(vAttach) <= 0 {
+		return nil
+	}
+	vIDs := make([]uint64, 0, len(vAttach))
+	for _, v := range vAttach {
+		if id, err := strconv.ParseUint(v["id"], 10, 64); err == nil {
+			vIDs = append(vIDs, id)
+		}
+	}
+	return vIDs
 }
