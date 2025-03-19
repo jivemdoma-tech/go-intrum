@@ -22,7 +22,7 @@ type SalesFilterParams struct {
 		    Value: "<= значение" - меньше или равно
 		    Value: "значение_1 & значение_2" - между значением 1 и 2
 	*/
-	Fields map[uint64]any
+	Fields map[uint64]string
 
 	// TODO: Добавить больше параметров запроса
 	// Search         string       // Поисковая строка
@@ -77,7 +77,7 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	var count int
 	for k, v := range inputParams.Fields {
 		params[fmt.Sprintf("params[fields][%d][id]", count)] = fmt.Sprint(k)
-		params[fmt.Sprintf("params[fields][%d][value]", count)] = fmt.Sprint(v)
+		params[fmt.Sprintf("params[fields][%d][value]", count)] = v
 		// TODO: Добавить внешнюю функцию обработки value под формат php
 	}
 
