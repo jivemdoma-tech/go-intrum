@@ -49,7 +49,7 @@ type StockFilterParams struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *StockFilterParams) (any, error) {
+func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *StockFilterParams) (*StockFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
 
 	// Параметры запроса
