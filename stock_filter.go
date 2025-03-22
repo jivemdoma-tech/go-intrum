@@ -94,6 +94,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	for k, v := range inputParams.Fields {
 		params[fmt.Sprintf("params[fields][%d][id]", fieldCount)] = fmt.Sprint(k)
 		params[fmt.Sprintf("params[fields][%d][value]", fieldCount)] = v
+		fieldCount++
 	}
 	// index_fields
 	if inputParams.IndexFields {
