@@ -112,7 +112,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		params["params[order_field]"] = strconv.FormatUint(inputParams.OrderField, 10)
 	}
 	// date
-	if !inputParams.Date[0].IsZero() && !inputParams.Date[0].IsZero() {
+	if !inputParams.Date[0].IsZero() && !inputParams.Date[1].IsZero() {
 		params["params[date][from]"] = inputParams.Date[0].Format(datetimeLayout)
 		params["params[date][to]"] = inputParams.Date[1].Format(datetimeLayout)
 	}
