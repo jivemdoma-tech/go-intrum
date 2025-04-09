@@ -7,9 +7,14 @@ import (
 )
 
 const (
-	datetimeLayout string = "2006-01-02 15:04:05"
-	dateLayout     string = "2006-01-02"
-	timeLayout     string = "15:04:05"
+	datetimeLayout string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
+	dateLayout     string = "2006-01-02"          // Формат даты Intrum
+	timeLayout     string = "15:04:05"            // Формат времени Intrum
+
+	TypeStock    string = "stock"    // Тип сущности "Объект"
+	TypeCustomer string = "customer" // Тип сущности "Контакт"
+	TypeSale     string = "sale"     // Тип сущности "Сделка"
+	TypeRequest  string = "request"  // Тип сущности "Заявка"
 )
 
 func addSliceToParams[T string | uint64 | uint16](fieldName string, params map[string]string, slice []T) {

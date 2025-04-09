@@ -24,7 +24,9 @@ type respStruct interface {
 	*StockInsertResponse |
 		// Сделки
 		*SalesTypesResponse | *SalesGetByChangeStageResponse |
-		*SalesFilterResponse | *SalesUpdateResponse
+		*SalesFilterResponse | *SalesUpdateResponse |
+		// История изменений
+		*HistoryLogResponse
 }
 
 func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[string]string, r T) error {
