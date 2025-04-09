@@ -41,8 +41,6 @@ type SalesFilterParams struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
-//
-// Ограничение 1 запрос == 1 сделка
 func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *SalesFilterParams) (*SalesFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/filter", subdomain)
 
