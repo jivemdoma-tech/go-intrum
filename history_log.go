@@ -16,7 +16,7 @@ type HistoryLogParams struct {
 	Log        [][]*HistoryLogParamsLog // Массив условий
 }
 type HistoryLogParamsLog struct {
-	PropertyID uint64       // ID свойства
+	PropertyID string       // ID свойства
 	Date       [2]time.Time // Выборка за определенный период
 	Value      string       // Предыдущее значение. Одно из значений: @any | @empty | @not-empty
 	Current    string       // Текущее значение. Одно из значений: @any | @empty | @not-empty
@@ -56,8 +56,8 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *Hist
 	for i, logParamsSlice := range inputParams.Log {
 		for j, logParams := range logParamsSlice {
 			// property_id
-			if logParams.PropertyID != 0 {
-				params[fmt.Sprintf("params[log][%d][%d][property_id]", i, j)] = strconv.FormatUint(logParams.PropertyID, 10)
+			if logParams.PropertyID != "" {
+				params[fmt.Sprintf("params[log][%d][%d][property_id]", i, j)] = logParams.PropertyID
 			}
 			// date
 			if !logParams.Date[0].IsZero() {
