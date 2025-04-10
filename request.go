@@ -73,10 +73,19 @@ func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[strin
 
 	err = json.Unmarshal(body, r)
 	if err != nil {
+		rAccessDeny := new(AccessDenyResponse)
+		if err := json.Unmarshal(body, rAccessDeny); err == nil {
+			return fmt.Errorf("error response from intrum for method %s: %s", u, rAccessDeny.Message)
+		}
 		return fmt.Errorf("error decode response body for method %s: %w", u, err)
 	}
 
 	// TODO: Добавить запрос на альтернативный порт 80 при определенных ответах от сервера
 
 	return nil
+}
+
+type AccessDenyResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }

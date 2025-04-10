@@ -9,11 +9,11 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#history
 type HistoryLogParams struct {
-	ObjectType string                   // Обязательно. Одно из значений: stock | customer | sale | request
-	ObjectID   []uint64                 // Массив ID объекта
-	EmployeeID []uint64                 // Массив ID сотрудников, проводивших изменения
-	Date       [2]time.Time             // Выборка за определенный период
-	Log        [][]*HistoryLogParamsLog // Массив условий
+	ObjectType string       // Обязательно. Одно из значений: stock | customer | sale | request
+	ObjectID   []uint64     // Массив ID объекта
+	EmployeeID []uint64     // Массив ID сотрудников, проводивших изменения
+	Date       [2]time.Time // Выборка за определенный период
+	// Log        [][]*HistoryLogParamsLog // Массив условий. Не работает со стороны Intrum.
 }
 type HistoryLogParamsLog struct {
 	PropertyID string       // ID свойства
@@ -52,30 +52,30 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *Hist
 	if !inputParams.Date[1].IsZero() {
 		params["params[date][to]"] = inputParams.Date[1].Format(dateLayout)
 	}
-	// log
-	for i, logParamsSlice := range inputParams.Log {
-		for j, logParams := range logParamsSlice {
-			// property_id
-			if logParams.PropertyID != "" {
-				params[fmt.Sprintf("params[log][%d][%d][property_id]", i, j)] = logParams.PropertyID
-			}
-			// date
-			if !logParams.Date[0].IsZero() {
-				params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(dateLayout)
-			}
-			if !logParams.Date[1].IsZero() {
-				params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(dateLayout)
-			}
-			// value
-			if logParams.Value != "" {
-				params[fmt.Sprintf("params[log][%d][%d][value]", i, j)] = logParams.Value
-			}
-			// current
-			if logParams.Current != "" {
-				params[fmt.Sprintf("params[log][%d][%d][current]", i, j)] = logParams.Current
-			}
-		}
-	}
+	// // log
+	// for i, logParamsSlice := range inputParams.Log {
+	// 	for j, logParams := range logParamsSlice {
+	// 		// property_id
+	// 		if logParams.PropertyID != "" {
+	// 			params[fmt.Sprintf("params[log][%d][%d][property_id]", i, j)] = logParams.PropertyID
+	// 		}
+	// 		// date
+	// 		if !logParams.Date[0].IsZero() {
+	// 			params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(dateLayout)
+	// 		}
+	// 		if !logParams.Date[1].IsZero() {
+	// 			params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(dateLayout)
+	// 		}
+	// 		// value
+	// 		if logParams.Value != "" {
+	// 			params[fmt.Sprintf("params[log][%d][%d][value]", i, j)] = logParams.Value
+	// 		}
+	// 		// current
+	// 		if logParams.Current != "" {
+	// 			params[fmt.Sprintf("params[log][%d][%d][current]", i, j)] = logParams.Current
+	// 		}
+	// 	}
+	// }
 
 	// Получение ответа
 
