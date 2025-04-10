@@ -28,7 +28,7 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *Hist
 
 	// Обязательность параметров
 	if inputParams.ObjectType == "" {
-		return nil, fmt.Errorf("error create request for method history logs: pbject type param is required")
+		return nil, fmt.Errorf("error create request for method history logs: object_type param is required")
 	}
 
 	// Параметры запроса
@@ -61,7 +61,7 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *Hist
 			}
 			// date
 			if !logParams.Date[0].IsZero() {
-				params[fmt.Sprintf("params[log][%d][%d[date][from]", i, j)] = logParams.Date[0].Format(dateLayout)
+				params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(dateLayout)
 			}
 			if !logParams.Date[1].IsZero() {
 				params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(dateLayout)
