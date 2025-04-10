@@ -23,11 +23,11 @@ type HistoryLogParamsLog struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#history
-func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *HistoryLogParams) (*HistoryLogResponse, error) {
+func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *HistoryLogParams) (*HistoryLogResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/history/log", subdomain)
 
 	// Обязательность параметров
-	if inputParams.ObjectType == "" {
+	if inParams.ObjectType == "" {
 		return nil, fmt.Errorf("error create request for method history logs: object_type param is required")
 	}
 
@@ -36,21 +36,23 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inputParams *Hist
 	params := make(map[string]string, 8)
 
 	// object_type
-	params["params[object_type]"] = inputParams.ObjectType
+	params["params[object_type]"] = inParams.ObjectType
 	// object_id
-	for i, id := range inputParams.ObjectID {
+	for i, id := range inParams.ObjectID {
 		params[fmt.Sprintf("params[object_id][%d]", i)] = strconv.FormatUint(id, 10)
 	}
 	// employee_id
-	for i, id := range inputParams.EmployeeID {
+	for i, id := range inParams.EmployeeID {
 		params[fmt.Sprintf("params[employee_id][%d]", i)] = strconv.FormatUint(id, 10)
 	}
 	// date
-	if !inputParams.Date[0].IsZero() {
-		params["params[date][from]"] = inputParams.Date[0].Format(dateLayout)
+	if !inParams.Date[0].IsZero() {
+		reqDate := time.Date(inParams.Date[0].Year(), inParams.Date[0].Month(), inParams.Date[0].Day(), 0, 0, 0, 0, inParams.Date[0].Location())
+		params["params[date][from]"] = reqDate.Format(datetimeLayout)
 	}
-	if !inputParams.Date[1].IsZero() {
-		params["params[date][to]"] = inputParams.Date[1].Format(dateLayout)
+	if !inParams.Date[1].IsZero() {
+		reqDate := time.Date(inParams.Date[1].Year(), inParams.Date[1].Month(), inParams.Date[1].Day(), 23, 59, 59, 0, inParams.Date[1].Location())
+		params["params[date][to]"] = reqDate.Format(datetimeLayout)
 	}
 	// // log
 	// for i, logParamsSlice := range inputParams.Log {
