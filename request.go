@@ -21,7 +21,7 @@ var client = &http.Client{
 
 type respStruct interface {
 	// Объекты
-	*StockInsertResponse | *StockUpdateResponse | *StockFilterResponse |
+	*StockInsertResponse | *StockUpdateResponse | *StockFilterResponse | *StockAttachResponse |
 		// Заявки
 		*ApplicationFilterResponse |
 		// Сделки
