@@ -1,8 +1,8 @@
 package gointrum
 
 type SalesTypesResponse struct {
-	Status string            `json:"status"`
-	Data   []*SalesTypesData `json:"data"`
+	*Response
+	Data   []*SalesTypesData `json:"data,omitempty"`
 }
 type SalesTypesData struct {
 	ID     uint16        `json:"id,string"`

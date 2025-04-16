@@ -6,8 +6,8 @@ import (
 )
 
 type HistoryLogResponse struct {
-	Status string            `json:"status"`
-	Data   []*HistoryLogData `json:"data"`
+	*Response
+	Data []*HistoryLogData `json:"data,omitempty"`
 }
 type HistoryLogData struct {
 	ObjectID   uint64    `json:"object_id,string"`

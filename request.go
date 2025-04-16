@@ -11,44 +11,29 @@ import (
 	"time"
 )
 
-// Стандартное время ожидания ответа от Intrum API
-const stdTimeout time.Duration = time.Duration(10 * time.Minute)
-
 // Клиент для запросов к Intrum API
 var client = &http.Client{
-	Timeout: stdTimeout,
+	Timeout: time.Duration(10 * time.Minute),
 }
 
+// Интерфейс структуры API-ответа
 type respStruct interface {
-	// Объекты
-	*StockInsertResponse | *StockUpdateResponse | *StockFilterResponse | *StockAttachResponse |
-		// Заявки
-		*ApplicationFilterResponse |
-		// Сделки
-		*SalesTypesResponse | *SalesGetByChangeStageResponse |
-		*SalesFilterResponse | *SalesUpdateResponse |
-		// История изменений
-		*HistoryLogResponse
+	stubInterface()
 }
 
-func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[string]string, r T) error {
-	ctx, cancel := context.WithTimeout(ctx, stdTimeout)
-	defer cancel()
-
-	// Параметры запроса
-
+func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) error {
 	params := make(url.Values, len(p)+1)
-	params.Set("apikey", apiKey)
+	params.Set("apikey", apiKey) // Параметр, содержащий API-ключ
 	for k, v := range p {
 		params.Set(k, v)
 	}
-	httpBody := strings.NewReader(params.Encode())
+	httpBody := strings.NewReader(params.Encode()) // Тело запроса
 
-	// Новый запрос
+	// Формирование нового запроса
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, httpBody)
 	if err != nil {
-		return fmt.Errorf("error create request for method %s: %w", u, err)
+		return fmt.Errorf("failed to create request for method %s: %w", u, err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -56,7 +41,7 @@ func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[strin
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("error do request for method %s: %w", u, err)
+		return fmt.Errorf("failed to do request for method %s: %w", u, err)
 	}
 	defer resp.Body.Close()
 
@@ -64,30 +49,18 @@ func rawRequest[T respStruct](ctx context.Context, apiKey, u string, p map[strin
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("error read response body for method %s: %w", u, err)
+		return fmt.Errorf("failed to read response body from method %s: %w", u, err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error response from intrum for method %s: %d", u, resp.StatusCode)
+	if resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("status code %d from method %s: %w", resp.StatusCode, u, err)
 	}
 
 	// Декодирование ответа
 
-	err = json.Unmarshal(body, r)
-	if err != nil {
-		rAccessDeny := new(AccessDenyResponse)
-		if err := json.Unmarshal(body, rAccessDeny); err == nil {
-			return fmt.Errorf("error response from intrum for method %s: %s", u, rAccessDeny.Message)
-		}
-		return fmt.Errorf("error decode response body for method %s: %w", u, err)
+	if err := json.Unmarshal(body, r); err != nil {
+		return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
 	}
 
-	// TODO: Добавить запрос на альтернативный порт 80 при определенных ответах от сервера
-
 	return nil
-}
-
-type AccessDenyResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
 }

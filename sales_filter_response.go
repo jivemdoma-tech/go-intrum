@@ -8,8 +8,8 @@ import (
 )
 
 type SalesFilterResponse struct {
-	Status string           `json:"status"`
-	Data   *SalesFilterData `json:"data"`
+	*Response
+	Data   *SalesFilterData `json:"data,omitempty"`
 }
 type SalesFilterData struct {
 	List []*Sale `json:"list"`
