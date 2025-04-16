@@ -1,8 +1,8 @@
 package gointrum
 
 type StockAttachResponse struct {
-	Status string                      `json:"status"`
-	Data   map[string]*StockAttachData `json:"data"`
+	*Response
+	Data   map[string]*StockAttachData `json:"data,omitempty"`
 }
 
 type StockAttachData struct {
