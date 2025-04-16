@@ -12,7 +12,7 @@ type StockAttachParams struct {
 
 // StockAttach. Ссылка на метод: https://www.intrumnet.com/api/#stock-attach
 func StockAttach(ctx context.Context, subdomain, apiKey string, params *StockAttachParams) (*StockAttachResponse, error) {
-	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/applications/filter", subdomain)
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/attach", subdomain)
 
 	// Параметры запроса
 
