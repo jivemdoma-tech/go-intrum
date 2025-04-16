@@ -6,4 +6,6 @@ type Response struct {
 	Message string `json:"message,omitempty"`
 }
 
-func (r *Response) stubInterface() {}
+func (r *Response) GetErrorMessage() string {
+	return r.Message
+}

@@ -18,7 +18,7 @@ var client = &http.Client{
 
 // Интерфейс структуры API-ответа
 type respStruct interface {
-	stubInterface()
+	GetErrorMessage() string
 }
 
 func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) error {
@@ -53,13 +53,19 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 	}
 
 	if resp.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("status code %d from method %s: %w", resp.StatusCode, u, err)
+		return fmt.Errorf("status code %d from method %s", resp.StatusCode, u)
 	}
 
 	// Декодирование ответа
 
 	if err := json.Unmarshal(body, r); err != nil {
 		return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
+	}
+
+	// Проверка ответ с ошибкой
+
+	if r.GetErrorMessage() != "" {
+		return fmt.Errorf("error code %s from method %s", r.GetErrorMessage(), u)
 	}
 
 	return nil
