@@ -8,18 +8,16 @@ import (
 )
 
 type ApplicationFilterResponse struct {
-	Status string                 `json:"status"`
-	Data   *ApplicationFilterData `json:"data"`
+	*Response
+	Data *ApplicationFilterData `json:"data,omitempty"`
 }
-
 type ApplicationFilterData struct {
 	List  []*Application `json:"list"`
 	Count bool           `json:"count"`
 }
-
 type Application struct {
 	ID                   uint64                       `json:"id,string"`
-	Publish              bool                         `json:"publish,string"`
+	Publish              string                       `json:"publish"`
 	EmployeeID           uint64                       `json:"employee_id,string"`
 	CustomerID           uint64                       `json:"customer_id,string"`
 	VisitID              uint64                       `json:"visit_id,string"`
@@ -32,11 +30,10 @@ type Application struct {
 	Status               string                       `json:"status"`
 	RequestActivityType  string                       `json:"request_activity_type"`
 	RequestActivityDate  time.Time                    `json:"request_activity_date"`
-	RequestCreatorID     *uint64                      `json:"request_creator_id,string"`
+	RequestCreatorID     any                          `json:"request_creator_id"`
 	AdditionalEmployeeID []any                        `json:"additional_employee_id"`
-	Fields               map[string]*ApplicationField `json:"fields,omitempty"`
+	Fields               map[string]*ApplicationField `json:"fields"`
 }
-
 type ApplicationField struct {
 	Datatype string `json:"datatype"`
 	Value    any    `json:"value"`

@@ -26,10 +26,7 @@ type ApplicationFilterParams struct {
 	Page             uint16           // номер страницы выборки (нумерация с 1)
 	Publish          string           // 1 - активные, 0 - удаленные, по умолчанию 1
 	Limit            uint16           // число записей в выборке (макс. 500)
-	CountTotal       string           // подсчет общего количества найденых записей, 1 - считать, 0 - нет (по умолчанию 0)
-	OnlyCountField   string           // 1 - вывести в ответе только количество, 0 - стандартный вывод (по умолчанию 0)
 	SliceFields      []uint64         // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
-	// Log // TODO
 }
 
 func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *ApplicationFilterParams) (*ApplicationFilterResponse, error) {
