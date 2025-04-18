@@ -46,7 +46,7 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 		req2, _ := http.NewRequestWithContext(ctx, http.MethodPost, u2, httpBody)
 		req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		// Отправка запасного запроса на сервер
-		resp, err = client.Do(req)
+		resp, err = client.Do(req2)
 		if err != nil {
 			return fmt.Errorf("failed to do request for method %s: %w", u, err)
 		}
