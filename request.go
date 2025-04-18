@@ -27,11 +27,10 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 	for k, v := range p {
 		params.Set(k, v)
 	}
-	httpBody := strings.NewReader(params.Encode()) // Тело запроса
 
 	// Формирование нового запроса
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, httpBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(params.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create request for method %s: %w", u, err)
 	}
@@ -41,14 +40,17 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 
 	resp, err := client.Do(req)
 	if err != nil {
-		// Формирование запасного запроса
-		u2 := strings.Replace(u, "81", "80", -1)
-		req2, _ := http.NewRequestWithContext(ctx, http.MethodPost, u2, httpBody)
-		req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		// Отправка запасного запроса на сервер
-		resp, err = client.Do(req2)
+		uBackup := strings.Replace(u, "81", "80", -1)
+		// Запасной запрос
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
 		if err != nil {
-			return fmt.Errorf("failed to do request for method %s: %w", u, err)
+			return fmt.Errorf("failed to create request for method %s: %w", uBackup, err)
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		// Отправка запасного запроса на сервер
+		resp, err = client.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to do request for method %s: %w", uBackup, err)
 		}
 	}
 	defer resp.Body.Close()
@@ -70,10 +72,41 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 		return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
 	}
 
-	// Проверка ответ с ошибкой
+	// Проверка ответ с ошибкой // TODO: Разгрузить логику
 
-	if r.GetErrorMessage() != "" {
-		return fmt.Errorf("error code %s from method %s", r.GetErrorMessage(), u)
+	switch r.GetErrorMessage() {
+	case "":
+		break
+	default:
+		uBackup := strings.Replace(u, "81", "80", -1)
+		// Запасной запрос
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
+		if err != nil {
+			return fmt.Errorf("failed to create request for method %s: %w", uBackup, err)
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		// Отправка запасного запроса на сервер
+		resp, err = client.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to do request for method %s: %w", uBackup, err)
+		}
+		defer resp.Body.Close()
+		// Обработка ответа от сервера
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body from method %s: %w", uBackup, err)
+		}
+		if resp.StatusCode >= http.StatusMultipleChoices {
+			return fmt.Errorf("status code %d from method %s", resp.StatusCode, uBackup)
+		}
+		// Декодирование ответа
+		if err := json.Unmarshal(body, r); err != nil {
+			return fmt.Errorf("failed to decode response body from method %s: %w", uBackup, err)
+		}
+		// Проверка ответ с ошибкой
+		if r.GetErrorMessage() != "" {
+			return fmt.Errorf("error code %s from method %s", r.GetErrorMessage(), u)
+		}
 	}
 
 	return nil
