@@ -40,6 +40,8 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 
 	resp, err := client.Do(req)
 	if err != nil {
+		time.Sleep(time.Minute) // Ожидание в 1 минуту
+
 		uBackup := strings.Replace(u, "81", "80", -1)
 		// Запасной запрос
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
@@ -78,6 +80,8 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 	case "":
 		break
 	default:
+		time.Sleep(time.Minute) // Ожидание в 1 минуту
+
 		uBackup := strings.Replace(u, "81", "80", -1)
 		// Запасной запрос
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
