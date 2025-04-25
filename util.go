@@ -10,6 +10,10 @@ const (
 	datetimeLayout string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
 	dateLayout     string = "2006-01-02"          // Формат даты Intrum
 	timeLayout     string = "15:04:05"            // Формат времени Intrum
+	
+	DatetimeLayout string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
+	DateLayout     string = "2006-01-02"          // Формат даты Intrum
+	TimeLayout     string = "15:04:05"            // Формат времени Intrum
 
 	TypeStock    string = "stock"    // Тип сущности "Объект"
 	TypeCustomer string = "customer" // Тип сущности "Контакт"
