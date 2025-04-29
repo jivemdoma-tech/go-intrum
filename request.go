@@ -12,16 +12,20 @@ import (
 )
 
 // Клиент для запросов к Intrum API
-var client = &http.Client{
-	Timeout: time.Duration(10 * time.Minute),
-}
+var client = &http.Client{Timeout: time.Duration(time.Minute * 10)}
 
 // Интерфейс структуры API-ответа
 type respStruct interface {
 	GetErrorMessage() string
 }
 
-func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) error {
+func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
 	params := make(url.Values, len(p)+1)
 	params.Set("apikey", apiKey) // Параметр, содержащий API-ключ
 	for k, v := range p {
