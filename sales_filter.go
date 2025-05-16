@@ -76,6 +76,7 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	for k, v := range inputParams.Fields {
 		params[fmt.Sprintf("params[fields][%d][id]", count)] = fmt.Sprint(k)
 		params[fmt.Sprintf("params[fields][%d][value]", count)] = v
+		count++
 		// TODO: Добавить внешнюю функцию обработки value под формат php
 	}
 
