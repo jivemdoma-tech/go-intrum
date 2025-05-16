@@ -12,7 +12,7 @@ import (
 )
 
 // Клиент для запросов к Intrum API
-var client = &http.Client{Timeout: time.Duration(time.Minute * 10)}
+var client = http.DefaultClient
 
 // Интерфейс структуры API-ответа
 type respStruct interface {
@@ -44,7 +44,7 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 
 	resp, err := client.Do(req)
 	if err != nil {
-		time.Sleep(time.Minute) // Ожидание в 1 минуту
+		time.Sleep(time.Minute * 6) // Ожидание в 6 минут
 
 		uBackup := strings.Replace(u, "81", "80", -1)
 		// Запасной запрос
@@ -84,7 +84,7 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 	case "":
 		break
 	default:
-		time.Sleep(time.Minute) // Ожидание в 1 минуту
+		time.Sleep(time.Minute * 6) // Ожидание в 6 минут
 
 		uBackup := strings.Replace(u, "81", "80", -1)
 		// Запасной запрос
