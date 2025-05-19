@@ -22,100 +22,70 @@ type respStruct interface {
 func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			return
+			err = fmt.Errorf("panic occured: %v", r)
 		}
 	}()
 
+	// Параметры запроса
+
 	params := make(url.Values, len(p)+1)
-	params.Set("apikey", apiKey) // Параметр, содержащий API-ключ
+	params.Set("apikey", apiKey)
 	for k, v := range p {
 		params.Set(k, v)
 	}
 
-	// Формирование нового запроса
+	// Запрос
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(params.Encode()))
-	if err != nil {
-		return fmt.Errorf("failed to create request for method %s: %w", u, err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Цикл для повторного запроса на запасной порт в случае ошибки
+	for _, isBackupRequest := range []bool{false, true} {
+		if isBackupRequest {
+			u = strings.Replace(u, "81", "80", -1)
+		}
 
-	// Отправка запроса на сервер
-
-	resp, err := client.Do(req)
-	if err != nil {
-		time.Sleep(time.Minute * 6) // Ожидание в 6 минут
-
-		uBackup := strings.Replace(u, "81", "80", -1)
-		// Запасной запрос
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
+		// Формирование нового запроса
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(params.Encode()))
 		if err != nil {
-			return fmt.Errorf("failed to create request for method %s: %w", uBackup, err)
+			return fmt.Errorf("failed to create request for method %s: %w", u, err)
 		}
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		// Отправка запасного запроса на сервер
-		resp, err = client.Do(req)
+		// Отправка запроса на сервер
+		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("failed to do request for method %s: %w", uBackup, err)
-		}
-	}
-	defer resp.Body.Close()
-
-	// Обработка ответа от сервера
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body from method %s: %w", u, err)
-	}
-
-	if resp.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("status code %d from method %s", resp.StatusCode, u)
-	}
-
-	// Декодирование ответа
-
-	if err := json.Unmarshal(body, r); err != nil {
-		return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
-	}
-
-	// Проверка ответ с ошибкой // TODO: Разгрузить логику
-
-	switch r.GetErrorMessage() {
-	case "":
-		break
-	default:
-		time.Sleep(time.Minute * 6) // Ожидание в 6 минут
-
-		uBackup := strings.Replace(u, "81", "80", -1)
-		// Запасной запрос
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, uBackup, strings.NewReader(params.Encode()))
-		if err != nil {
-			return fmt.Errorf("failed to create request for method %s: %w", uBackup, err)
-		}
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		// Отправка запасного запроса на сервер
-		resp, err = client.Do(req)
-		if err != nil {
-			return fmt.Errorf("failed to do request for method %s: %w", uBackup, err)
+			return fmt.Errorf("failed to do request for method %s: %w", u, err)
 		}
 		defer resp.Body.Close()
-		// Обработка ответа от сервера
+
+		// Ответ
+
+		// Чтение ответа от сервера
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to read response body from method %s: %w", uBackup, err)
+			return fmt.Errorf("failed to read response body from method %s: %w", u, err)
 		}
+		// Non-2xx status code
 		if resp.StatusCode >= http.StatusMultipleChoices {
-			return fmt.Errorf("status code %d from method %s", resp.StatusCode, uBackup)
+			if isBackupRequest {
+				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u)
+			}
+			// Запрос на запасной порт
+			time.Sleep(time.Minute * 1)
+			continue
 		}
 		// Декодирование ответа
 		if err := json.Unmarshal(body, r); err != nil {
-			return fmt.Errorf("failed to decode response body from method %s: %w", uBackup, err)
+			return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
 		}
-		// Проверка ответ с ошибкой
-		if r.GetErrorMessage() != "" {
-			return fmt.Errorf("error code %s from method %s", r.GetErrorMessage(), u)
+		// Повторный запрос при ошибке от сервера
+		if errMessage := r.GetErrorMessage(); errMessage != "" {
+			if isBackupRequest {
+				return fmt.Errorf("error response from method %s: %s", u, errMessage)
+			}
+			// Запрос на запасной порт
+			if strings.Contains(errMessage, "SERVER_IS_OVERLOADED") {
+				time.Sleep(time.Minute * 5)
+			}
+			continue
 		}
 	}
-
 	return nil
 }
