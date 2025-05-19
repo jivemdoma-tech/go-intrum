@@ -7,7 +7,7 @@ import (
 
 type SalesGetByChangeStageResponse struct {
 	*Response
-	Data   *SalesGetByChangeStageData `json:"data,omitempty"`
+	Data *SalesGetByChangeStageData `json:"data,omitempty"`
 }
 type SalesGetByChangeStageData struct {
 	List []*SalesGetByChangeStageDataList `json:"list"`

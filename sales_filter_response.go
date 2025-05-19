@@ -9,7 +9,7 @@ import (
 
 type SalesFilterResponse struct {
 	*Response
-	Data   *SalesFilterData `json:"data,omitempty"`
+	Data *SalesFilterData `json:"data,omitempty"`
 }
 type SalesFilterData struct {
 	List []*Sale `json:"list"`

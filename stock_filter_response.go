@@ -9,7 +9,7 @@ import (
 
 type StockFilterResponse struct {
 	*Response
-	Data   *StockFilterData `json:"data,omitempty"`
+	Data *StockFilterData `json:"data,omitempty"`
 }
 type StockFilterData struct {
 	List []*Stock `json:"list"`
