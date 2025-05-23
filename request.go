@@ -86,6 +86,7 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 			}
 			continue
 		}
+		break
 	}
 	return nil
 }
