@@ -51,7 +51,12 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 		// Отправка запроса на сервер
 		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("failed to do request for method %s: %w", u, err)
+			if isBackupRequest {
+				return fmt.Errorf("failed to do request for method %s: %w", u, err)
+			}
+			// Запрос на запасной порт
+			time.Sleep(time.Minute)
+			continue
 		}
 		defer resp.Body.Close()
 
@@ -68,7 +73,7 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u)
 			}
 			// Запрос на запасной порт
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Minute)
 			continue
 		}
 		// Декодирование ответа
@@ -81,8 +86,11 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 				return fmt.Errorf("error response from method %s: %s", u, errMessage)
 			}
 			// Запрос на запасной порт
-			if strings.Contains(errMessage, "SERVER_IS_OVERLOADED") {
+			switch {
+			case strings.Contains(errMessage, "SERVER_IS_OVERLOADED"):
 				time.Sleep(time.Minute * 5)
+			default:
+				time.Sleep(time.Minute)
 			}
 			continue
 		}
