@@ -14,6 +14,7 @@ type SalesFilterParams struct {
 	ByIDs       []uint64 // Получение сделок по массиву ID
 	SliceFields []uint64 // Массив ID дополнительных полей, которые будут в ответе (по умолчанию выводятся все)
 	Limit       uint16   // Число записей в выборке (Макс. 500)
+	Search      string   // Поисковая строка
 	// Массив условий поиска.
 	//	Ключ - ID поля
 	//	Значение - значение поля
@@ -24,7 +25,6 @@ type SalesFilterParams struct {
 	Fields map[uint64]string
 
 	// TODO: Добавить больше параметров запроса
-	// Search         string       // Поисковая строка
 	// Customer       uint32       // ID контакта
 	// Groups         []uint16     // Массив CRM групп
 	// SaleCreatorID  uint32       // ID создателя
@@ -53,6 +53,10 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 		1+ // limit
 		len(inputParams.Fields)*2)
 
+	// search
+	if inputParams.Search != "" {
+		params["params[search]"] = inputParams.Search
+	}
 	// manager
 	addSliceToParams("manager", params, inputParams.Manager)
 	// type
