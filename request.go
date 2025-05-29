@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+const (
+	RespStatusServerIsOverloaded string = "ACCESS_DENY"
+	RespStatusAccessDeny         string = "SERVER_IS_OVERLOADED"
+)
+
 // Клиент для запросов к Intrum API
 var client = http.DefaultClient
 
@@ -87,7 +92,9 @@ func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r re
 			}
 			// Запрос на запасной порт
 			switch {
-			case strings.Contains(errMessage, "SERVER_IS_OVERLOADED"):
+			case strings.Contains(errMessage, RespStatusAccessDeny):
+				return fmt.Errorf("error response from method %s: %s", u, errMessage)
+			case strings.Contains(errMessage, RespStatusServerIsOverloaded):
 				time.Sleep(time.Minute * 5)
 			default:
 				time.Sleep(time.Minute)
