@@ -8,13 +8,16 @@ import (
 )
 
 type TasksCreateParams struct {
-	Title       string            // заголовок задачи //! Обязательно если нет описания
-	Description string            // описание //! Обязательно если нет заголовка
-	Director    uint64            // id постановщика //! Обязательное поле
-	Performer   uint64            // id исполнителя //! Обязательное поле
-	Coperformer []uint64          // Массив id соисполнителей
-	Priority    uint8             // приоритет задачи (1 - низкий, 7 - срочная задача)
-	Attaches    map[string]uint64 // прикрепленные сущности в виде сущность#id (stock | customer | sale | request) через запятую
+	Title       string   // заголовок задачи //! Обязательно если нет описания
+	Description string   // описание //! Обязательно если нет заголовка
+	Director    uint64   // id постановщика //! Обязательное поле
+	Performer   uint64   // id исполнителя //! Обязательное поле
+	Coperformer []uint64 // Массив id соисполнителей
+	Priority    uint8    // приоритет задачи (1 - низкий, 7 - срочная задача)
+	// Мапа прикрепленных сделок
+	//	Ключ - сущность ("stock" | "customer" | "sale" | "request")
+	//	Значение - ID
+	Attaches map[string]uint64
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#tasks-create
@@ -67,7 +70,10 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inputParams *Tas
 	if len(inputParams.Attaches) != 0 {
 		s := make([]string, 0, len(inputParams.Attaches))
 		for k, v := range inputParams.Attaches {
-			s = append(s, k+"#"+strconv.FormatUint(v, 10)) // Форматирует в строку формата 'entity#123456'
+			switch k {
+			case "stock", "customer", "sale", "request":
+				s = append(s, k+"#"+strconv.FormatUint(v, 10)) // Форматирует в строку формата 'entity#123456'
+			}
 		}
 
 		params["params[attaches]"] = strings.Join(s, ",") // Объединение слайса строк через ,
