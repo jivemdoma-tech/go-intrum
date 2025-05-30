@@ -18,6 +18,7 @@ type TasksCreateParams struct {
 	//	Ключ - сущность ("stock" | "customer" | "sale" | "request")
 	//	Значение - ID
 	Attaches map[string]uint64
+	// TODO: Оставшиеся параметры запроса
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#tasks-create
