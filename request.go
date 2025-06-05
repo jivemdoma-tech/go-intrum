@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	RespStatusServerIsOverloaded string = "ACCESS_DENY"
-	RespStatusAccessDeny         string = "SERVER_IS_OVERLOADED"
+	RespStatusServerIsOverloaded string = "SERVER_IS_OVERLOADED"
+	RespStatusAccessDeny         string = "ACCESS_DENY"
 )
 
 // Клиент для запросов к Intrum API
