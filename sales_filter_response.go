@@ -237,13 +237,27 @@ func (s *Sale) GetFieldAttach(fieldID uint64) []uint64 {
 	if !exists {
 		return nil
 	}
-	vAttach, ok := f.Value.([]map[string]string)
-	if !ok || len(vAttach) <= 0 {
+	arr, ok := f.Value.([]interface{})
+	if !ok || len(arr) == 0 {
+		// fmt.Println(f.Value)
 		return nil
 	}
-	vIDs := make([]uint64, 0, len(vAttach))
-	for _, v := range vAttach {
-		if id, err := strconv.ParseUint(v["id"], 10, 64); err == nil {
+	vIDs := make([]uint64, 0, len(arr))
+	for _, v := range arr {
+		m, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		idStr, ok := m["id"].(string)
+		if !ok {
+			// Если по какой-то причине id пришел не строкой, можно попробовать float64 (стандартное поведение encoding/json)
+			if idFloat, ok := m["id"].(float64); ok {
+				vIDs = append(vIDs, uint64(idFloat))
+				continue
+			}
+			continue
+		}
+		if id, err := strconv.ParseUint(idStr, 10, 64); err == nil {
 			vIDs = append(vIDs, id)
 		}
 	}
