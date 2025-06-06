@@ -47,29 +47,28 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 	addSliceToParams("suboffice_id", paramsResult, paramsInput.SubofficeID)
 	// surname
 	if paramsInput.Surname != "" {
-		paramsResult["surname"] = paramsInput.Surname
+		paramsResult["params[surname]"] = paramsInput.Surname
 	}
 	// name
 	if paramsInput.Name != "" {
-		paramsResult["name"] = paramsInput.Name
+		paramsResult["params[name]"] = paramsInput.Name
 	}
 	// email
 	if paramsInput.Email != "" {
-		paramsResult["email"] = paramsInput.Email
+		paramsResult["params[email]"] = paramsInput.Email
 	}
 	// phone
 	if paramsInput.Phone != "" {
-		paramsResult["phone"] = paramsInput.Phone
+		paramsResult["params[phone]"] = paramsInput.Phone
 	}
 	// publish
-	switch paramsInput.Publish {
-	case "1", "0", "ignore":
-		paramsResult["publish"] = paramsInput.Publish
+	if paramsInput.Publish != "" {
+		paramsResult["params[publish]"] = paramsInput.Publish
 	}
 	// boss
 	switch paramsInput.Boss {
 	case "1", "0":
-		paramsResult["boss"] = paramsInput.Boss
+		paramsResult["params[boss]"] = paramsInput.Boss
 	}
 	// slice_fields
 	addSliceToParams("slice_fields", paramsResult, paramsInput.SliceFields)
