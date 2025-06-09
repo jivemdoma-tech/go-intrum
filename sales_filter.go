@@ -28,7 +28,7 @@ type SalesFilterParams struct {
 	// Customer       uint32       // ID контакта
 	// Groups         []uint32     // Массив CRM групп
 	// SaleCreatorID  uint32       // ID создателя
-	// Page           uint32       // Номер страницы выборки
+	// Page           uint16       // Номер страницы выборки
 	// Publish        bool         // 1 - активные, 0 - удаленные, по умолчанию 1
 	// ByID           uint32       // Получение сделки по ее id
 	// Order          string       // Направление сортировки asc - по возрастанию, desc - по убыванию
