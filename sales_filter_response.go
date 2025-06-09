@@ -21,8 +21,8 @@ type Sale struct {
 	EmployeeID           uint64                `json:"employee_id,string"`     // ID ответственного
 	AdditionalEmployeeID []uint64              `json:"additional_employee_id"` // Массив ID доп. ответственных
 	DateCreate           time.Time             `json:"date_create"`            // Дата создания
-	SalesTypeID          uint16                `json:"sales_type_id,string"`   // ID типа активности
-	SaleStageID          uint16                `json:"sale_stage_id,string"`   // ID стадии
+	SalesTypeID          uint32                `json:"sales_type_id,string"`   // ID типа активности
+	SaleStageID          uint32                `json:"sale_stage_id,string"`   // ID стадии
 	SaleName             string                `json:"sale_name"`              // Название сделки
 	SaleActivityType     string                `json:"sale_activity_type"`     // Тип последней активности
 	SaleActivityDate     time.Time             `json:"sale_activity_date"`     // Дата последней активности сделк

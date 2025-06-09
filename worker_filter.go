@@ -7,10 +7,10 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
 type WorkerFilterParams struct {
-	// Group       uint16   // ID CRM группы // TODO
+	// Group       uint32   // ID CRM группы // TODO
 	ID          []uint64 // Массив id сотрудников
-	DivisionID  []uint16 // Массив id отделов
-	SubofficeID []uint16 // Массив id филиалов
+	DivisionID  []uint32 // Массив id отделов
+	SubofficeID []uint32 // Массив id филиалов
 	Surname     string   // Фамилия
 	Name        string   // Имя
 	Email       string   // Email

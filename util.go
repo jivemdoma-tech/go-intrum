@@ -21,7 +21,7 @@ const (
 	TypeRequest  string = "request"  // Тип сущности "Заявка"
 )
 
-func addSliceToParams[T string | uint64 | uint16](fieldName string, params map[string]string, slice []T) {
+func addSliceToParams[T string | uint64 | uint32](fieldName string, params map[string]string, slice []T) {
 	if len(slice) == 0 {
 		return
 	}
@@ -30,7 +30,7 @@ func addSliceToParams[T string | uint64 | uint16](fieldName string, params map[s
 		switch v := any(v).(type) {
 		case string:
 			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = v
-		case uint16:
+		case uint32:
 			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = strconv.FormatUint(uint64(v), 10)
 		case uint64:
 			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = strconv.FormatUint(v, 10)

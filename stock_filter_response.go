@@ -17,9 +17,9 @@ type StockFilterData struct {
 }
 type Stock struct {
 	ID                   uint64                 `json:"id,string"`
-	StockType            uint16                 `json:"stock_type,string"`
-	Type                 uint16                 `json:"type,string"`
-	Parent               uint16                 `json:"parent,string"`
+	StockType            uint32                 `json:"stock_type,string"`
+	Type                 uint32                 `json:"type,string"`
+	Parent               uint32                 `json:"parent,string"`
 	Name                 string                 `json:"name"`
 	DateAdd              time.Time              `json:"date_add"` // TODO
 	Count                bool                   `json:"count"`
@@ -33,7 +33,7 @@ type Stock struct {
 	StockActivityDate    time.Time              `json:"stock_activity_date"` // TODO
 	Publish              bool                   `json:"publish"`
 	Copy                 uint64                 `json:"copy,string"`
-	GroupID              uint16                 `json:"group_id,string"`
+	GroupID              uint32                 `json:"group_id,string"`
 	StockCreatorID       uint64                 `json:"stock_creator_id,string"`
 	Fields               map[uint64]*StockField `json:"fields"`
 	// Log                  interface{}       `json:"log"`

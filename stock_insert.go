@@ -13,7 +13,7 @@ type StockInsertParams struct {
 	Author              uint64   // ID ответственного
 	AdditionalAuthor    []uint64 // Массив ID дополнительных ответственных
 	RelatedWithCustomer uint64   // ID контакта, прикрепленного к объекту
-	GroupID             uint16   // ID группы
+	GroupID             uint32   // ID группы
 	Copy                uint64   // Родительский объект группы
 
 	// Дополнительные поля

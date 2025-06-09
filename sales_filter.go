@@ -9,11 +9,11 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
 type SalesFilterParams struct {
 	Manager     []uint64 // Массив ID ответственных
-	Type        []uint16 // Массив ID типов сделок
-	Stage       []uint16 // Массив ID стадий сделок
+	Type        []uint32 // Массив ID типов сделок
+	Stage       []uint32 // Массив ID стадий сделок
 	ByIDs       []uint64 // Получение сделок по массиву ID
 	SliceFields []uint64 // Массив ID дополнительных полей, которые будут в ответе (по умолчанию выводятся все)
-	Limit       uint16   // Число записей в выборке (Макс. 500)
+	Limit       uint32   // Число записей в выборке (Макс. 500)
 	Search      string   // Поисковая строка
 	// Массив условий поиска.
 	//	Ключ - ID поля
@@ -26,7 +26,7 @@ type SalesFilterParams struct {
 
 	// TODO: Добавить больше параметров запроса
 	// Customer       uint32       // ID контакта
-	// Groups         []uint16     // Массив CRM групп
+	// Groups         []uint32     // Массив CRM групп
 	// SaleCreatorID  uint32       // ID создателя
 	// Page           uint32       // Номер страницы выборки
 	// Publish        bool         // 1 - активные, 0 - удаленные, по умолчанию 1

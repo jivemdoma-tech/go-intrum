@@ -9,12 +9,12 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-update
 type StockUpdateParams struct {
 	ID                  uint64   // ID существующего объекта // ! Обязательно
-	Parent              uint16   // ID категории объекта
+	Parent              uint32   // ID категории объекта
 	Name                string   // Наименования объекта
 	Author              uint64   // ID ответственного
 	AdditionalAuthor    []uint64 // Массив ID доп. ответственных
 	RelatedWithCustomer uint64   // ID контакта, прикрепленного к объекту
-	GroupID             uint16   // Связь с группой объектов. Подробнее о группах: https://www.intrumnet.com/wiki/gruppirovka_produktov___obektov__zhilye_kompleksy__kottedzhnye_poselki_-207
+	GroupID             uint32   // Связь с группой объектов. Подробнее о группах: https://www.intrumnet.com/wiki/gruppirovka_produktov___obektov__zhilye_kompleksy__kottedzhnye_poselki_-207
 	Copy                uint64   // Родительский объект группы
 	// Дополнительные поля
 	//

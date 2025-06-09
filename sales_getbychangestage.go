@@ -11,7 +11,7 @@ type SalesGetByChangeStageParams struct {
 	DateStart time.Time
 	DateEnd   time.Time
 	SaleID    []uint64
-	Stage     []uint16
+	Stage     []uint32
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter-stage-period
