@@ -9,9 +9,14 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/example.php#purchaser-update
 type PurchaserUpdateParams struct {
 	ID uint64 // ID контакта // ! Обязательно
+	// Параметр работает интуитивно и очень интересно. Первый элемент массива - гл. ответственный, остальные - доп. ответственные.
+	// 	Передача {0, n...} удаляет главного ответственного.
+	// 	Передача {n, 0} удаляет доп. ответственных. Передайте {1, 0} чтобы пропустить гл. ответственного.
+	// 	Передача {0, 0} удаляет всех ответственных.
+	Authors []uint64
+	Fields  map[uint64]string
 	//Surname string // Фамилия
 	//Name    string // Имя
-	Fields map[uint64]string
 
 	// TODO: Добавить больше параметров запроса
 }
@@ -34,6 +39,36 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 
 	// id
 	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
+
+	// author + additional_autor
+	if len(inputParams.Authors) != 0 {
+		var (
+			primary    uint64 = inputParams.Authors[0]
+			additional []uint64
+		)
+		if len(inputParams.Authors) >= 2 {
+			additional = inputParams.Authors[1:]
+		}
+		// Гл. ответственный
+		switch {
+		case primary == 0:
+			params["params[0][author]"] = ""
+		case primary == 1:
+			break
+		default:
+			params["params[0][author]"] = strconv.FormatUint(inputParams.Authors[0], 10)
+		}
+		// Доп. ответственные
+		if len(additional) != 0 {
+			switch {
+			case len(additional) == 1 && additional[0] == 0:
+				params["params[0][additional_author]"] = ""
+			default:
+				addSliceToParams("additional_author", params, additional)
+			}
+		}
+	}
+
 	// fields
 	countFields := 0
 	for k, v := range inputParams.Fields {

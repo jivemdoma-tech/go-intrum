@@ -18,23 +18,23 @@ type PurchaserFilterData struct {
 }
 
 type Purchaser struct {
-	ID                   uint64                 `json:"id,string"`
-	GroupID              string                 `json:"group_id"`
-	Name                 string                 `json:"name"`
-	Surname              string                 `json:"surname"`
-	Secondname           string                 `json:"secondname"`
-	ManagerID            uint64                 `json:"manager_id,string"`
-	Phone                []*Phone               `json:"phone"`
-	Address              string                 `json:"address"`
-	CreateDate           time.Time              `json:"create_date"`
-	Comment              string                 `json:"comment"`
-	CustomerActivityType string                 `json:"customer_activity_type"`
-	CustomerActivityDate time.Time              `json:"customer_activity_date"`
-	CustomerCreatorID    uint64                 `json:"customer_creator_id,string"`
+	ID                   uint64                     `json:"id,string"`
+	GroupID              string                     `json:"group_id"`
+	Name                 string                     `json:"name"`
+	Surname              string                     `json:"surname"`
+	Secondname           string                     `json:"secondname"`
+	ManagerID            uint64                     `json:"manager_id,string"`
+	Phone                []*Phone                   `json:"phone"`
+	Address              string                     `json:"address"`
+	CreateDate           time.Time                  `json:"create_date"`
+	Comment              string                     `json:"comment"`
+	CustomerActivityType string                     `json:"customer_activity_type"`
+	CustomerActivityDate time.Time                  `json:"customer_activity_date"`
+	CustomerCreatorID    uint64                     `json:"customer_creator_id,string"`
 	Fields               map[uint64]*PurchaserField `json:"fields"`
-	EmployeeID           uint64                 `json:"employee_id,string"`
-	AdditionalManagerID  []uint64               `json:"additional_manager_id"`
-	AdditionalEmployeeID []uint64               `json:"additional_employee_id"`
+	EmployeeID           uint64                     `json:"employee_id,string"`
+	AdditionalManagerID  []uint64                   `json:"additional_manager_id"`
+	AdditionalEmployeeID []uint64                   `json:"additional_employee_id"`
 	// Markname             string                     `json:"markname"`
 	// Marktype             string                     `json:"marktype"`
 	// Nattype              string                     `json:"nattype"`
