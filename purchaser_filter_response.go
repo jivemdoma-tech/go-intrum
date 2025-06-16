@@ -43,6 +43,7 @@ type Purchaser struct {
 }
 
 type PurchaserField struct {
+	ID       uint64 `json:"id,string"`
 	Datatype string `json:"datatype"`
 	Value    any    `json:"value"`
 }
@@ -59,11 +60,11 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 	// Вспомогательная структура
 	var aux = &struct {
 		*Alias
-		CreateDate           string            `json:"create_date"`
-		CustomerActivityDate string            `json:"customer_activity_date"`
-		AdditionalManagerID  []string          `json:"additional_manager_id"`
-		AdditionalEmployeeID []string          `json:"additional_employee_id"`
-		Fields               []*PurchaserField `json:"fields"`
+		CreateDate           string   `json:"create_date"`
+		CustomerActivityDate string   `json:"customer_activity_date"`
+		AdditionalManagerID  []string `json:"additional_manager_id"`
+		AdditionalEmployeeID []string `json:"additional_employee_id"`
+		Fields               any      `json:"fields"`
 	}{
 		Alias: (*Alias)(p), // Приведение типа к Alias
 	}
@@ -103,6 +104,15 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 		}
 	}
 	p.AdditionalEmployeeID = newSlice
+
+	fields, ok := aux.Fields.([]*PurchaserField)
+	if ok && len(fields) != 0 {
+		newMap := make(map[uint64]*PurchaserField, len(fields))
+		for _, v := range fields {
+			newMap[v.ID] = v
+		}
+		p.Fields = newMap
+	}
 
 	return nil
 }
