@@ -67,12 +67,12 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	addSliceToParams("by_ids", params, inputParams.ByIDs)
 	// slice_fields
 	addSliceToParams("slice_fields", params, inputParams.SliceFields)
-	// limit (макс. 500)
-	switch {
-	case inputParams.Limit > 500:
+	// limit
+	switch l := inputParams.Limit; {
+	case l == 0, l >= 500:
 		params["params[limit]"] = "500"
-	case inputParams.Limit != 0:
-		params["params[limit]"] = strconv.FormatUint(uint64(inputParams.Limit), 10)
+	default:
+		params["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// fields
 	var count int

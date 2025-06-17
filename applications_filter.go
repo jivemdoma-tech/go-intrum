@@ -101,8 +101,12 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[publish]"] = "ignore"
 	}
 	// limit
-	if params.Limit != 0 {
-		p["params[limit]"] = strconv.FormatUint(uint64(params.Limit), 10)
+	// limit
+	switch l := params.Limit; {
+	case l == 0, l >= 500:
+		p["params[limit]"] = "500"
+	default:
+		p["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// slice_fields
 	addSliceToParams("slice_fields", p, params.SliceFields)

@@ -135,11 +135,11 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		params["params[publish]"] = "ignore"
 	}
 	// limit
-	switch {
-	case inputParams.Limit > 500:
+	switch l := inputParams.Limit; {
+	case l == 0, l >= 500:
 		params["params[limit]"] = "500"
-	case inputParams.Limit != 0:
-		params["params[limit]"] = strconv.FormatUint(uint64(inputParams.Limit), 10)
+	default:
+		params["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// group_id
 	if inputParams.GroupID != 0 {
