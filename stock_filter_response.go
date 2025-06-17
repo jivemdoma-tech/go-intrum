@@ -16,12 +16,12 @@ type StockFilterData struct {
 	// Count bool               `json:"count"`
 }
 type Stock struct {
-	ID                   uint64                 `json:"id,string"`
-	StockType            uint32                 `json:"stock_type,string"`
-	Type                 uint32                 `json:"type,string"`
-	Parent               uint32                 `json:"parent,string"`
-	Name                 string                 `json:"name"`
-	DateAdd              time.Time              `json:"date_add"` // TODO
+	ID                   uint64                 `json:"id,string"`         // ID объекта
+	StockType            uint32                 `json:"stock_type,string"` // ID типа объекта
+	Type                 uint32                 `json:"type,string"`       // ID типа объекта
+	Parent               uint32                 `json:"parent,string"`     // ID категории
+	Name                 string                 `json:"name"`              // Название
+	DateAdd              time.Time              `json:"date_add"`          // TODO
 	Count                bool                   `json:"count"`
 	Author               uint64                 `json:"author,string"`
 	EmployeeID           uint64                 `json:"employee_id,string"`
@@ -36,7 +36,7 @@ type Stock struct {
 	GroupID              uint32                 `json:"group_id,string"`
 	StockCreatorID       uint64                 `json:"stock_creator_id,string"`
 	Fields               map[uint64]*StockField `json:"fields"`
-	// Log                  interface{}       `json:"log"`
+	// Log                  interface{}       `json:"log"` // TODO
 }
 type StockField struct {
 	ID    uint64 `json:"id,string"`
