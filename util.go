@@ -25,11 +25,17 @@ func addToParams[T string | uint16 | uint64](params map[string]string, paramName
 	k := fmt.Sprintf("params[%s]", paramName)
 	switch v := any(v).(type) {
 	case string:
-		params[k] = v
+		if v != "" {
+			params[k] = v
+		}
 	case uint16:
-		params[k] = strconv.FormatUint(uint64(v), 10)
+		if v != 0 {
+			params[k] = strconv.FormatUint(uint64(v), 10)
+		}
 	case uint64:
-		params[k] = strconv.FormatUint(v, 10)
+		if v != 0 {
+			params[k] = strconv.FormatUint(v, 10)
+		}
 	}
 }
 
@@ -42,9 +48,13 @@ func addSliceToParams[T string | uint64](params map[string]string, paramName str
 		k := fmt.Sprintf("params[%s][%d]", paramName, i)
 		switch v := any(v).(type) {
 		case string:
-			params[k] = v
+			if v != "" {
+				params[k] = v
+			}
 		case uint64:
-			params[k] = strconv.FormatUint(v, 10)
+			if v != 0 {
+				params[k] = strconv.FormatUint(v, 10)
+			}
 		}
 	}
 }
@@ -53,11 +63,17 @@ func addToMultiParams[T string | uint16 | uint64](params map[string]string, para
 	k := fmt.Sprintf("params[%d][%s]", paramIndex, paramName)
 	switch v := any(v).(type) {
 	case string:
-		params[k] = v
+		if v != "" {
+			params[k] = v
+		}
 	case uint16:
-		params[k] = strconv.FormatUint(uint64(v), 10)
+		if v != 0 {
+			params[k] = strconv.FormatUint(uint64(v), 10)
+		}
 	case uint64:
-		params[k] = strconv.FormatUint(v, 10)
+		if v != 0 {
+			params[k] = strconv.FormatUint(v, 10)
+		}
 	}
 }
 
@@ -70,9 +86,13 @@ func addSliceToMultiParams[T string | uint64](params map[string]string, paramInd
 		k := fmt.Sprintf("params[%d][%s][%d]", paramIndex, paramName, i)
 		switch v := any(v).(type) {
 		case string:
-			params[k] = v
+			if v != "" {
+				params[k] = v
+			}
 		case uint64:
-			params[k] = strconv.FormatUint(v, 10)
+			if v != 0 {
+				params[k] = strconv.FormatUint(v, 10)
+			}
 		}
 	}
 }
