@@ -57,6 +57,11 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 
 	// Цикл для повторного запроса на запасной порт в случае ошибки
 	for _, isBackup := range []bool{false, true} {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 		if isBackup {
 			u.Host = u.Hostname() + ":" + backupPort // Запасной порт
 		}
