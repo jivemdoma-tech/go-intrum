@@ -2,6 +2,7 @@ package gointrum
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -13,30 +14,29 @@ type StockFilterResponse struct {
 }
 type StockFilterData struct {
 	List []*Stock `json:"list"`
-	// Count bool               `json:"count"`
+	// Count bool `json:"count"` // TODO Реализовать через кастомный UnmarshalJSON
 }
 type Stock struct {
-	ID                   uint64                 `json:"id,string"`         // ID объекта
-	StockType            uint64                 `json:"stock_type,string"` // ID типа объекта
-	Type                 uint64                 `json:"type,string"`       // ID типа объекта
-	Parent               uint64                 `json:"parent,string"`     // ID категории
-	Name                 string                 `json:"name"`              // Название
-	DateAdd              time.Time              `json:"date_add"`          // TODO
-	Count                bool                   `json:"count"`
-	Author               uint64                 `json:"author,string"`
-	EmployeeID           uint64                 `json:"employee_id,string"`
-	AdditionalAuthor     []uint64               `json:"additional_author"`
-	AdditionalEmployeeID []uint64               `json:"additional_employee_id"`
-	LastModify           time.Time              `json:"last_modify"` // TODO
-	CustomerRelation     uint64                 `json:"customer_relation,string"`
-	StockActivityType    string                 `json:"stock_activity_type"`
-	StockActivityDate    time.Time              `json:"stock_activity_date"` // TODO
-	Publish              bool                   `json:"publish"`
-	Copy                 uint64                 `json:"copy,string"`
-	GroupID              uint64                 `json:"group_id,string"`
-	StockCreatorID       uint64                 `json:"stock_creator_id,string"`
-	Fields               map[uint64]*StockField `json:"fields"`
-	// Log                  interface{}       `json:"log"` // TODO
+	ID                   uint64                 `json:"id,string"`                // ID объекта
+	Type                 uint64                 `json:"type,string"`              // ID типа объекта
+	Category             uint64                 `json:"parent,string"`            // ID категории
+	Name                 string                 `json:"name"`                     // Название
+	DateCreate           time.Time              `json:"date_add"`                 // Дата создания
+	StockCreatorID       uint64                 `json:"stock_creator_id,string"`  // ID создателя
+	EmployeeID           uint64                 `json:"employee_id,string"`       // ID гл. ответственного
+	AdditionalEmployeeID []uint64               `json:"additional_employee_id"`   // Массив ID доп. ответственных
+	LastModify           time.Time              `json:"last_modify"`              // Дата последнего редактирования
+	CustomerRelation     uint64                 `json:"customer_relation,string"` // ID прикрепленного контакта
+	StockActivityType    string                 `json:"stock_activity_type"`      // Тип последней активности
+	StockActivityDate    time.Time              `json:"stock_activity_date"`      // Дата последней активности
+	Publish              bool                   `json:"publish"`                  // Активен или удален
+	Fields               map[uint64]*StockField `json:"fields"`                   // Поля
+
+	// TODO
+	// Count any `json:"count"`
+	// Log any `json:"log"`
+	// Copy uint64 `json:"copy,string"`
+	// GroupID uint64 `json:"group_id,string"`
 }
 type StockField struct {
 	ID    uint64 `json:"id,string"`
@@ -54,14 +54,12 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	var aux = &struct {
 		*Alias
 		// Дата + время
-		DateAdd           string `json:"date_add"`
+		DateCreate        string `json:"date_add"`
 		LastModify        string `json:"last_modify"`
 		StockActivityDate string `json:"stock_activity_date"`
 		// Bool
-		Count   string `json:"count"`
 		Publish string `json:"publish"`
 		// Массивы
-		AdditionalAuthor     []string      `json:"additional_author"`
 		AdditionalEmployeeID []string      `json:"additional_employee_id"`
 		Fields               []*StockField `json:"fields"`
 	}{
@@ -74,12 +72,12 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 
 	// Замена дата + время
 
-	parsedDate, err := time.Parse(DatetimeLayout, aux.DateAdd)
+	parsedDate, err := time.Parse(DatetimeLayout, aux.DateCreate)
 	switch err {
 	case nil:
-		s.DateAdd = parsedDate
+		s.DateCreate = parsedDate
 	default:
-		s.DateAdd = time.Time{}
+		s.DateCreate = time.Time{}
 	}
 
 	parsedDate, err = time.Parse(DatetimeLayout, aux.LastModify)
@@ -100,15 +98,7 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 
 	// Замена bool
 
-	parsedBool, err := strconv.ParseBool(aux.Count)
-	switch err {
-	case nil:
-		s.Count = parsedBool
-	default:
-		s.Count = false
-	}
-
-	parsedBool, err = strconv.ParseBool(aux.Publish)
+	parsedBool, err := strconv.ParseBool(aux.Publish)
 	switch err {
 	case nil:
 		s.Publish = parsedBool
@@ -118,15 +108,7 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 
 	// Замена массивов
 
-	newSlice := make([]uint64, 0, len(aux.AdditionalAuthor))
-	for _, v := range aux.AdditionalAuthor {
-		if value, err := strconv.ParseUint(v, 10, 64); err == nil {
-			newSlice = append(newSlice, value)
-		}
-	}
-	s.AdditionalAuthor = newSlice
-
-	newSlice = make([]uint64, 0, len(aux.AdditionalEmployeeID))
+	newSlice := make([]uint64, 0, len(aux.AdditionalEmployeeID))
 	for _, v := range aux.AdditionalEmployeeID {
 		if value, err := strconv.ParseUint(v, 10, 64); err == nil {
 			newSlice = append(newSlice, value)
@@ -143,30 +125,40 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Методы получения значений Stock
+// Методы получения значений полей
 
-// Вспомогательная функция получения структуры поля
-func (s *Stock) getField(fieldID uint64) (*StockField, bool) {
-	f, exists := s.Fields[fieldID]
-	return f, exists
+// getField получает структуру поля по ID.
+func (s *Stock) getField(fieldID uint64) *StockField {
+	if f, exists := s.Fields[fieldID]; exists {
+		return f
+	}
+	return nil
 }
 
-func (s *Stock) getFieldMap(fieldID uint64) (map[string]string, bool) {
-	f, exists := s.getField(fieldID)
-	if !exists {
-		return nil, false
+func (s *Stock) getFieldMap(fieldID uint64) map[string]string {
+	f := s.getField(fieldID)
+	if f == nil {
+		return nil
 	}
-	m, ok := f.Value.(map[string]string)
-	if !ok {
-		return nil, false
+	switch m := f.Value.(type) {
+	case map[string]string:
+		return m
+	case map[string]any:
+		mStr := make(map[string]string, len(m))
+		for k, v := range m {
+			mStr[k] = fmt.Sprint(v)
+		}
+		return mStr
 	}
-	return m, true
+	return nil
 }
 
-// text
+// Публичные методы
+
+// Тип поля: "text".
 func (s *Stock) GetFieldText(fieldID uint64) string {
-	f, exists := s.getField(fieldID)
-	if !exists {
+	f := s.getField(fieldID)
+	if f == nil {
 		return ""
 	}
 	vStr, ok := f.Value.(string)
@@ -176,7 +168,7 @@ func (s *Stock) GetFieldText(fieldID uint64) string {
 	return vStr
 }
 
-// radio
+// Тип поля: "radio".
 func (s *Stock) GetFieldRadio(fieldID uint64) bool {
 	vStr := s.GetFieldText(fieldID)
 	if v, err := strconv.ParseBool(vStr); err == nil {
@@ -185,88 +177,91 @@ func (s *Stock) GetFieldRadio(fieldID uint64) bool {
 	return false
 }
 
-// select
+// Тип поля: "select".
 func (s *Stock) GetFieldSelect(fieldID uint64) string {
 	return s.GetFieldText(fieldID)
 }
 
-// multiselect
+// Тип поля: "multiselect".
 func (s *Stock) GetFieldMultiselect(fieldID uint64) []string {
-	return strings.Split(s.GetFieldText(fieldID), ",")
+	if vStr := s.GetFieldText(fieldID); vStr != "" {
+		return strings.Split(vStr, ",")
+	}
+	return nil
 }
 
-// date
+// Тип поля: "date".
 func (s *Stock) GetFieldDate(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, DateLayout)
 }
 
-// datetime
+// Тип поля: "datetime".
 func (s *Stock) GetFieldDatetime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, DatetimeLayout)
 }
 
-// time
+// Тип поля: "time".
 func (s *Stock) GetFieldTime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, TimeLayout)
 }
 
-// integer
+// Тип поля: "integer".
 func (s *Stock) GetFieldInteger(fieldID uint64) int64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseInt(vStr)
 }
 
-// decimal
+// Тип поля: "decimal".
 func (s *Stock) GetFieldDecimal(fieldID uint64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
-// price
+// Тип поля: "price".
 func (s *Stock) GetFieldPrice(fieldID uint64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
-// file
+// Тип поля: "file".
 func (s *Stock) GetFieldFile(fieldID uint64) string {
 	return s.GetFieldText(fieldID)
 }
 
-// point
+// Тип поля: "point".
 func (s *Stock) GetFieldPoint(fieldID uint64) [2]string {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]string{}
 	}
 	return [2]string{m["x"], m["y"]}
 }
 
-// integer_range
+// Тип поля: "integer_range".
 func (s *Stock) GetFieldIntegerRange(fieldID uint64) [2]int64 {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]int64{}
 	}
 	return parseRange(m, parseInt)
 }
 
-// decimal_range
+// Тип поля: "decimal_range".
 func (s *Stock) GetFieldDecimalRange(fieldID uint64) [2]float64 {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]float64{}
 	}
 	return parseRange(m, parseFloat)
 }
 
-// date_range
+// Тип поля: "date_range".
 func (s *Stock) GetFieldDateRange(fieldID uint64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
@@ -274,43 +269,73 @@ func (s *Stock) GetFieldDateRange(fieldID uint64) [2]time.Time {
 	})
 }
 
-// time_range
+// Тип поля: "time_range".
 func (s *Stock) GetFieldTimeRange(fieldID uint64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
+		return parseTime(s, TimeLayout)
 	})
 }
 
-// datetime_range
+// Тип поля: "datetime_range".
 func (s *Stock) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
+		return parseTime(s, DatetimeLayout)
 	})
 }
 
-// attach
+// Тип поля: "attach".
+//
+//	! Внимание ! Возвращает ID только последней прикрепленной сущности.
 func (s *Stock) GetFieldAttach(fieldID uint64) []uint64 {
-	f, exists := s.getField(fieldID)
-	if !exists {
+	// TODO: Подружить метод с кривым API Интрума...
+	f := s.getField(fieldID)
+	if f == nil {
 		return nil
 	}
-	vAttach, ok := f.Value.([]map[string]string)
-	if !ok || len(vAttach) <= 0 {
+	m, ok := f.Value.(map[string]any)
+	if !ok {
 		return nil
 	}
-	vIDs := make([]uint64, 0, len(vAttach))
-	for _, v := range vAttach {
-		if id, err := strconv.ParseUint(v["id"], 10, 64); err == nil {
-			vIDs = append(vIDs, id)
+	idRaw, ok := m["id"]
+	if !ok || idRaw == nil {
+		return nil
+	}
+	switch id := idRaw.(type) {
+	case string:
+		if id == "" || id == "0" {
+			return nil
 		}
+		val, err := strconv.ParseUint(id, 10, 64)
+		if err != nil {
+			return nil
+		}
+		return []uint64{val}
 	}
-	return vIDs
+	return nil
+}
+
+// Обертки методов с боле привычными названиями
+
+func (s *Stock) GetFieldString(fieldID uint64) string {
+	return s.GetFieldText(fieldID)
+}
+
+func (s *Stock) GetFieldFloat(fieldID uint64) float64 {
+	return s.GetFieldDecimal(fieldID)
+}
+
+func (s *Stock) GetFieldFloatRange(fieldID uint64) [2]float64 {
+	return s.GetFieldDecimalRange(fieldID)
+}
+
+func (s *Stock) GetFieldBool(fieldID uint64) bool {
+	return s.GetFieldRadio(fieldID)
 }
