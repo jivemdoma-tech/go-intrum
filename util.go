@@ -3,6 +3,7 @@ package gointrum
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,7 +26,14 @@ func addToParams[T string | uint16 | uint64](params map[string]string, paramName
 	k := fmt.Sprintf("params[%s]", paramName)
 	switch v := any(v).(type) {
 	case string:
-		if v != "" {
+		switch vLower := strings.ToLower(strings.TrimSpace(v)); {
+		case vLower == "true":
+			params[k] = "1"
+		case vLower == "false":
+			params[k] = "0"
+		case vLower == "ignore":
+			params[k] = "ignore"
+		case v != "":
 			params[k] = v
 		}
 	case uint16:
@@ -63,7 +71,14 @@ func addToMultiParams[T string | uint16 | uint64](params map[string]string, para
 	k := fmt.Sprintf("params[%d][%s]", paramIndex, paramName)
 	switch v := any(v).(type) {
 	case string:
-		if v != "" {
+		switch vLower := strings.ToLower(strings.TrimSpace(v)); {
+		case vLower == "true":
+			params[k] = "1"
+		case vLower == "false":
+			params[k] = "0"
+		case vLower == "ignore":
+			params[k] = "ignore"
+		case v != "":
 			params[k] = v
 		}
 	case uint16:
