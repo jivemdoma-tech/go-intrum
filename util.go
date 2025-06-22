@@ -27,9 +27,9 @@ func addToParams[T string | uint16 | uint64](params map[string]string, paramName
 	switch v := any(v).(type) {
 	case string:
 		switch vLower := strings.ToLower(strings.TrimSpace(v)); {
-		case vLower == "true":
+		case vLower == "1", vLower == "true":
 			params[k] = "1"
-		case vLower == "false":
+		case vLower == "0", vLower == "false":
 			params[k] = "0"
 		case vLower == "ignore":
 			params[k] = "ignore"
@@ -72,9 +72,9 @@ func addToMultiParams[T string | uint16 | uint64](params map[string]string, para
 	switch v := any(v).(type) {
 	case string:
 		switch vLower := strings.ToLower(strings.TrimSpace(v)); {
-		case vLower == "true":
+		case vLower == "1", vLower == "true":
 			params[k] = "1"
-		case vLower == "false":
+		case vLower == "0", vLower == "false":
 			params[k] = "0"
 		case vLower == "ignore":
 			params[k] = "ignore"
