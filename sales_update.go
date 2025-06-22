@@ -9,7 +9,7 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
 type SalesUpdateParams struct {
 	ID            uint64 // ID существующего объекта // ! Обязательно
-	SalesStatusID uint32 // ID стадии сделки
+	SalesStatusID uint64 // ID стадии сделки
 
 	// Дополнительные поля
 	//

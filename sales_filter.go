@@ -9,11 +9,11 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
 type SalesFilterParams struct {
 	Manager     []uint64 // Массив ID ответственных
-	Type        []uint32 // Массив ID типов сделок
-	Stage       []uint32 // Массив ID стадий сделок
+	Type        []uint64 // Массив ID типов сделок
+	Stage       []uint64 // Массив ID стадий сделок
 	ByIDs       []uint64 // Получение сделок по массиву ID
 	SliceFields []uint64 // Массив ID дополнительных полей, которые будут в ответе (по умолчанию выводятся все)
-	Limit       uint32   // Число записей в выборке (Макс. 500)
+	Limit       uint64   // Число записей в выборке (Макс. 500)
 	Search      string   // Поисковая строка
 	// Массив условий поиска.
 	//	Ключ - ID поля
@@ -25,12 +25,12 @@ type SalesFilterParams struct {
 	Fields map[uint64]string
 
 	// TODO: Добавить больше параметров запроса
-	// Customer       uint32       // ID контакта
-	// Groups         []uint32     // Массив CRM групп
-	// SaleCreatorID  uint32       // ID создателя
+	// Customer       uint64       // ID контакта
+	// Groups         []uint64     // Массив CRM групп
+	// SaleCreatorID  uint64       // ID создателя
 	// Page           uint16       // Номер страницы выборки
 	// Publish        bool         // 1 - активные, 0 - удаленные, по умолчанию 1
-	// ByID           uint32       // Получение сделки по ее id
+	// ByID           uint64       // Получение сделки по ее id
 	// Order          string       // Направление сортировки asc - по возрастанию, desc - по убыванию
 	// OrderField     string       // Если в качестве значения указать sale_activity_date выборка будет сортироваться по дате активности, create_date - по дате создания, delete_date - по дате удаления, id - по id
 	// Date           [2]time.Time // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период

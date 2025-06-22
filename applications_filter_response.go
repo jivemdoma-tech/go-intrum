@@ -21,7 +21,7 @@ type Application struct {
 	EmployeeID           uint64                       `json:"employee_id,string"`
 	CustomerID           uint64                       `json:"customer_id,string"`
 	VisitID              uint64                       `json:"visit_id,string"`
-	RequestTypeID        uint32                       `json:"request_type_id,string"`
+	RequestTypeID        uint64                       `json:"request_type_id,string"`
 	RequestTypeName      string                       `json:"request_type_name"`
 	Source               string                       `json:"source"`
 	DateCreate           time.Time                    `json:"date_create"`

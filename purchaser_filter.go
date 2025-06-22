@@ -8,7 +8,7 @@ import (
 )
 
 type PurchaserFilterParams struct {
-	Groups              []uint32     // массив id CRM групп
+	Groups              []uint64     // массив id CRM групп
 	Manager             uint64       // id ответственного
 	AdditionlaManagerID []uint64     // массив ID дополнительных ответственных
 	CustomerCreatorID   uint64       // id создателя
@@ -17,7 +17,7 @@ type PurchaserFilterParams struct {
 	Date                [2]time.Time // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
 	Page                uint16       // номер страницы выборки (нумерация с 1)
 	Publish             string       // 1 - активные, 0 - удаленные, по умолчанию 1
-	Limit               uint32       // число записей в выборке (макс. 500)
+	Limit               uint64       // число записей в выборке (макс. 500)
 	SliceFields         []uint64     // массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
 	// массив условий поиска по полям [{id:id свойства,value: значение},{...}] для полей с типом integer,decimal,price,time,date,datetime возможно указывать границы:
 	// 	value: '>= значение' - больше или равно

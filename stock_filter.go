@@ -10,14 +10,14 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
 
 type StockFilterParams struct {
-	Type                uint32       // ID типа объекта (Обязательное поле, если не указаны ByID/ByIDs)
+	Type                uint64       // ID типа объекта (Обязательное поле, если не указаны ByID/ByIDs)
 	ByID                uint64       // ID объекта
 	ByIDs               []uint64     // Массив ID объектов (Все объекты из массива должны быть одного типа)
-	Category            uint32       // ID категории объекта
+	Category            uint64       // ID категории объекта
 	Nested              bool         // Включить вложенные категории
 	Search              string       // Поисковая строка может содержать имя объекта или вхождения в поля с типами text,select,multiselect (полнотекстовый поиск)
 	Manager             []uint64     // Массив ID ответственных
-	Groups              []uint32     // Массив CRM групп
+	Groups              []uint64     // Массив CRM групп
 	StockCreatorID      uint64       // ID создателя
 	IndexFields         bool         // Индексировать массив полей по ID свойства
 	RelatedWithCustomer uint64       // ID контакта, связанного с объектом
@@ -27,10 +27,10 @@ type StockFilterParams struct {
 	DateField           string       // Если в качестве значения указать stock_activity_date, то выборка по параметру последней активности (в этом случае период выборки нужно передавать в параметре date)
 	Page                uint16       // Номер страницы выборки (например, 2 страница с limit 500 на каждой, нумерация page начиная с 1)
 	Publish             string       // "1" - активные | "0" - удаленные | "ignore" - вывод всех (по умолчанию "1")
-	Limit               uint32       // Число записей в выборке, по умолчанию 20, макс. 500
-	GroupID             uint32       // ID группы для группированных объектов
+	Limit               uint64       // Число записей в выборке, по умолчанию 20, макс. 500
+	GroupID             uint64       // ID группы для группированных объектов
 	Copy                uint64       // ID Родителя группы для группированных объектов
-	ObjectGroups        uint32       // Число записей в выборке, по умолчанию 20, макс. 500
+	ObjectGroups        uint64       // Число записей в выборке, по умолчанию 20, макс. 500
 	CountTotal          bool         // Подсчет общего количества найденых записей
 	OnlyPrimaryID       bool         // Вывести в ответе только ID объектов
 	OnlyCountField      bool         // Вывести в ответе только количество

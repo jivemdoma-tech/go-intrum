@@ -14,9 +14,9 @@ type SalesGetByChangeStageData struct {
 }
 type SalesGetByChangeStageDataList struct {
 	SaleID     uint64    `json:"sale_id,string"`
-	SaleTypeID uint32    `json:"sale_type_id,string"`
-	ToStage    uint32    `json:"to_stage,string"`
-	FromStage  uint32    `json:"from_stage,string"`
+	SaleTypeID uint64    `json:"sale_type_id,string"`
+	ToStage    uint64    `json:"to_stage,string"`
+	FromStage  uint64    `json:"from_stage,string"`
 	Date       time.Time `json:"date"`
 }
 

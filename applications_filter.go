@@ -10,14 +10,14 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#applications-filter
 type ApplicationFilterParams struct {
 	Search           string           // поисковая строка (может содержать фамилию, телефон контакта или название заявки)
-	Groups           []uint32         // массив CRM групп
+	Groups           []uint64         // массив CRM групп
 	Manager          []uint64         // id ответственного или массив с несколькими id
 	RequestCreatorID uint64           // id создателя
 	ByID             uint64           // id заявки
 	ByIDs            []uint64         // массив ids заявок
 	Customer         uint64           // id контакта
 	Fields           map[int64]string // массив условий поиска по полям
-	Types            []uint32         // массив id типов
+	Types            []uint64         // массив id типов
 	OrderField       string           // если в качестве значения указать request_activity_date выборка будет сортироваться по дате активности
 	Order            string           // направление сортировки asc - по возрастанию, desc - по убыванию (сортировка только по дате последней активности)
 	Date             [2]time.Time     // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
@@ -25,7 +25,7 @@ type ApplicationFilterParams struct {
 	Statuses         []string         // массив id статусов
 	Page             uint16           // номер страницы выборки (нумерация с 1)
 	Publish          string           // 1 - активные, 0 - удаленные, по умолчанию 1
-	Limit            uint32           // число записей в выборке (макс. 500)
+	Limit            uint64           // число записей в выборке (макс. 500)
 	SliceFields      []uint64         // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
 }
 
