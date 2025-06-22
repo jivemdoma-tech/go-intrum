@@ -3,6 +3,7 @@ package gointrum
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -61,6 +62,12 @@ type StockFilterParams struct {
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
 func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *StockFilterParams) (*StockFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
+
+	// Обязательность ввода параметров
+	if inputParams.Type == 0 && len(inputParams.ByIDs) == 0 {
+		u, _ := url.ParseRequestURI(methodURL)
+		return nil, fmt.Errorf("failed to create request for method %s: %s", u.Path, statusBadParams)
+	}
 
 	// Параметры запроса
 	p := make(map[string]string, 8+
