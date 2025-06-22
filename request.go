@@ -19,89 +19,103 @@ const (
 // Клиент для запросов к Intrum API
 var client = http.DefaultClient
 
-// Интерфейс структуры API-ответа
+// Интерфейс, принимающий структуру API-ответа.
 type respStruct interface {
 	GetErrorMessage() string
 }
 
-func rawRequest(ctx context.Context, apiKey, u string, p map[string]string, r respStruct) (err error) {
+func rawRequest(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
+	const (
+		primaryPort string = "81"
+		backupPort  string = "80"
+	)
+	// Обработка паники
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic occured: %v", r)
 		}
 	}()
 
-	// Параметры запроса
+	// URL запроса
+	u, err := url.ParseRequestURI(reqURL)
+	if err != nil {
+		return err
+	}
+	u.Host = u.Hostname() + ":" + primaryPort // Основной порт
 
-	params := make(url.Values, len(p)+1)
-	params.Set("apikey", apiKey)
-	for k, v := range p {
-		params.Set(k, v)
+	// Параметры запроса
+	p := make(url.Values, len(reqParams)+1)
+	p.Set("apikey", apiKey)
+	for k, v := range reqParams {
+		p.Set(k, v)
 	}
 
 	// Запрос
 
 	// Цикл для повторного запроса на запасной порт в случае ошибки
-	for _, isBackupRequest := range []bool{false, true} {
-		if isBackupRequest {
-			u = strings.Replace(u, "81", "80", -1)
+	for _, isBackup := range []bool{false, true} {
+		if isBackup {
+			u.Host = u.Hostname() + ":" + backupPort // Запасной порт
 		}
 
-		// Формирование нового запроса
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(params.Encode()))
+		// Создание нового запроса
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), strings.NewReader(p.Encode()))
 		if err != nil {
-			return fmt.Errorf("failed to create request for method %s: %w", u, err)
+			return fmt.Errorf("failed to create request for method %s: %w", u.Path, err)
 		}
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		// Отправка запроса на сервер
+		// Отправка запроса
 		resp, err := client.Do(req)
 		if err != nil {
-			if isBackupRequest {
-				return fmt.Errorf("failed to do request for method %s: %w", u, err)
+			if isBackup {
+				return fmt.Errorf("failed to do request for method %s: %w", u.Path, err)
 			}
-			// Запрос на запасной порт
+			// Повторный запрос
 			time.Sleep(time.Minute)
 			continue
 		}
-		defer resp.Body.Close()
 
 		// Ответ
 
-		// Чтение ответа от сервера
+		// Чтение ответа
 		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close() // Закрытие чтения тела ответа
 		if err != nil {
-			return fmt.Errorf("failed to read response body from method %s: %w", u, err)
+			return fmt.Errorf("failed to read response body from method %s: %w", u.Path, err)
 		}
 		// Non-2xx status code
-		if resp.StatusCode >= http.StatusMultipleChoices {
-			if isBackupRequest {
-				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u)
+		if resp.StatusCode >= http.StatusInternalServerError && resp.StatusCode != http.StatusNotImplemented {
+			if isBackup {
+				return fmt.Errorf("%d status code from method %s: %w", resp.StatusCode, u.Path, err)
 			}
-			// Запрос на запасной порт
+			// Повторный запрос
 			time.Sleep(time.Minute)
 			continue
 		}
 		// Декодирование ответа
 		if err := json.Unmarshal(body, r); err != nil {
-			return fmt.Errorf("failed to decode response body from method %s: %w", u, err)
+			return fmt.Errorf("failed to decode response body from method %s: %w", u.Path, err)
 		}
-		// Повторный запрос при ошибке от сервера
-		if errMessage := r.GetErrorMessage(); errMessage != "" {
-			if isBackupRequest {
-				return fmt.Errorf("error response from method %s: %s", u, errMessage)
+		// Обработка ошибки от сервера
+		if errMsg := r.GetErrorMessage(); errMsg != "" {
+			if isBackup {
+				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
 			}
-			// Запрос на запасной порт
+			// Повторный запрос
 			switch {
-			case strings.Contains(errMessage, RespStatusAccessDeny):
-				return fmt.Errorf("error response from method %s: %s", u, errMessage)
-			case strings.Contains(errMessage, RespStatusServerIsOverloaded):
+			case strings.Contains(strings.ToUpper(errMsg), RespStatusAccessDeny):
+				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
+			case strings.Contains(strings.ToUpper(errMsg), RespStatusServerIsOverloaded):
 				time.Sleep(time.Minute * 5)
+				continue
 			default:
-				time.Sleep(time.Minute)
+				time.Sleep(time.Minute * 1)
+				continue
 			}
-			continue
 		}
+
 		break
 	}
+
 	return nil
 }
