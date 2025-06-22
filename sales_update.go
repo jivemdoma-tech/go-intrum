@@ -55,7 +55,7 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	// Получение ответа
 
 	var resp SalesUpdateResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 

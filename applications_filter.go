@@ -113,7 +113,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 	// Получение ответа
 
 	resp := new(ApplicationFilterResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, p, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 

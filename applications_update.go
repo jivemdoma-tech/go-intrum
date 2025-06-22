@@ -68,7 +68,7 @@ func ApplicationsUpdate(ctx context.Context, subdomain, apiKey string, inputPara
 	// Получение ответа
 
 	resp := new(ApplicationsUpdateResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, params, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, resp); err != nil {
 		return nil, err
 	}
 

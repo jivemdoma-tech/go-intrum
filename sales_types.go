@@ -16,7 +16,7 @@ func SalesTypes(ctx context.Context, subdomain, apiKey string) (*SalesTypesRespo
 	// Получение ответа
 
 	var resp SalesTypesResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 

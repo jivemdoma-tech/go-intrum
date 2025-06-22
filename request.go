@@ -24,7 +24,7 @@ type respStruct interface {
 	GetErrorMessage() string
 }
 
-func rawRequest(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
+func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
 	const (
 		primaryPort string = "81"
 		backupPort  string = "80"

@@ -83,7 +83,7 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inputParams *Tas
 	// Получение ответа
 
 	resp := new(TasksCreateResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, params, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, resp); err != nil {
 		return nil, err
 	}
 

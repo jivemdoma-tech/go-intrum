@@ -83,7 +83,7 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 	// Обработка ответа
 
 	resp := new(WorkerFilterResponse)
-	if err := rawRequest(ctx, apiKey, u, paramsResult, resp); err != nil {
+	if err := request(ctx, apiKey, u, paramsResult, resp); err != nil {
 		return nil, err
 	}
 

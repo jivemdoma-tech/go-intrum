@@ -10,7 +10,7 @@ func WorkerFiliation(ctx context.Context, subdomain, apiKey string) (*WorkerFili
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/worker/filiation", subdomain)
 
 	resp := new(WorkerFiliationResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, nil, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, nil, resp); err != nil {
 		return nil, err
 	}
 

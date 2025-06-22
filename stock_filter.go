@@ -179,7 +179,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	// Получение ответа
 
 	var resp StockFilterResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 

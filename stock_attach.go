@@ -23,7 +23,7 @@ func StockAttach(ctx context.Context, subdomain, apiKey string, params *StockAtt
 	// Получение ответа
 
 	resp := new(StockAttachResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, p, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 

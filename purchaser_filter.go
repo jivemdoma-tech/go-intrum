@@ -101,7 +101,7 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	// Получение ответа
 
 	resp := new(PurchaserFilterResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, p, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 

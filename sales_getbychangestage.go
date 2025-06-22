@@ -38,7 +38,7 @@ func SalesGetByChangeStage(ctx context.Context, subdomain, apiKey string, inputP
 	// Получение ответа
 
 	var resp SalesGetByChangeStageResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 
