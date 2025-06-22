@@ -293,7 +293,7 @@ func (s *Stock) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
 
 // Тип поля: "attach".
 //
-//	! Внимание ! Возвращает ID только последней прикрепленной сущности.
+//	! ВНИМАНИЕ ! Возвращает ID только последней прикрепленной сущности.
 func (s *Stock) GetFieldAttach(fieldID uint64) []uint64 {
 	// TODO: Подружить метод с кривым API Интрума...
 	f := s.getField(fieldID)
