@@ -12,8 +12,11 @@ import (
 )
 
 const (
-	RespStatusServerIsOverloaded string = "SERVER_IS_OVERLOADED"
-	RespStatusAccessDeny         string = "ACCESS_DENY"
+	statusAccessDeny         string = "ACCESS_DENY"
+	statusLimitExceeded      string = "LIMIT_EXCEEDED"
+	statusBadRequest         string = "BAD_REQUEST"
+	statusBadParams          string = "BAD_PARAMS"
+	statusServerIsOverloaded string = "SERVER_IS_OVERLOADED"
 )
 
 // Клиент для запросов к Intrum API
@@ -101,13 +104,18 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 			if isBackup {
 				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
 			}
-			// Повторный запрос
 			switch {
-			case strings.Contains(strings.ToUpper(errMsg), RespStatusAccessDeny):
+			case
+				strings.Contains(errMsg, statusAccessDeny),    // ACCESS_DENY
+				strings.Contains(errMsg, statusLimitExceeded), // LIMIT_EXCEEDED
+				strings.Contains(errMsg, statusBadRequest),    // BAD_REQUEST
+				strings.Contains(errMsg, statusBadParams):     // BAD_PARAMS
 				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
-			case strings.Contains(strings.ToUpper(errMsg), RespStatusServerIsOverloaded):
+			// Повторный запрос через 5 минут
+			case strings.Contains(errMsg, statusServerIsOverloaded):
 				time.Sleep(time.Minute * 5)
 				continue
+			// Повторный запрос через минуту
 			default:
 				time.Sleep(time.Minute * 1)
 				continue
