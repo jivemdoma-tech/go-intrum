@@ -67,7 +67,7 @@ func addSliceToMultiParams[T string | uint64](params map[string]string, paramInd
 	}
 
 	for i, v := range paramSlice {
-		k := fmt.Sprintf(fmt.Sprintf("params[%d][%s][%d]", paramIndex, paramName, i))
+		k := fmt.Sprintf("params[%d][%s][%d]", paramIndex, paramName, i)
 		switch v := any(v).(type) {
 		case string:
 			params[k] = v
