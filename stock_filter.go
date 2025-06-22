@@ -10,7 +10,7 @@ import (
 
 type StockFilterParams struct {
 	// ID типа объекта
-	// 	! ОБЯЗАТЕЛЬНО (Если не указан "ByIDs")
+	// 	! ОБЯЗАТЕЛЬНО ! (Если не указан "ByIDs")
 	Type uint64
 
 	// Массив условий поиска.
