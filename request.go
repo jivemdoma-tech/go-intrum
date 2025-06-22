@@ -92,9 +92,9 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 			return fmt.Errorf("failed to read response body from method %s: %w", u.Path, err)
 		}
 		// Non-2xx status code
-		if resp.StatusCode >= http.StatusInternalServerError && resp.StatusCode != http.StatusNotImplemented {
+		if resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode != http.StatusNotImplemented {
 			if isBackup {
-				return fmt.Errorf("%d status code from method %s: %w", resp.StatusCode, u.Path, err)
+				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u.Path)
 			}
 			// Повторный запрос
 			time.Sleep(time.Minute)
