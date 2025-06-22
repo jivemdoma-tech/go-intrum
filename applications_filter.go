@@ -76,10 +76,10 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 	}
 	// date
 	if !params.Date[0].IsZero() {
-		p["params[date][from]"] = params.Date[0].Format(datetimeLayout)
+		p["params[date][from]"] = params.Date[0].Format(DatetimeLayout)
 	}
 	if !params.Date[1].IsZero() {
-		p["params[date][to]"] = params.Date[1].Format(datetimeLayout)
+		p["params[date][to]"] = params.Date[1].Format(DatetimeLayout)
 	}
 	// date_field
 	if params.DateField != "" {

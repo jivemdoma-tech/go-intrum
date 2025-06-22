@@ -24,11 +24,11 @@ func SalesGetByChangeStage(ctx context.Context, subdomain, apiKey string, inputP
 
 	// date_start
 	if !inputParams.DateStart.IsZero() {
-		params["params[date_start]"] = inputParams.DateStart.Format(dateLayout)
+		params["params[date_start]"] = inputParams.DateStart.Format(DateLayout)
 	}
 	// date_end
 	if !inputParams.DateEnd.IsZero() {
-		params["params[date_end]"] = inputParams.DateEnd.Format(dateLayout)
+		params["params[date_end]"] = inputParams.DateEnd.Format(DateLayout)
 	}
 	// sale_id
 	addSliceToParams(params, "sale_id", inputParams.SaleID)

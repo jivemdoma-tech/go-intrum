@@ -74,7 +74,7 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 
 	// Замена дата + время
 
-	parsedDate, err := time.Parse(datetimeLayout, aux.DateAdd)
+	parsedDate, err := time.Parse(DatetimeLayout, aux.DateAdd)
 	switch err {
 	case nil:
 		s.DateAdd = parsedDate
@@ -82,7 +82,7 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 		s.DateAdd = time.Time{}
 	}
 
-	parsedDate, err = time.Parse(datetimeLayout, aux.LastModify)
+	parsedDate, err = time.Parse(DatetimeLayout, aux.LastModify)
 	switch err {
 	case nil:
 		s.LastModify = parsedDate
@@ -90,7 +90,7 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 		s.LastModify = time.Time{}
 	}
 
-	parsedDate, err = time.Parse(datetimeLayout, aux.StockActivityDate)
+	parsedDate, err = time.Parse(DatetimeLayout, aux.StockActivityDate)
 	switch err {
 	case nil:
 		s.StockActivityDate = parsedDate
@@ -198,19 +198,19 @@ func (s *Stock) GetFieldMultiselect(fieldID uint64) []string {
 // date
 func (s *Stock) GetFieldDate(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, dateLayout)
+	return parseTime(vStr, DateLayout)
 }
 
 // datetime
 func (s *Stock) GetFieldDatetime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, datetimeLayout)
+	return parseTime(vStr, DatetimeLayout)
 }
 
 // time
 func (s *Stock) GetFieldTime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, timeLayout)
+	return parseTime(vStr, TimeLayout)
 }
 
 // integer
@@ -270,7 +270,7 @@ func (s *Stock) GetFieldDateRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 
@@ -281,7 +281,7 @@ func (s *Stock) GetFieldTimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 
@@ -292,7 +292,7 @@ func (s *Stock) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 

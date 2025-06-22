@@ -38,7 +38,7 @@ func (s *SalesGetByChangeStageDataList) UnmarshalJSON(data []byte) error {
 	}
 
 	// Замена
-	parsedTime, err := time.Parse(datetimeLayout, aux.Date)
+	parsedTime, err := time.Parse(DatetimeLayout, aux.Date)
 	if err != nil {
 		return err
 	}

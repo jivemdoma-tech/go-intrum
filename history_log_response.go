@@ -36,7 +36,7 @@ func (d *HistoryLogData) UnmarshalJSON(data []byte) error {
 	}
 
 	// Замена
-	parsedDate, err := time.Parse(datetimeLayout, aux.Date)
+	parsedDate, err := time.Parse(DatetimeLayout, aux.Date)
 	if err != nil {
 		return err
 	}

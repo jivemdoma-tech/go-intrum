@@ -75,13 +75,13 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 
 	// Замена
 
-	parsedDate, err := time.Parse(datetimeLayout, aux.CreateDate)
+	parsedDate, err := time.Parse(DatetimeLayout, aux.CreateDate)
 	if err != nil {
 		return err
 	}
 	p.CreateDate = parsedDate
 
-	parsedDate, err = time.Parse(datetimeLayout, aux.CustomerActivityDate)
+	parsedDate, err = time.Parse(DatetimeLayout, aux.CustomerActivityDate)
 	if err != nil {
 		return err
 	}
@@ -172,19 +172,19 @@ func (p *Purchaser) GetFieldMultiselect(fieldID uint64) []string {
 // date
 func (p *Purchaser) GetFieldDate(fieldID uint64) time.Time {
 	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, dateLayout)
+	return parseTime(vStr, DateLayout)
 }
 
 // datetime
 func (p *Purchaser) GetFieldDatetime(fieldID uint64) time.Time {
 	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, datetimeLayout)
+	return parseTime(vStr, DatetimeLayout)
 }
 
 // time
 func (p *Purchaser) GetFieldTime(fieldID uint64) time.Time {
 	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, timeLayout)
+	return parseTime(vStr, TimeLayout)
 }
 
 // integer
@@ -244,7 +244,7 @@ func (p *Purchaser) GetFieldDateRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, dateLayout)
+		return parseTime(p, DateLayout)
 	})
 }
 
@@ -255,7 +255,7 @@ func (p *Purchaser) GetFieldTimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, dateLayout)
+		return parseTime(p, DateLayout)
 	})
 }
 
@@ -266,7 +266,7 @@ func (p *Purchaser) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, dateLayout)
+		return parseTime(p, DateLayout)
 	})
 }
 
