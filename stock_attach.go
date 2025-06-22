@@ -18,7 +18,7 @@ func StockAttach(ctx context.Context, subdomain, apiKey string, params *StockAtt
 
 	p := make(map[string]string, len(params.ID))
 	// id
-	addSliceToParams("id", p, params.ID)
+	addSliceToParams(p, "id", params.ID)
 
 	// Получение ответа
 

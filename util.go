@@ -21,17 +21,58 @@ const (
 	TypeRequest  string = "request"  // Тип сущности "Заявка"
 )
 
-func addSliceToParams[T string | uint64](fieldName string, params map[string]string, slice []T) {
-	if len(slice) == 0 {
+func addToParams[T string | uint16 | uint64](params map[string]string, paramName string, v T) {
+	k := fmt.Sprintf("params[%s]", paramName)
+	switch v := any(v).(type) {
+	case string:
+		params[k] = v
+	case uint16:
+		params[k] = strconv.FormatUint(uint64(v), 10)
+	case uint64:
+		params[k] = strconv.FormatUint(v, 10)
+	}
+}
+
+func addSliceToParams[T string | uint64](params map[string]string, paramName string, paramSlice []T) {
+	if len(paramSlice) == 0 {
 		return
 	}
 
-	for i, v := range slice {
+	for i, v := range paramSlice {
+		k := fmt.Sprintf(fmt.Sprintf("params[%s][%d]", paramName, i))
 		switch v := any(v).(type) {
 		case string:
-			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = v
+			params[k] = v
 		case uint64:
-			params[fmt.Sprintf("params[%s][%d]", fieldName, i)] = strconv.FormatUint(v, 10)
+			params[k] = strconv.FormatUint(v, 10)
+		}
+	}
+}
+
+func addToMultiParams[T string | uint16 | uint64](params map[string]string, paramIndex int, paramName string, v T) {
+	k := fmt.Sprintf("params[%d][%s]", paramIndex, paramName)
+	switch v := any(v).(type) {
+	case string:
+		params[k] = v
+	case uint16:
+		params[k] = strconv.FormatUint(uint64(v), 10)
+	case uint64:
+		params[k] = strconv.FormatUint(v, 10)
+	}
+}
+
+func addSliceToMultiParams[T string | uint64](params map[string]string, paramIndex int, paramName string, paramSlice []T) {
+	if len(paramSlice) == 0 {
+		return
+	}
+
+	for i, v := range paramSlice {
+		k := fmt.Sprintf(fmt.Sprintf("params[%d][%s][%d]", paramIndex, paramName, i))
+		switch v := any(v).(type) {
+		case string:
+			params[k] = v
+		case uint64:
+			params[k] = strconv.FormatUint(v, 10)
 		}
 	}
 }

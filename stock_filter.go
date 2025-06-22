@@ -65,7 +65,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		params["params[byid]"] = strconv.FormatUint(inputParams.ByID, 10)
 	}
 	// by_ids
-	addSliceToParams("by_ids", params, inputParams.ByIDs)
+	addSliceToParams(params, "by_ids", inputParams.ByIDs)
 	// category
 	if inputParams.Category != 0 {
 		params["params[category]"] = strconv.FormatUint(uint64(inputParams.Category), 10)
@@ -82,9 +82,9 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		params["params[search]"] = inputParams.Search
 	}
 	// manager
-	addSliceToParams("manager", params, inputParams.Manager)
+	addSliceToParams(params, "manager", inputParams.Manager)
 	// groups
-	addSliceToParams("groups", params, inputParams.Groups)
+	addSliceToParams(params, "groups", inputParams.Groups)
 	// stock_creator_id
 	if inputParams.StockCreatorID != 0 {
 		params["params[stock_creator_id]"] = strconv.FormatUint(inputParams.StockCreatorID, 10)
@@ -169,7 +169,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		params["params[only_count_field]"] = "1"
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", params, inputParams.SliceFields)
+	addSliceToParams(params, "slice_fields", inputParams.SliceFields)
 	// sum_field
 	if inputParams.SumField != 0 {
 		params["params[sum_field]"] = strconv.FormatUint(inputParams.SumField, 10)

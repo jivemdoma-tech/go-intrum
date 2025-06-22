@@ -64,7 +64,7 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 			case len(additional) == 1 && additional[0] == 0:
 				params["params[0][additional_author]"] = ""
 			default:
-				addSliceToParams("additional_author", params, additional)
+				addSliceToParams(params, "additional_author", additional)
 			}
 		}
 	}

@@ -40,11 +40,11 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 
 	paramsResult := make(map[string]string, 12+len(paramsInput.Fields)+len(paramsInput.SliceFields))
 	// id
-	addSliceToParams("id", paramsResult, paramsInput.ID)
+	addSliceToParams(paramsResult, "id", paramsInput.ID)
 	// division_id
-	addSliceToParams("division_id", paramsResult, paramsInput.DivisionID)
+	addSliceToParams(paramsResult, "division_id", paramsInput.DivisionID)
 	// suboffice_id
-	addSliceToParams("suboffice_id", paramsResult, paramsInput.SubofficeID)
+	addSliceToParams(paramsResult, "suboffice_id", paramsInput.SubofficeID)
 	// surname
 	if paramsInput.Surname != "" {
 		paramsResult["params[surname]"] = paramsInput.Surname
@@ -71,7 +71,7 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 		paramsResult["params[boss]"] = paramsInput.Boss
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", paramsResult, paramsInput.SliceFields)
+	addSliceToParams(paramsResult, "slice_fields", paramsInput.SliceFields)
 	// fields
 	var count int
 	for k, v := range paramsInput.Fields {

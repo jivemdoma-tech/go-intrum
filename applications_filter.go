@@ -40,9 +40,9 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[search]"] = params.Search
 	}
 	// groups
-	addSliceToParams("groups", p, params.Groups)
+	addSliceToParams(p, "groups", params.Groups)
 	// manager
-	addSliceToParams("manager", p, params.Manager)
+	addSliceToParams(p, "manager", params.Manager)
 	// request_creator_id
 	if params.RequestCreatorID != 0 {
 		p["params[request_creator_id]"] = strconv.FormatUint(params.RequestCreatorID, 10)
@@ -52,7 +52,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[byid]"] = strconv.FormatUint(params.ByID, 10)
 	}
 	// by_ids
-	addSliceToParams("by_ids", p, params.ByIDs)
+	addSliceToParams(p, "by_ids", params.ByIDs)
 	// customer
 	if params.Customer != 0 {
 		p["params[customer]"] = strconv.FormatUint(params.Customer, 10)
@@ -65,7 +65,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		fieldCount++
 	}
 	// types
-	addSliceToParams("types", p, params.Types)
+	addSliceToParams(p, "types", params.Types)
 	// order_field
 	if params.OrderField != "" {
 		p["params[order_field]"] = params.OrderField
@@ -86,7 +86,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[date_field]"] = params.DateField
 	}
 	// statuses
-	addSliceToParams("statuses", p, params.Statuses)
+	addSliceToParams(p, "statuses", params.Statuses)
 	// page
 	if params.Page != 0 {
 		p["params[page]"] = strconv.FormatUint(uint64(params.Page), 10)
@@ -109,7 +109,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", p, params.SliceFields)
+	addSliceToParams(p, "slice_fields", params.SliceFields)
 	// Получение ответа
 
 	resp := new(ApplicationFilterResponse)

@@ -44,19 +44,19 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	p := make(map[string]string, 8)
 
 	// groups
-	addSliceToParams("groups", p, params.Groups)
+	addSliceToParams(p, "groups", params.Groups)
 	// manager
 	if params.Manager != 0 {
 		p["params[manager]"] = strconv.FormatUint(params.Manager, 10)
 	}
 	// additional_manager_id
-	addSliceToParams("additional_manager_id", p, params.AdditionlaManagerID)
+	addSliceToParams(p, "additional_manager_id", params.AdditionlaManagerID)
 	// customer_creator_id
 	if params.CustomerCreatorID != 0 {
 		p["params[customer_creator_id ]"] = strconv.FormatUint(params.CustomerCreatorID, 10)
 	}
 	// byid
-	addSliceToParams("byid", p, params.ByID)
+	addSliceToParams(p, "byid", params.ByID)
 	// search
 	if params.Search != "" {
 		p["params[search]"] = params.Search
@@ -89,7 +89,7 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 		p["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", p, params.SliceFields)
+	addSliceToParams(p, "slice_fields", params.SliceFields)
 	// fields
 	fieldCount := 0
 	for k, v := range params.Fields {

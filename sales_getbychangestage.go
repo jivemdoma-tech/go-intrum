@@ -31,9 +31,9 @@ func SalesGetByChangeStage(ctx context.Context, subdomain, apiKey string, inputP
 		params["params[date_end]"] = inputParams.DateEnd.Format(dateLayout)
 	}
 	// sale_id
-	addSliceToParams("sale_id", params, inputParams.SaleID)
+	addSliceToParams(params, "sale_id", inputParams.SaleID)
 	// stage
-	addSliceToParams("stage", params, inputParams.Stage)
+	addSliceToParams(params, "stage", inputParams.Stage)
 
 	// Получение ответа
 

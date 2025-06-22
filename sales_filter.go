@@ -58,15 +58,15 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 		params["params[search]"] = inputParams.Search
 	}
 	// manager
-	addSliceToParams("manager", params, inputParams.Manager)
+	addSliceToParams(params, "manager", inputParams.Manager)
 	// type
-	addSliceToParams("type", params, inputParams.Type)
+	addSliceToParams(params, "type", inputParams.Type)
 	// stage
-	addSliceToParams("stage", params, inputParams.Stage)
+	addSliceToParams(params, "stage", inputParams.Stage)
 	// by_ids
-	addSliceToParams("by_ids", params, inputParams.ByIDs)
+	addSliceToParams(params, "by_ids", inputParams.ByIDs)
 	// slice_fields
-	addSliceToParams("slice_fields", params, inputParams.SliceFields)
+	addSliceToParams(params, "slice_fields", inputParams.SliceFields)
 	// limit
 	switch l := inputParams.Limit; {
 	case l == 0, l >= 500:
