@@ -2,6 +2,7 @@ package gointrum
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -18,28 +19,43 @@ const (
 	TypeRequest  string = "request"  // Тип сущности "Заявка"
 )
 
-func addToParams[T string | uint16 | uint64](params map[string]string, paramName string, v T) {
+func returnErrBadParams(methodURL string) error {
+	u, _ := url.ParseRequestURI(methodURL)
+	return fmt.Errorf("failed to create request for method %s: %s", u.Path, statusBadParams)
+}
+
+func addToParams[T string | uint16 | uint64 | int16 | int64](params map[string]string, paramName string, v T) {
 	k := fmt.Sprintf("params[%s]", paramName)
 	switch v := any(v).(type) {
 	case string:
-		switch vLower := strings.ToLower(strings.TrimSpace(v)); {
-		case vLower == "1", vLower == "true":
-			params[k] = "1"
-		case vLower == "0", vLower == "false":
-			params[k] = "0"
-		case vLower == "ignore":
-			params[k] = "ignore"
-		case v != "":
+		if v != "" {
 			params[k] = v
 		}
-	case uint16:
-		if v != 0 {
-			params[k] = strconv.FormatUint(uint64(v), 10)
+	case int16, uint16:
+		vInt := v.(int64)
+		if vInt > 0 {
+			params[k] = strconv.FormatInt(vInt, 10)
+		}
+	case int64:
+		if v > 0 {
+			params[k] = strconv.FormatInt(v, 10)
 		}
 	case uint64:
-		if v != 0 {
+		if v > 0 {
 			params[k] = strconv.FormatUint(v, 10)
 		}
+	}
+}
+
+func addBoolStringToParams(params map[string]string, paramName string, v string) {
+	k := fmt.Sprintf("params[%s]", paramName)
+	switch vLower := strings.ToLower(strings.TrimSpace(v)); {
+	case vLower == "1", vLower == "true":
+		params[k] = "1"
+	case vLower == "0", vLower == "false":
+		params[k] = "0"
+	case vLower == "ignore":
+		params[k] = "ignore"
 	}
 }
 

@@ -17,31 +17,31 @@ type StockFilterData struct {
 	// Count bool `json:"count"` // TODO Реализовать через кастомный UnmarshalJSON
 }
 type Stock struct {
-	ID                   uint64                 `json:"id,string"`                // ID объекта
-	Type                 uint64                 `json:"type,string"`              // ID типа объекта
-	Category             uint64                 `json:"parent,string"`            // ID категории
-	Name                 string                 `json:"name"`                     // Название
-	DateCreate           time.Time              `json:"date_add"`                 // Дата создания
-	StockCreatorID       uint64                 `json:"stock_creator_id,string"`  // ID создателя
-	EmployeeID           uint64                 `json:"employee_id,string"`       // ID гл. ответственного
-	AdditionalEmployeeID []uint64               `json:"additional_employee_id"`   // Массив ID доп. ответственных
-	LastModify           time.Time              `json:"last_modify"`              // Дата последнего редактирования
-	CustomerRelation     uint64                 `json:"customer_relation,string"` // ID прикрепленного контакта
-	StockActivityType    string                 `json:"stock_activity_type"`      // Тип последней активности
-	StockActivityDate    time.Time              `json:"stock_activity_date"`      // Дата последней активности
-	Publish              bool                   `json:"publish"`                  // Активен или удален
-	Fields               map[uint64]*StockField `json:"fields"`                   // Поля
+	ID                   uint64                 `json:"id,string"`                          // ID объекта
+	Type                 uint64                 `json:"type,string,omitempty"`              // ID типа объекта
+	Category             uint64                 `json:"parent,string,omitempty"`            // ID категории
+	Name                 string                 `json:"name,omitempty"`                     // Название
+	DateCreate           time.Time              `json:"date_add,omitempty"`                 // Дата создания
+	StockCreatorID       uint64                 `json:"stock_creator_id,string,omitempty"`  // ID создателя
+	EmployeeID           uint64                 `json:"employee_id,string,omitempty"`       // ID гл. ответственного
+	AdditionalEmployeeID []uint64               `json:"additional_employee_id,omitempty"`   // Массив ID доп. ответственных
+	LastModify           time.Time              `json:"last_modify,omitempty"`              // Дата последнего редактирования
+	CustomerRelation     uint64                 `json:"customer_relation,string,omitempty"` // ID прикрепленного контакта
+	StockActivityType    string                 `json:"stock_activity_type,omitempty"`      // Тип последней активности
+	StockActivityDate    time.Time              `json:"stock_activity_date,omitempty"`      // Дата последней активности
+	Publish              bool                   `json:"publish,omitempty"`                  // Активен или удален
+	Fields               map[uint64]*StockField `json:"fields,omitempty"`                   // Поля
 
 	// TODO
-	// Count any `json:"count"`
-	// Log any `json:"log"`
-	// Copy uint64 `json:"copy,string"`
-	// GroupID uint64 `json:"group_id,string"`
+	// Count any `json:"count,omitempty"`
+	// Log any `json:"log,omitempty"`
+	// Copy uint64 `json:"copy,string,omitempty"`
+	// GroupID uint64 `json:"group_id,string,omitempty"`
 }
 type StockField struct {
-	ID    uint64 `json:"id,string"`
-	Type  string `json:"type"`
-	Value any    `json:"value"`
+	ID    uint64 `json:"id,string,omitempty"`
+	Type  string `json:"type,omitempty"`
+	Value any    `json:"value,omitempty"`
 }
 
 func (s *Stock) UnmarshalJSON(data []byte) error {
@@ -54,14 +54,14 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	var aux = &struct {
 		*Alias
 		// Дата + время
-		DateCreate        string `json:"date_add"`
-		LastModify        string `json:"last_modify"`
-		StockActivityDate string `json:"stock_activity_date"`
+		DateCreate        string `json:"date_add,omitempty"`
+		LastModify        string `json:"last_modify,omitempty"`
+		StockActivityDate string `json:"stock_activity_date,omitempty"`
 		// Bool
-		Publish string `json:"publish"`
+		Publish string `json:"publish,omitempty"`
 		// Массивы
-		AdditionalEmployeeID []string      `json:"additional_employee_id"`
-		Fields               []*StockField `json:"fields"`
+		AdditionalEmployeeID []string      `json:"additional_employee_id,omitempty"`
+		Fields               []*StockField `json:"fields,omitempty"`
 	}{
 		Alias: (*Alias)(s), // Приведение типа к Alias
 	}

@@ -6,87 +6,114 @@ import (
 	"strconv"
 )
 
-// Ссылка на метод: https://www.intrumnet.com/api/#stock-update
 type StockUpdateParams struct {
-	ID                  uint64   // ID существующего объекта // ! Обязательно
-	Parent              uint64   // ID категории объекта
-	Name                string   // Наименования объекта
-	Author              uint64   // ID ответственного
-	AdditionalAuthor    []uint64 // Массив ID доп. ответственных
-	RelatedWithCustomer uint64   // ID контакта, прикрепленного к объекту
-	GroupID             uint64   // Связь с группой объектов. Подробнее о группах: https://www.intrumnet.com/wiki/gruppirovka_produktov___obektov__zhilye_kompleksy__kottedzhnye_poselki_-207
-	Copy                uint64   // Родительский объект группы
-	// Дополнительные поля
-	//
-	// 	Ключ uint64 == ID поля
-	// 	Значение any == Значение поля
-	//		"знач1,знач2,знач3" (Для значений с типом "множественный выбор")
-	Fields map[uint64]string
+	// ID существующего объекта
+	//	! ОБЯЗАТЕЛЬНО !
+	ID uint64
+
+	Parent int64  // ID категории объекта
+	Name   string // Наименование объекта
+
+	// ID гл. ответственного
+	//	Ввод -1 удаляет гл. ответственного
+	Author int64
+	// ID доп. ответственных
+	//	Ввод []int64{} удаляет доп. ответственных
+	AdditionalAuthor []int64
+	// ID контакта, прикрепленного к объекту
+	//	Ввод -1 открепляет контакт
+	RelatedWithCustomer int64
+
+	// Доп. поля
+	//	Key: ID поля
+	//	Value: Значение поля
+	//		"{знач1},{знач2}..." - для полей типа 'multiselect'
+	Fields map[int64]string
 
 	// TODO: Добавить больше параметров запроса
+	// Проблема конечно в том что нормальной документации нет
+	// и приходится вычленять параметры из примеров...
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-update
 //
-// Ограничение 1 запрос == 1 сделка
-func StockUpdate(ctx context.Context, subdomain, apiKey string, inputParams *StockUpdateParams) (*StockUpdateResponse, error) {
+//	! ВНИМАНИЕ ! Ограничение 1 запрос == 1 объект
+func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUpdateParams) (*StockUpdateResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/update", subdomain)
 
-	// Обязательность параметров
-	switch {
-	case inputParams.ID == 0:
-		return nil, fmt.Errorf("error create request for method stock update: id param is required")
+	// Обязательность ввода параметров
+	if inParams.ID == 0 {
+		return nil, returnErrBadParams(methodURL)
 	}
 
 	// Параметры запроса
-
-	params := make(map[string]string, 8+
-		len(inputParams.Fields)*2)
+	p := make(map[string]string, 8+
+		len(inParams.AdditionalAuthor)+
+		len(inParams.Fields)*2)
 
 	// id
-	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
+	p["params[0][id]"] = strconv.FormatUint(inParams.ID, 10)
 	// parent
-	if inputParams.Parent != 0 {
-		params["params[0][parent]"] = strconv.FormatUint(uint64(inputParams.Parent), 10)
+	if v := inParams.Parent; v > 0 {
+		p["params[0][parent]"] = strconv.FormatInt(v, 10)
 	}
 	// name
-	if inputParams.Name != "" {
-		params["params[0][name]"] = inputParams.Name
+	switch v := inParams.Name; {
+	case v == " ":
+		p["params[0][name]"] = ""
+	case v != "":
+		p["params[0][name]"] = v
 	}
 	// author
-	if inputParams.Author != 0 {
-		params["params[0][author]"] = strconv.FormatUint(inputParams.Author, 10)
+	switch v := inParams.Author; {
+	case v > 0:
+		p["params[0][author]"] = strconv.FormatInt(v, 10)
+	case v < 0:
+		p["params[0][author]"] = "0"
 	}
 	// additional_author
-	for i, v := range inputParams.AdditionalAuthor {
-		params[fmt.Sprintf("params[0][additional_author][%d]", i)] = strconv.FormatUint(v, 10)
+	switch vSlice := inParams.AdditionalAuthor; {
+	case vSlice == nil:
+		break
+	case len(vSlice) == 0:
+		p["params[0][additional_author]"] = "false"
+	default:
+		for i, v := range vSlice {
+			if v == 0 {
+				continue
+			}
+			k := fmt.Sprintf("params[0][additional_author][%d]", i)
+			p[k] = strconv.FormatInt(v, 10)
+		}
 	}
 	// related_with_customer
-	if inputParams.RelatedWithCustomer != 0 {
-		params["params[0][related_with_customer]"] = strconv.FormatUint(inputParams.RelatedWithCustomer, 10)
-	}
-	// group_id
-	if inputParams.GroupID != 0 {
-		params["params[0][group_id]"] = strconv.FormatUint(uint64(inputParams.GroupID), 10)
-	}
-	// copy
-	if inputParams.Copy != 0 {
-		params["params[0][copy]"] = strconv.FormatUint(inputParams.Copy, 10)
+	switch v := inParams.RelatedWithCustomer; {
+	case v > 0:
+		p["params[0][related_with_customer]"] = strconv.FormatInt(v, 10)
+	case v < 0:
+		p["params[0][related_with_customer]"] = "0"
 	}
 	// fields
 	countFields := 0
-	for k, v := range inputParams.Fields {
-		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
-		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
+	for k, v := range inParams.Fields {
+		if k <= 0 || v == "" {
+			continue
+		}
+		p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+		switch v {
+		case " ":
+			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = ""
+		default:
+			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
+		}
 		countFields++
 	}
 
-	// Получение ответа
-
-	var resp StockUpdateResponse
-	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
+	// Запрос
+	resp := new(StockUpdateResponse)
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 
-	return &resp, nil
+	return resp, nil
 }

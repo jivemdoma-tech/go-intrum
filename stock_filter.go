@@ -3,7 +3,6 @@ package gointrum
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -60,13 +59,12 @@ type StockFilterParams struct {
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *StockFilterParams) (*StockFilterResponse, error) {
+func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams StockFilterParams) (*StockFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
 
 	// Обязательность ввода параметров
 	if inputParams.Type == 0 && len(inputParams.ByIDs) == 0 {
-		u, _ := url.ParseRequestURI(methodURL)
-		return nil, fmt.Errorf("failed to create request for method %s: %s", u.Path, statusBadParams)
+		return nil, returnErrBadParams(methodURL)
 	}
 
 	// Параметры запроса
@@ -89,10 +87,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	// category
 	addToParams(p, "category", inputParams.Category)
 	// nested
-	switch v := inputParams.Nested; v {
-	case "true", "false", "1", "0":
-		addToParams(p, "nested", v)
-	}
+	addBoolStringToParams(p, "nested", inputParams.Nested)
 	// search
 	addToParams(p, "search", inputParams.Search)
 	// manager
@@ -112,10 +107,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		fieldsCount++
 	}
 	// index_fields
-	switch v := inputParams.IndexFields; v {
-	case "true", "false", "1", "0":
-		addToParams(p, "index_fields", v)
-	}
+	addBoolStringToParams(p, "index_fields", inputParams.IndexFields)
 	// related_with_customer
 	addToParams(p, "related_with_customer", inputParams.RelatedWithCustomer)
 	// order
@@ -144,10 +136,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	// page
 	addToParams(p, "page", inputParams.Page)
 	// publish
-	switch v := inputParams.Publish; v {
-	case "true", "false", "1", "0", "ignore":
-		addToParams(p, "publish", v)
-	}
+	addBoolStringToParams(p, "publish", inputParams.Publish)
 	// limit
 	switch v := inputParams.Limit; {
 	case v == 0, v >= 500:
@@ -156,10 +145,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 		addToParams(p, "limit", v)
 	}
 	// only_primary_id
-	switch v := inputParams.OnlyPrimaryID; v {
-	case "true", "false", "1", "0":
-		addToParams(p, "only_primary_id", v)
-	}
+	addBoolStringToParams(p, "only_primary_id", inputParams.OnlyPrimaryID)
 	// slice_fields
 	addSliceToParams(p, "slice_fields", inputParams.SliceFields)
 
