@@ -193,13 +193,31 @@ func (s *Stock) GetFieldMultiselect(fieldID uint64) []string {
 // Тип поля: "date".
 func (s *Stock) GetFieldDate(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DateLayout)
+	// Проверка на формат date
+	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
+		return vDate
+	}
+	// Проверка на формат datetime
+	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
+		return time.Date(vDatetime.Year(), vDatetime.Month(), vDatetime.Day(), 0, 0, 0, 0, vDatetime.Location())
+	}
+
+	return time.Time{}
 }
 
 // Тип поля: "datetime".
 func (s *Stock) GetFieldDatetime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DatetimeLayout)
+	// Проверка на формат datetime
+	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
+		return vDatetime
+	}
+	// Проверка на формат date
+	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
+		return vDate
+	}
+
+	return time.Time{}
 }
 
 // Тип поля: "time".
