@@ -19,7 +19,7 @@ type StockFilterParams struct {
 	//	Value: ">= {значение}" - больше или равно
 	//	Value: "<= {значение}" - меньше или равно
 	//	Value: "{значение_1} & {значение_2}" - между значением 1 и 2
-	Fields map[int64]string
+	Fields map[uint64]string
 
 	ByIDs               []uint64 // Массив ID объектов (Все объекты из массива должны быть одного типа)
 	Category            uint64   // ID категории объекта
@@ -46,77 +46,74 @@ type StockFilterParams struct {
 	SliceFields   []uint64     // Массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
 
 	// TODO
-
 	// CountTotal     string // (bool) Подсчет общего количества найденых записей
 	// OnlyCountField string // (bool) Вывести в ответе только количество
 	// Log            string // Фильтр по истории изменений
-
 	// SumField       uint64 // ID поля, которое нужно просуммировать. В ответе будет сумма значений поля результатов выборки (переменная: sum_field) и их число (count_field). Опция работает только для числовых полей (целое, число, цена)
-
 	// GroupID        uint64 // ID группы для группированных объектов
 	// Copy           uint64 // ID Родителя группы для группированных объектов
 	// ObjectGroups   uint64 // Число записей в выборке, по умолчанию 20, макс. 500
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams StockFilterParams) (*StockFilterResponse, error) {
+func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFilterParams) (*StockFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
 
 	// Обязательность ввода параметров
-	if inputParams.Type == 0 && len(inputParams.ByIDs) == 0 {
+	if inParams.Type == 0 && len(inParams.ByIDs) == 0 {
 		return nil, returnErrBadParams(methodURL)
 	}
 
 	// Параметры запроса
 	p := make(map[string]string, 8+
-		len(inputParams.ByIDs)+
-		len(inputParams.Manager)+
-		len(inputParams.Groups)+
-		len(inputParams.SliceFields)+
-		len(inputParams.Fields)*2)
+		len(inParams.ByIDs)+
+		len(inParams.Manager)+
+		len(inParams.Groups)+
+		len(inParams.SliceFields)+
+		len(inParams.Fields)*2)
 
 	// type
-	addToParams(p, "type", inputParams.Type)
+	addToParams(p, "type", inParams.Type)
 	// byid + by_ids
 	switch {
-	case len(inputParams.ByIDs) == 1:
-		addToParams(p, "byid", inputParams.ByIDs[0])
-	case len(inputParams.ByIDs) >= 2:
-		addSliceToParams(p, "by_ids", inputParams.ByIDs)
+	case len(inParams.ByIDs) == 1:
+		addToParams(p, "byid", inParams.ByIDs[0])
+	case len(inParams.ByIDs) >= 2:
+		addSliceToParams(p, "by_ids", inParams.ByIDs)
 	}
 	// category
-	addToParams(p, "category", inputParams.Category)
+	addToParams(p, "category", inParams.Category)
 	// nested
-	addBoolStringToParams(p, "nested", inputParams.Nested)
+	addBoolStringToParams(p, "nested", inParams.Nested)
 	// search
-	addToParams(p, "search", inputParams.Search)
+	addToParams(p, "search", inParams.Search)
 	// manager
-	addSliceToParams(p, "manager", inputParams.Manager)
+	addSliceToParams(p, "manager", inParams.Manager)
 	// groups
-	addSliceToParams(p, "groups", inputParams.Groups)
+	addSliceToParams(p, "groups", inParams.Groups)
 	// stock_creator_id
-	addToParams(p, "stock_creator_id", inputParams.StockCreatorID)
+	addToParams(p, "stock_creator_id", inParams.StockCreatorID)
 	// fields
 	fieldsCount := 0
-	for k, v := range inputParams.Fields {
+	for k, v := range inParams.Fields {
 		if k == 0 || v == "" {
 			continue
 		}
-		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatUint(k, 10)
 		p[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
 		fieldsCount++
 	}
 	// index_fields
-	addBoolStringToParams(p, "index_fields", inputParams.IndexFields)
+	addBoolStringToParams(p, "index_fields", inParams.IndexFields)
 	// related_with_customer
-	addToParams(p, "related_with_customer", inputParams.RelatedWithCustomer)
+	addToParams(p, "related_with_customer", inParams.RelatedWithCustomer)
 	// order
-	switch v := inputParams.Order; v {
+	switch v := inParams.Order; v {
 	case "asc", "desc":
 		addToParams(p, "order", v)
 	}
 	// order_field
-	switch v := inputParams.OrderField; v {
+	switch v := inParams.OrderField; v {
 	case "stock_activity_date", "date_add", "date_delete", "ID":
 		addToParams(p, "order_field", v)
 	default:
@@ -125,29 +122,29 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams Stoc
 		}
 	}
 	// date
-	if !inputParams.Date[0].IsZero() {
-		p["params[date][from]"] = inputParams.Date[0].Format(DatetimeLayout)
+	if !inParams.Date[0].IsZero() {
+		p["params[date][from]"] = inParams.Date[0].Format(DatetimeLayout)
 	}
-	if !inputParams.Date[1].IsZero() {
-		p["params[date][to]"] = inputParams.Date[1].Format(DatetimeLayout)
+	if !inParams.Date[1].IsZero() {
+		p["params[date][to]"] = inParams.Date[1].Format(DatetimeLayout)
 	}
 	// date_field
-	addToParams(p, "date_field", inputParams.DateField)
+	addToParams(p, "date_field", inParams.DateField)
 	// page
-	addToParams(p, "page", inputParams.Page)
+	addToParams(p, "page", inParams.Page)
 	// publish
-	addBoolStringToParams(p, "publish", inputParams.Publish)
+	addBoolStringToParams(p, "publish", inParams.Publish)
 	// limit
-	switch v := inputParams.Limit; {
+	switch v := inParams.Limit; {
 	case v == 0, v >= 500:
 		addToParams(p, "limit", "500")
 	default:
 		addToParams(p, "limit", v)
 	}
 	// only_primary_id
-	addBoolStringToParams(p, "only_primary_id", inputParams.OnlyPrimaryID)
+	addBoolStringToParams(p, "only_primary_id", inParams.OnlyPrimaryID)
 	// slice_fields
-	addSliceToParams(p, "slice_fields", inputParams.SliceFields)
+	addSliceToParams(p, "slice_fields", inParams.SliceFields)
 
 	// Запрос
 	resp := new(StockFilterResponse)
