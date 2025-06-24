@@ -75,6 +75,10 @@ func addSliceToParams[T string | int64 | uint64](params map[string]string, param
 			if v != "" {
 				params[k] = v
 			}
+		case int64:
+			if v != 0 {
+				params[k] = strconv.FormatInt(v, 10)
+			}
 		case uint64:
 			if v != 0 {
 				params[k] = strconv.FormatUint(v, 10)
