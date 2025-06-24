@@ -19,7 +19,7 @@ type StockFilterParams struct {
 	//	Value: ">= {значение}" - больше или равно
 	//	Value: "<= {значение}" - меньше или равно
 	//	Value: "{значение_1} & {значение_2}" - между значением 1 и 2
-	Fields map[uint64]string
+	Fields map[int64]string
 
 	ByIDs               []uint64 // Массив ID объектов (Все объекты из массива должны быть одного типа)
 	Category            uint64   // ID категории объекта
@@ -102,7 +102,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams Stoc
 		if k == 0 || v == "" {
 			continue
 		}
-		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatUint(k, 10)
+		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
 		p[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
 		fieldsCount++
 	}
