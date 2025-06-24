@@ -63,7 +63,7 @@ func addBoolStringToParams(params map[string]string, paramName string, v string)
 	}
 }
 
-func addSliceToParams[T string | uint64](params map[string]string, paramName string, paramSlice []T) {
+func addSliceToParams[T string | int64 | uint64](params map[string]string, paramName string, paramSlice []T) {
 	if len(paramSlice) == 0 {
 		return
 	}
