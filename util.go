@@ -24,14 +24,14 @@ func returnErrBadParams(methodURL string) error {
 	return fmt.Errorf("failed to create request for method %s: %s", u.Path, statusBadParams)
 }
 
-func addToParams[T string | uint16 | uint64 | int16 | int64](params map[string]string, paramName string, v T) {
+func addToParams[T string | int8 | uint8 | uint16 | uint64 | int16 | int64 | time.Time](params map[string]string, paramName string, v T) {
 	k := fmt.Sprintf("params[%s]", paramName)
 	switch v := any(v).(type) {
 	case string:
 		if v != "" {
 			params[k] = v
 		}
-	case int16, uint16:
+	case int8, uint8, int16, uint16:
 		vInt := v.(int64)
 		if vInt > 0 {
 			params[k] = strconv.FormatInt(vInt, 10)
@@ -43,6 +43,10 @@ func addToParams[T string | uint16 | uint64 | int16 | int64](params map[string]s
 	case uint64:
 		if v > 0 {
 			params[k] = strconv.FormatUint(v, 10)
+		}
+	case time.Time:
+		if !v.IsZero() {
+			params[k] = v.Format(DatetimeLayout)
 		}
 	}
 }
