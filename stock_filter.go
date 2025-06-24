@@ -35,7 +35,6 @@ type StockFilterParams struct {
 	// 	"stock_activity_date" - сортировка по дате активности
 	// 	"date_add" - сортировка по дате создания
 	// 	"date_delete" - сортировка по дате удаления
-	// 	"ID" - по ID
 	OrderField    string
 	Date          [2]time.Time // Выборка за определенный период
 	DateField     string       // Если в качестве значения указать stock_activity_date, то выборка по параметру последней активности (в этом случае период выборки нужно передавать в параметре date)
@@ -114,7 +113,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFi
 	}
 	// order_field
 	switch v := inParams.OrderField; v {
-	case "stock_activity_date", "date_add", "date_delete", "ID":
+	case "stock_activity_date", "date_add", "date_delete":
 		addToParams(p, "order_field", v)
 	default:
 		if _, err := strconv.ParseUint(v, 10, 64); err == nil {
