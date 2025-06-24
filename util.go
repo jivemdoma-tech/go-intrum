@@ -31,10 +31,21 @@ func addToParams[T string | int8 | uint8 | uint16 | uint64 | int16 | int64 | tim
 		if v != "" {
 			params[k] = v
 		}
-	case int8, uint8, int16, uint16:
-		vInt := v.(int64)
-		if vInt > 0 {
-			params[k] = strconv.FormatInt(vInt, 10)
+	case int8:
+		if v > 0 {
+			params[k] = strconv.FormatInt(int64(v), 10)
+		}
+	case uint8:
+		if v > 0 {
+			params[k] = strconv.FormatInt(int64(v), 10)
+		}
+	case int16:
+		if v > 0 {
+			params[k] = strconv.FormatInt(int64(v), 10)
+		}
+	case uint16:
+		if v > 0 {
+			params[k] = strconv.FormatInt(int64(v), 10)
 		}
 	case int64:
 		if v > 0 {
@@ -63,7 +74,7 @@ func addBoolStringToParams(params map[string]string, paramName string, v string)
 	}
 }
 
-func addSliceToParams[T string | int64 | uint64](params map[string]string, paramName string, paramSlice []T) {
+func addSliceToParams[T string | int16 | uint16 | int64 | uint64](params map[string]string, paramName string, paramSlice []T) {
 	if len(paramSlice) == 0 {
 		return
 	}
