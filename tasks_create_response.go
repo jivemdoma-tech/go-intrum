@@ -6,5 +6,5 @@ type TasksCreateResponse struct {
 }
 
 type TasksData struct {
-	ID int64 `json:"id,string"`
+	ID int64 `json:"id"`
 }
