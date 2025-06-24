@@ -16,23 +16,23 @@ type SalesFilterData struct {
 	// Count any `json:"count"` // TODO
 }
 type Sale struct {
-	ID                   uint64                `json:"id,string"`              // ID сделки
-	CustomersID          uint64                `json:"customers_id,string"`    // ID контакта
-	EmployeeID           uint64                `json:"employee_id,string"`     // ID ответственного
-	AdditionalEmployeeID []uint64              `json:"additional_employee_id"` // Массив ID доп. ответственных
-	DateCreate           time.Time             `json:"date_create"`            // Дата создания
-	SalesTypeID          uint64                `json:"sales_type_id,string"`   // ID типа активности
-	SaleStageID          uint64                `json:"sale_stage_id,string"`   // ID стадии
-	SaleName             string                `json:"sale_name"`              // Название сделки
-	SaleActivityType     string                `json:"sale_activity_type"`     // Тип последней активности
-	SaleActivityDate     time.Time             `json:"sale_activity_date"`     // Дата последней активности сделк
-	Fields               map[string]*SaleField `json:"fields"`                 // Данные полей
+	ID                   uint64                `json:"id,string,omitempty"`              // ID сделки
+	CustomersID          uint64                `json:"customers_id,string,omitempty"`    // ID контакта
+	EmployeeID           uint64                `json:"employee_id,string,omitempty"`     // ID ответственного
+	AdditionalEmployeeID []uint64              `json:"additional_employee_id,omitempty"` // Массив ID доп. ответственных
+	DateCreate           time.Time             `json:"date_create,omitempty"`            // Дата создания
+	SalesTypeID          uint64                `json:"sales_type_id,string,omitempty"`   // ID типа активности
+	SaleStageID          uint64                `json:"sale_stage_id,string,omitempty"`   // ID стадии
+	SaleName             string                `json:"sale_name,omitempty"`              // Название сделки
+	SaleActivityType     string                `json:"sale_activity_type,omitempty"`     // Тип последней активности
+	SaleActivityDate     time.Time             `json:"sale_activity_date,omitempty"`     // Дата последней активности сделк
+	Fields               map[string]*SaleField `json:"fields,omitempty"`                 // Данные полей
 }
 
 // Использовать метод GetField для получения значения поля // TODO
 type SaleField struct {
-	DataType string `json:"datatype"`
-	Value    any    `json:"value"`
+	DataType string `json:"datatype,omitempty"`
+	Value    any    `json:"value,omitempty"`
 }
 
 func (s *Sale) UnmarshalJSON(data []byte) error {
@@ -42,9 +42,9 @@ func (s *Sale) UnmarshalJSON(data []byte) error {
 	// Вспомогательная структура
 	var aux = &struct {
 		*Alias
-		AdditionalEmployeeID []string `json:"additional_employee_id"`
-		DateCreate           string   `json:"date_create"`
-		SaleActivityDate     string   `json:"sale_activity_date"`
+		AdditionalEmployeeID []string `json:"additional_employee_id,omitempty"`
+		DateCreate           string   `json:"date_create,omitempty"`
+		SaleActivityDate     string   `json:"sale_activity_date,omitempty"`
 	}{
 		Alias: (*Alias)(s), // Приведение типа к Alias
 	}
