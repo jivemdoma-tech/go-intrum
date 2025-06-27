@@ -42,28 +42,33 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 
 	// author + additional_autor
 	if len(inputParams.Authors) != 0 {
-		var (
-			primary    uint64 = inputParams.Authors[0]
-			additional []uint64
-		)
-		if len(inputParams.Authors) >= 2 {
-			additional = inputParams.Authors[1:]
-		}
 		// Гл. ответственный
-		switch {
-		case primary == 0:
+		switch primary := inputParams.Authors[0]; primary {
+		// Удаление
+		case 0:
 			params["params[0][author]"] = ""
-		case primary == 1:
+		// Пропуск
+		case 1:
 			break
+		// Изменение
 		default:
 			params["params[0][author]"] = strconv.FormatUint(inputParams.Authors[0], 10)
 		}
+
 		// Доп. ответственные
-		if len(additional) != 0 {
-			switch {
-			case len(additional) == 1 && additional[0] == 0:
+		if len(inputParams.Authors) >= 2 {
+			switch additional := inputParams.Authors[1:]; {
+			// Удаление
+			case len(additional) == 1 && additional[0] <= 0:
 				params["params[0][additional_author]"] = ""
+			// Изменение
 			default:
+				for i, v := range additional {
+					if v > 0 {
+						k := fmt.Sprintf("params[0][additional_author][%d]", i)
+						params[k] = strconv.FormatUint(v, 10)
+					}
+				}
 				addSliceToParams(params, "additional_author", additional)
 			}
 		}
