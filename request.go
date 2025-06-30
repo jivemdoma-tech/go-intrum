@@ -29,8 +29,10 @@ type respStruct interface {
 
 func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
 	const (
-		primaryPort string = "81"
-		backupPort  string = "80"
+		primaryPort  string        = "81"
+		backupPort   string        = "80"
+		duration1Min time.Duration = time.Minute
+		duration5Min time.Duration = time.Minute * 5
 	)
 	// Обработка паники
 	defer func() {
@@ -79,7 +81,7 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("failed to do request for method %s: %w", u.Path, err)
 			}
 			// Повторный запрос
-			time.Sleep(time.Minute)
+			time.Sleep(duration1Min)
 			continue
 		}
 
@@ -97,8 +99,14 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u.Path)
 			}
 			// Повторный запрос
-			time.Sleep(time.Minute)
-			continue
+			switch resp.StatusCode {
+			case http.StatusGatewayTimeout:
+				time.Sleep(duration5Min)
+				continue
+			default:
+				time.Sleep(duration1Min)
+				continue
+			}
 		}
 		// Декодирование ответа
 		if err := json.Unmarshal(body, r); err != nil {
@@ -118,11 +126,11 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
 			// Повторный запрос через 5 минут
 			case strings.Contains(errMsg, statusServerIsOverloaded):
-				time.Sleep(time.Minute * 5)
+				time.Sleep(duration5Min)
 				continue
 			// Повторный запрос через минуту
 			default:
-				time.Sleep(time.Minute * 1)
+				time.Sleep(duration1Min)
 				continue
 			}
 		}
