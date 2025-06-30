@@ -30,7 +30,7 @@ type respStruct interface {
 func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
 	const (
 		primaryPort  string        = "81"
-		backupPort   string        = "80"
+		backupPort   string        = "444"
 		duration1Min time.Duration = time.Minute
 		duration5Min time.Duration = time.Minute * 5
 	)
@@ -65,7 +65,12 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 		default:
 		}
 		if isBackup {
-			u.Host = u.Hostname() + ":" + backupPort // Запасной порт
+			var (
+				hostNameParts = strings.Split(u.Hostname(), ".")
+				hostName      = "intrum4." + strings.Join(hostNameParts[1:], ".")
+			)
+			u.Host = hostName + ":" + backupPort // Запасной порт
+			u.Scheme = "https"
 		}
 
 		// Создание нового запроса
