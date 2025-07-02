@@ -105,14 +105,23 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 	}
 	p.AdditionalEmployeeID = newSlice
 
-	fields, ok := aux.Fields.([]*PurchaserField)
-	if ok && len(fields) != 0 {
-		newMap := make(map[uint64]*PurchaserField, len(fields))
-		for _, v := range fields {
-			newMap[v.ID] = v
+	fieldsMap := make(map[uint64]*PurchaserField)
+	fieldsRaw, ok := aux.Fields.(map[string]any)
+	if ok {
+		for k, v := range fieldsRaw {
+			id, err := strconv.ParseUint(k, 10, 64)
+			if err != nil {
+				continue // или логировать
+			}
+			valueBytes, _ := json.Marshal(v)
+			var field PurchaserField
+			if err := json.Unmarshal(valueBytes, &field); err != nil {
+				continue // или логировать
+			}
+			fieldsMap[id] = &field
 		}
-		p.Fields = newMap
 	}
+	p.Fields = fieldsMap
 
 	return nil
 }
