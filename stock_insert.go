@@ -13,7 +13,7 @@ type StockInsertParams struct {
 	Author              uint64   // ID ответственного
 	AdditionalAuthor    []uint64 // Массив ID дополнительных ответственных
 	RelatedWithCustomer uint64   // ID контакта, прикрепленного к объекту
-	GroupID             uint16   // ID группы
+	GroupID             uint64   // ID группы
 	Copy                uint64   // Родительский объект группы
 
 	// Дополнительные поля
@@ -78,7 +78,7 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	// Получение ответа
 
 	var resp StockInsertResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 

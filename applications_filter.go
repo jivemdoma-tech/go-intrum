@@ -10,14 +10,14 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#applications-filter
 type ApplicationFilterParams struct {
 	Search           string           // поисковая строка (может содержать фамилию, телефон контакта или название заявки)
-	Groups           []uint16         // массив CRM групп
+	Groups           []uint64         // массив CRM групп
 	Manager          []uint64         // id ответственного или массив с несколькими id
 	RequestCreatorID uint64           // id создателя
 	ByID             uint64           // id заявки
 	ByIDs            []uint64         // массив ids заявок
 	Customer         uint64           // id контакта
 	Fields           map[int64]string // массив условий поиска по полям
-	Types            []uint16         // массив id типов
+	Types            []uint64         // массив id типов
 	OrderField       string           // если в качестве значения указать request_activity_date выборка будет сортироваться по дате активности
 	Order            string           // направление сортировки asc - по возрастанию, desc - по убыванию (сортировка только по дате последней активности)
 	Date             [2]time.Time     // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
@@ -25,7 +25,7 @@ type ApplicationFilterParams struct {
 	Statuses         []string         // массив id статусов
 	Page             uint16           // номер страницы выборки (нумерация с 1)
 	Publish          string           // 1 - активные, 0 - удаленные, по умолчанию 1
-	Limit            uint16           // число записей в выборке (макс. 500)
+	Limit            uint64           // число записей в выборке (макс. 500)
 	SliceFields      []uint64         // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
 }
 
@@ -40,9 +40,9 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[search]"] = params.Search
 	}
 	// groups
-	addSliceToParams("groups", p, params.Groups)
+	addSliceToParams(p, "groups", params.Groups)
 	// manager
-	addSliceToParams("manager", p, params.Manager)
+	addSliceToParams(p, "manager", params.Manager)
 	// request_creator_id
 	if params.RequestCreatorID != 0 {
 		p["params[request_creator_id]"] = strconv.FormatUint(params.RequestCreatorID, 10)
@@ -52,7 +52,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[byid]"] = strconv.FormatUint(params.ByID, 10)
 	}
 	// by_ids
-	addSliceToParams("by_ids", p, params.ByIDs)
+	addSliceToParams(p, "by_ids", params.ByIDs)
 	// customer
 	if params.Customer != 0 {
 		p["params[customer]"] = strconv.FormatUint(params.Customer, 10)
@@ -65,7 +65,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		fieldCount++
 	}
 	// types
-	addSliceToParams("types", p, params.Types)
+	addSliceToParams(p, "types", params.Types)
 	// order_field
 	if params.OrderField != "" {
 		p["params[order_field]"] = params.OrderField
@@ -76,17 +76,17 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 	}
 	// date
 	if !params.Date[0].IsZero() {
-		p["params[date][from]"] = params.Date[0].Format(datetimeLayout)
+		p["params[date][from]"] = params.Date[0].Format(DatetimeLayout)
 	}
 	if !params.Date[1].IsZero() {
-		p["params[date][to]"] = params.Date[1].Format(datetimeLayout)
+		p["params[date][to]"] = params.Date[1].Format(DatetimeLayout)
 	}
 	// date_field
 	if params.DateField != "" {
 		p["params[date_field]"] = params.DateField
 	}
 	// statuses
-	addSliceToParams("statuses", p, params.Statuses)
+	addSliceToParams(p, "statuses", params.Statuses)
 	// page
 	if params.Page != 0 {
 		p["params[page]"] = strconv.FormatUint(uint64(params.Page), 10)
@@ -101,15 +101,19 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[publish]"] = "ignore"
 	}
 	// limit
-	if params.Limit != 0 {
-		p["params[limit]"] = strconv.FormatUint(uint64(params.Limit), 10)
+	// limit
+	switch l := params.Limit; {
+	case l == 0, l >= 500:
+		p["params[limit]"] = "500"
+	default:
+		p["params[limit]"] = strconv.FormatUint(uint64(l), 10)
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", p, params.SliceFields)
+	addSliceToParams(p, "slice_fields", params.SliceFields)
 	// Получение ответа
 
 	resp := new(ApplicationFilterResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, p, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 

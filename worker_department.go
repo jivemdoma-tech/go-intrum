@@ -10,7 +10,7 @@ func WorkerDepartment(ctx context.Context, subdomain, apiKey string) (*WorkerDep
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/worker/department", subdomain)
 
 	resp := new(WorkerDepartmentResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, nil, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, nil, resp); err != nil {
 		return nil, err
 	}
 

@@ -7,10 +7,10 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
 type WorkerFilterParams struct {
-	// Group       uint16   // ID CRM группы // TODO
+	// Group       uint64   // ID CRM группы // TODO
 	ID          []uint64 // Массив id сотрудников
-	DivisionID  []uint16 // Массив id отделов
-	SubofficeID []uint16 // Массив id филиалов
+	DivisionID  []uint64 // Массив id отделов
+	SubofficeID []uint64 // Массив id филиалов
 	Surname     string   // Фамилия
 	Name        string   // Имя
 	Email       string   // Email
@@ -40,39 +40,38 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 
 	paramsResult := make(map[string]string, 12+len(paramsInput.Fields)+len(paramsInput.SliceFields))
 	// id
-	addSliceToParams("id", paramsResult, paramsInput.ID)
+	addSliceToParams(paramsResult, "id", paramsInput.ID)
 	// division_id
-	addSliceToParams("division_id", paramsResult, paramsInput.DivisionID)
+	addSliceToParams(paramsResult, "division_id", paramsInput.DivisionID)
 	// suboffice_id
-	addSliceToParams("suboffice_id", paramsResult, paramsInput.SubofficeID)
+	addSliceToParams(paramsResult, "suboffice_id", paramsInput.SubofficeID)
 	// surname
 	if paramsInput.Surname != "" {
-		paramsResult["surname"] = paramsInput.Surname
+		paramsResult["params[surname]"] = paramsInput.Surname
 	}
 	// name
 	if paramsInput.Name != "" {
-		paramsResult["name"] = paramsInput.Name
+		paramsResult["params[name]"] = paramsInput.Name
 	}
 	// email
 	if paramsInput.Email != "" {
-		paramsResult["email"] = paramsInput.Email
+		paramsResult["params[email]"] = paramsInput.Email
 	}
 	// phone
 	if paramsInput.Phone != "" {
-		paramsResult["phone"] = paramsInput.Phone
+		paramsResult["params[phone]"] = paramsInput.Phone
 	}
 	// publish
-	switch paramsInput.Publish {
-	case "1", "0", "ignore":
-		paramsResult["publish"] = paramsInput.Publish
+	if paramsInput.Publish != "" {
+		paramsResult["params[publish]"] = paramsInput.Publish
 	}
 	// boss
 	switch paramsInput.Boss {
 	case "1", "0":
-		paramsResult["boss"] = paramsInput.Boss
+		paramsResult["params[boss]"] = paramsInput.Boss
 	}
 	// slice_fields
-	addSliceToParams("slice_fields", paramsResult, paramsInput.SliceFields)
+	addSliceToParams(paramsResult, "slice_fields", paramsInput.SliceFields)
 	// fields
 	var count int
 	for k, v := range paramsInput.Fields {
@@ -84,7 +83,7 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 	// Обработка ответа
 
 	resp := new(WorkerFilterResponse)
-	if err := rawRequest(ctx, apiKey, u, paramsResult, resp); err != nil {
+	if err := request(ctx, apiKey, u, paramsResult, resp); err != nil {
 		return nil, err
 	}
 

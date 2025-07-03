@@ -48,11 +48,11 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *History
 	// date
 	if !inParams.Date[0].IsZero() {
 		reqDate := time.Date(inParams.Date[0].Year(), inParams.Date[0].Month(), inParams.Date[0].Day(), 0, 0, 0, 0, inParams.Date[0].Location())
-		params["params[date][from]"] = reqDate.Format(datetimeLayout)
+		params["params[date][from]"] = reqDate.Format(DatetimeLayout)
 	}
 	if !inParams.Date[1].IsZero() {
 		reqDate := time.Date(inParams.Date[1].Year(), inParams.Date[1].Month(), inParams.Date[1].Day(), 23, 59, 59, 0, inParams.Date[1].Location())
-		params["params[date][to]"] = reqDate.Format(datetimeLayout)
+		params["params[date][to]"] = reqDate.Format(DatetimeLayout)
 	}
 	// // log
 	// for i, logParamsSlice := range inputParams.Log {
@@ -63,10 +63,10 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *History
 	// 		}
 	// 		// date
 	// 		if !logParams.Date[0].IsZero() {
-	// 			params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(dateLayout)
+	// 			params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(DateLayout)
 	// 		}
 	// 		if !logParams.Date[1].IsZero() {
-	// 			params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(dateLayout)
+	// 			params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(DateLayout)
 	// 		}
 	// 		// value
 	// 		if logParams.Value != "" {
@@ -82,7 +82,7 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *History
 	// Получение ответа
 
 	resp := new(HistoryLogResponse)
-	if err := rawRequest(ctx, apiKey, methodURL, params, resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, resp); err != nil {
 		return nil, err
 	}
 

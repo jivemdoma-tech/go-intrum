@@ -7,181 +7,149 @@ import (
 	"time"
 )
 
-// Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-
 type StockFilterParams struct {
-	Type                uint16       // ID типа объекта (Обязательное поле, если не указаны ByID/ByIDs)
-	ByID                uint64       // ID объекта
-	ByIDs               []uint64     // Массив ID объектов (Все объекты из массива должны быть одного типа)
-	Category            uint16       // ID категории объекта
-	Nested              bool         // Включить вложенные категории
-	Search              string       // Поисковая строка может содержать имя объекта или вхождения в поля с типами text,select,multiselect (полнотекстовый поиск)
-	Manager             []uint64     // Массив ID ответственных
-	Groups              []uint16     // Массив CRM групп
-	StockCreatorID      uint64       // ID создателя
-	IndexFields         bool         // Индексировать массив полей по ID свойства
-	RelatedWithCustomer uint64       // ID контакта, связанного с объектом
-	Order               string       // Направление сортировки (asc - по возрастанию, desc - по убыванию)
-	OrderField          uint64       // ID поля, по которому нужно сделать сортировку (если в качестве значения указать stock_activity_date выборка будет сортироваться по дате активности; date_add - по дате создания, date_delete - по дате удаления, ID - по ID)
-	Date                [2]time.Time // Выборка за определенный период
-	DateField           string       // Если в качестве значения указать stock_activity_date, то выборка по параметру последней активности (в этом случае период выборки нужно передавать в параметре date)
-	Page                uint16       // Номер страницы выборки (например, 2 страница с limit 500 на каждой, нумерация page начиная с 1)
-	Publish             string       // "1" - активные | "0" - удаленные | "ignore" - вывод всех (по умолчанию "1")
-	Limit               uint16       // Число записей в выборке, по умолчанию 20, макс. 500
-	GroupID             uint16       // ID группы для группированных объектов
-	Copy                uint64       // ID Родителя группы для группированных объектов
-	ObjectGroups        uint16       // Число записей в выборке, по умолчанию 20, макс. 500
-	CountTotal          bool         // Подсчет общего количества найденых записей
-	OnlyPrimaryID       bool         // Вывести в ответе только ID объектов
-	OnlyCountField      bool         // Вывести в ответе только количество
-	SliceFields         []uint64     // Массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
-	SumField            uint64       // ID поля, которое нужно просуммировать. В ответе будет сумма значений поля результатов выборки (переменная: sum_field) и их число (count_field). Опция работает только для числовых полей (целое, число, цена)
-	// Log // TODO
+	// ID типа объекта
+	// 	! ОБЯЗАТЕЛЬНО ! (Если не указан "ByIDs")
+	Type uint64
 
 	// Массив условий поиска.
-	//	Ключ - ID поля
-	//	Значение - значение поля
-	// Для полей с типом integer,decimal,price,time,date,datetime возможно указывать границы:
+	//	Key: ID поля
+	//	Value: Значение поля
+	// Для полей с типом integer, decimal, price, time, date, datetime возможно указывать границы:
 	//	Value: ">= {значение}" - больше или равно
 	//	Value: "<= {значение}" - меньше или равно
 	//	Value: "{значение_1} & {значение_2}" - между значением 1 и 2
 	Fields map[uint64]string
+
+	ByIDs               []uint64 // Массив ID объектов (Все объекты из массива должны быть одного типа)
+	Category            uint64   // ID категории объекта
+	Nested              string   // (bool) Включить вложенные категории
+	Search              string   // Поисковая строка. Может содержать имя объекта или вхождения в поля с типами text, select, multiselect (Полнотекстовый поиск)
+	Manager             []uint64 // Массив ID ответственных
+	Groups              []uint64 // Массив CRM групп
+	StockCreatorID      uint64   // ID создателя
+	IndexFields         string   // (bool) Индексировать массив полей по ID свойства
+	RelatedWithCustomer uint64   // ID контакта, связанного с объектом
+	Order               string   // Направление сортировки (asc - по возрастанию, desc - по убыванию)
+	// ID поля, по которому нужно сделать сортировку. Если в качестве значения указать:
+	// 	"stock_activity_date" - сортировка по дате активности
+	// 	"date_add" - сортировка по дате создания
+	// 	"date_delete" - сортировка по дате удаления
+	OrderField    string
+	Date          [2]time.Time // Выборка за определенный период
+	DateField     string       // Если в качестве значения указать stock_activity_date, то выборка по параметру последней активности (в этом случае период выборки нужно передавать в параметре date)
+	Page          uint16       // Номер страницы выборки (например, 2 страница с limit 500 на каждой, нумерация page начиная с 1)
+	Publish       string       // (bool) "1" - активные | "0" - удаленные | "ignore" - вывод всех (по умолчанию "1")
+	Limit         uint64       // Число записей в выборке (По умолчанию 500)
+	OnlyPrimaryID string       // (bool) Вывести в ответе только ID объектов
+	SliceFields   []uint64     // Массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
+
+	// TODO
+	// CountTotal     string // (bool) Подсчет общего количества найденых записей
+	// OnlyCountField string // (bool) Вывести в ответе только количество
+	// Log            string // Фильтр по истории изменений
+	// SumField       uint64 // ID поля, которое нужно просуммировать. В ответе будет сумма значений поля результатов выборки (переменная: sum_field) и их число (count_field). Опция работает только для числовых полей (целое, число, цена)
+	// GroupID        uint64 // ID группы для группированных объектов
+	// Copy           uint64 // ID Родителя группы для группированных объектов
+	// ObjectGroups   uint64 // Число записей в выборке, по умолчанию 20, макс. 500
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-func StockFilter(ctx context.Context, subdomain, apiKey string, inputParams *StockFilterParams) (*StockFilterResponse, error) {
+func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFilterParams) (*StockFilterResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
 
-	// Параметры запроса
+	// Обязательность ввода параметров
+	if inParams.Type == 0 && len(inParams.ByIDs) == 0 {
+		return nil, returnErrBadParams(methodURL)
+	}
 
-	params := make(map[string]string, 8)
+	// Параметры запроса
+	p := make(map[string]string, 8+
+		len(inParams.ByIDs)+
+		len(inParams.Manager)+
+		len(inParams.Groups)+
+		len(inParams.SliceFields)+
+		len(inParams.Fields)*2)
 
 	// type
-	if inputParams.Type != 0 {
-		params["params[type]"] = strconv.FormatUint(uint64(inputParams.Type), 10)
+	addToParams(p, "type", inParams.Type)
+	// byid + by_ids
+	switch {
+	case len(inParams.ByIDs) == 1:
+		addToParams(p, "byid", inParams.ByIDs[0])
+	case len(inParams.ByIDs) >= 2:
+		addSliceToParams(p, "by_ids", inParams.ByIDs)
 	}
-	// byid
-	if inputParams.ByID != 0 {
-		params["params[byid]"] = strconv.FormatUint(inputParams.ByID, 10)
-	}
-	// by_ids
-	addSliceToParams("by_ids", params, inputParams.ByIDs)
 	// category
-	if inputParams.Category != 0 {
-		params["params[category]"] = strconv.FormatUint(uint64(inputParams.Category), 10)
-	}
+	addToParams(p, "category", inParams.Category)
 	// nested
-	switch inputParams.Nested {
-	case true:
-		params["params[nested]"] = "1"
-	default:
-		params["params[nested]"] = "0"
-	}
+	addBoolStringToParams(p, "nested", inParams.Nested)
 	// search
-	if inputParams.Search != "" {
-		params["params[search]"] = inputParams.Search
-	}
+	addToParams(p, "search", inParams.Search)
 	// manager
-	addSliceToParams("manager", params, inputParams.Manager)
+	addSliceToParams(p, "manager", inParams.Manager)
 	// groups
-	addSliceToParams("groups", params, inputParams.Groups)
+	addSliceToParams(p, "groups", inParams.Groups)
 	// stock_creator_id
-	if inputParams.StockCreatorID != 0 {
-		params["params[stock_creator_id]"] = strconv.FormatUint(inputParams.StockCreatorID, 10)
-	}
+	addToParams(p, "stock_creator_id", inParams.StockCreatorID)
 	// fields
-	fieldCount := 0
-	for k, v := range inputParams.Fields {
-		params[fmt.Sprintf("params[fields][%d][id]", fieldCount)] = fmt.Sprint(k)
-		params[fmt.Sprintf("params[fields][%d][value]", fieldCount)] = v
-		fieldCount++
+	fieldsCount := 0
+	for k, v := range inParams.Fields {
+		if k == 0 || v == "" {
+			continue
+		}
+		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatUint(k, 10)
+		p[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
+		fieldsCount++
 	}
 	// index_fields
-	if inputParams.IndexFields {
-		params["params[index_fields]"] = "1"
-	}
+	addBoolStringToParams(p, "index_fields", inParams.IndexFields)
 	// related_with_customer
-	if inputParams.RelatedWithCustomer != 0 {
-		params["params[related_with_customer]"] = strconv.FormatUint(inputParams.RelatedWithCustomer, 10)
-	}
+	addToParams(p, "related_with_customer", inParams.RelatedWithCustomer)
 	// order
-	if inputParams.Order != "" {
-		params["params[order]"] = inputParams.Order
+	switch v := inParams.Order; v {
+	case "asc", "desc":
+		addToParams(p, "order", v)
 	}
 	// order_field
-	if inputParams.OrderField != 0 {
-		params["params[order_field]"] = strconv.FormatUint(inputParams.OrderField, 10)
+	switch v := inParams.OrderField; v {
+	case "stock_activity_date", "date_add", "date_delete":
+		addToParams(p, "order_field", v)
+	default:
+		if _, err := strconv.ParseUint(v, 10, 64); err == nil {
+			addToParams(p, "order_field", v)
+		}
 	}
 	// date
-	if !inputParams.Date[0].IsZero() && !inputParams.Date[1].IsZero() {
-		params["params[date][from]"] = inputParams.Date[0].Format(datetimeLayout)
-		params["params[date][to]"] = inputParams.Date[1].Format(datetimeLayout)
+	if !inParams.Date[0].IsZero() {
+		p["params[date][from]"] = inParams.Date[0].Format(DatetimeLayout)
+	}
+	if !inParams.Date[1].IsZero() {
+		p["params[date][to]"] = inParams.Date[1].Format(DatetimeLayout)
 	}
 	// date_field
-	if inputParams.DateField != "" {
-		params["params[date_field]"] = inputParams.DateField
-	}
+	addToParams(p, "date_field", inParams.DateField)
 	// page
-	if inputParams.Page != 0 {
-		params["params[page]"] = strconv.FormatUint(uint64(inputParams.Page), 10)
-	}
+	addToParams(p, "page", inParams.Page)
 	// publish
-	switch inputParams.Publish {
-	case "1", "true":
-		params["params[publish]"] = "1"
-	case "0", "false":
-		params["params[publish]"] = "0"
-	case "ignore":
-		params["params[publish]"] = "ignore"
-	}
+	addBoolStringToParams(p, "publish", inParams.Publish)
 	// limit
-	switch {
-	case inputParams.Limit > 500:
-		params["params[limit]"] = "500"
-	case inputParams.Limit != 0:
-		params["params[limit]"] = strconv.FormatUint(uint64(inputParams.Limit), 10)
-	}
-	// group_id
-	if inputParams.GroupID != 0 {
-		params["params[group_id]"] = strconv.FormatUint(uint64(inputParams.GroupID), 10)
-	}
-	// copy
-	if inputParams.Copy != 0 {
-		params["params[copy]"] = strconv.FormatUint(inputParams.Copy, 10)
-	}
-	// object_groups
-	switch {
-	case inputParams.ObjectGroups > 500:
-		params["params[object_groups]"] = "500"
-	case inputParams.ObjectGroups != 0:
-		params["params[object_groups]"] = strconv.FormatUint(uint64(inputParams.ObjectGroups), 10)
-	}
-	// count_total
-	if inputParams.CountTotal {
-		params["params[count_total]"] = "1"
+	switch v := inParams.Limit; {
+	case v == 0, v >= 500:
+		addToParams(p, "limit", "500")
+	default:
+		addToParams(p, "limit", v)
 	}
 	// only_primary_id
-	if inputParams.OnlyPrimaryID {
-		params["params[only_primary_id]"] = "1"
-	}
-	// only_count_field
-	if inputParams.OnlyCountField {
-		params["params[only_count_field]"] = "1"
-	}
+	addBoolStringToParams(p, "only_primary_id", inParams.OnlyPrimaryID)
 	// slice_fields
-	addSliceToParams("slice_fields", params, inputParams.SliceFields)
-	// sum_field
-	if inputParams.SumField != 0 {
-		params["params[sum_field]"] = strconv.FormatUint(inputParams.SumField, 10)
-	}
-	// log // TODO
+	addSliceToParams(p, "slice_fields", inParams.SliceFields)
 
-	// Получение ответа
-
-	var resp StockFilterResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	// Запрос
+	resp := new(StockFilterResponse)
+	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 
-	return &resp, nil
+	return resp, nil
 }

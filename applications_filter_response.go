@@ -21,7 +21,7 @@ type Application struct {
 	EmployeeID           uint64                       `json:"employee_id,string"`
 	CustomerID           uint64                       `json:"customer_id,string"`
 	VisitID              uint64                       `json:"visit_id,string"`
-	RequestTypeID        uint16                       `json:"request_type_id,string"`
+	RequestTypeID        uint64                       `json:"request_type_id,string"`
 	RequestTypeName      string                       `json:"request_type_name"`
 	Source               string                       `json:"source"`
 	DateCreate           time.Time                    `json:"date_create"`
@@ -58,13 +58,13 @@ func (s *Application) UnmarshalJSON(data []byte) error {
 
 	// Замена
 
-	parsedDate, err := time.Parse(datetimeLayout, aux.DateCreate)
+	parsedDate, err := time.Parse(DatetimeLayout, aux.DateCreate)
 	if err != nil {
 		return err
 	}
 	s.DateCreate = parsedDate
 
-	parsedDate, err = time.Parse(datetimeLayout, aux.RequestActivityDate)
+	parsedDate, err = time.Parse(DatetimeLayout, aux.RequestActivityDate)
 	if err != nil {
 		return err
 	}
@@ -128,19 +128,19 @@ func (s *Application) GetFieldMultiselect(fieldID uint64) []string {
 // date
 func (s *Application) GetFieldDate(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, dateLayout)
+	return parseTime(vStr, DateLayout)
 }
 
 // datetime
 func (s *Application) GetFieldDatetime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, datetimeLayout)
+	return parseTime(vStr, DatetimeLayout)
 }
 
 // time
 func (s *Application) GetFieldTime(fieldID uint64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, timeLayout)
+	return parseTime(vStr, TimeLayout)
 }
 
 // integer
@@ -200,7 +200,7 @@ func (s *Application) GetFieldDateRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 
@@ -211,7 +211,7 @@ func (s *Application) GetFieldTimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 
@@ -222,7 +222,7 @@ func (s *Application) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, dateLayout)
+		return parseTime(s, DateLayout)
 	})
 }
 

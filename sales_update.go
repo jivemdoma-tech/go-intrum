@@ -9,7 +9,7 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
 type SalesUpdateParams struct {
 	ID            uint64 // ID существующего объекта // ! Обязательно
-	SalesStatusID uint16 // ID стадии сделки
+	SalesStatusID uint64 // ID стадии сделки
 
 	// Дополнительные поля
 	//
@@ -55,7 +55,7 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	// Получение ответа
 
 	var resp SalesUpdateResponse
-	if err := rawRequest(ctx, apiKey, methodURL, params, &resp); err != nil {
+	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
 		return nil, err
 	}
 
