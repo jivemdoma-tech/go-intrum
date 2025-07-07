@@ -7,7 +7,7 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-details
 type SalesDetailsParams struct {
-	IDs []uint64 // ID объектов
+	IDs []int64 // ID объектов
 }
 
 func SalesDetails(ctx context.Context, subdomain, apiKey string, params *SalesDetailsParams) (*SalesDetailsResponse, error) {
