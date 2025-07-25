@@ -62,7 +62,6 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 		*Alias
 		CreateDate           string   `json:"create_date"`
 		CustomerActivityDate string   `json:"customer_activity_date"`
-		Marktype             string   `json:"marktype"`
 		AdditionalManagerID  []string `json:"additional_manager_id"`
 		AdditionalEmployeeID []string `json:"additional_employee_id"`
 		Fields               any      `json:"fields"`
@@ -97,14 +96,6 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 		}
 	}
 	p.AdditionalManagerID = newSlice
-
-	// newSlice = make([]uint64, 0, len(aux.Marktype))
-	// for _, v := range aux.Marktype {
-	// 	if value, err := strconv.ParseUint(v, 10, 64); err == nil {
-	// 		newSlice = append(newSlice, value)
-	// 	}
-	// }
-	// p.Marktype = newSlice
 
 	newSlice = make([]uint64, 0, len(aux.AdditionalEmployeeID))
 	for _, v := range aux.AdditionalEmployeeID {
