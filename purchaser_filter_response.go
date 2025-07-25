@@ -27,6 +27,7 @@ type Purchaser struct {
 	Phone                []*Phone                   `json:"phone"`
 	Address              string                     `json:"address"`
 	CreateDate           time.Time                  `json:"create_date"`
+	Marktype             uint64                     `json:"marktype,string"`
 	Comment              string                     `json:"comment"`
 	CustomerActivityType string                     `json:"customer_activity_type"`
 	CustomerActivityDate time.Time                  `json:"customer_activity_date"`
@@ -36,7 +37,6 @@ type Purchaser struct {
 	AdditionalManagerID  []uint64                   `json:"additional_manager_id"`
 	AdditionalEmployeeID []uint64                   `json:"additional_employee_id"`
 	// Markname             string                     `json:"markname"`
-	// Marktype             string                     `json:"marktype"`
 	// Nattype              string                     `json:"nattype"`
 	// Email                []interface{}              `json:"email"`
 
@@ -62,6 +62,7 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 		*Alias
 		CreateDate           string   `json:"create_date"`
 		CustomerActivityDate string   `json:"customer_activity_date"`
+		Marktype             string   `json:"marktype"`
 		AdditionalManagerID  []string `json:"additional_manager_id"`
 		AdditionalEmployeeID []string `json:"additional_employee_id"`
 		Fields               any      `json:"fields"`
@@ -96,6 +97,14 @@ func (p *Purchaser) UnmarshalJSON(data []byte) error {
 		}
 	}
 	p.AdditionalManagerID = newSlice
+
+	// newSlice = make([]uint64, 0, len(aux.Marktype))
+	// for _, v := range aux.Marktype {
+	// 	if value, err := strconv.ParseUint(v, 10, 64); err == nil {
+	// 		newSlice = append(newSlice, value)
+	// 	}
+	// }
+	// p.Marktype = newSlice
 
 	newSlice = make([]uint64, 0, len(aux.AdditionalEmployeeID))
 	for _, v := range aux.AdditionalEmployeeID {
