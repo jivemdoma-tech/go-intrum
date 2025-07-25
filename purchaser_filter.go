@@ -13,6 +13,7 @@ type PurchaserFilterParams struct {
 	AdditionlaManagerID []uint64     // массив ID дополнительных ответственных
 	CustomerCreatorID   uint64       // id создателя
 	ByID                []uint64     // id контакта или массив id контактов
+	Marktype            []uint64     // массив id типов
 	Search              string       // поисковая строка (может содержать фамилию или имя, email, телефон)
 	Date                [2]time.Time // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
 	Page                uint16       // номер страницы выборки (нумерация с 1)
@@ -25,7 +26,6 @@ type PurchaserFilterParams struct {
 	// 	value: 'значение_1 & значение_2' - между значением 1 и 2
 	Fields map[uint64]string
 	// TODO
-	// Marktype // массив id типов
 	// NatType // одно из значений подтипа physface - Юрлицо, jurface - Физлицо, по умолчанию выводятся все
 	// IndexFields // индексировать массив полей по id свойства, 1 - да, 0 - нет, (по умолчанию 0)
 	// Order // направление сортировки asc - по возрастанию, desc - по убыванию
@@ -57,6 +57,8 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	}
 	// byid
 	addSliceToParams(p, "byid", params.ByID)
+	// marktype
+	addSliceToParams(p, "marktype", params.Marktype)
 	// search
 	if params.Search != "" {
 		p["params[search]"] = params.Search

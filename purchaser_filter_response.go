@@ -27,6 +27,7 @@ type Purchaser struct {
 	Phone                []*Phone                   `json:"phone"`
 	Address              string                     `json:"address"`
 	CreateDate           time.Time                  `json:"create_date"`
+	Marktype             uint64                     `json:"marktype,string"`
 	Comment              string                     `json:"comment"`
 	CustomerActivityType string                     `json:"customer_activity_type"`
 	CustomerActivityDate time.Time                  `json:"customer_activity_date"`
@@ -36,7 +37,6 @@ type Purchaser struct {
 	AdditionalManagerID  []uint64                   `json:"additional_manager_id"`
 	AdditionalEmployeeID []uint64                   `json:"additional_employee_id"`
 	// Markname             string                     `json:"markname"`
-	// Marktype             string                     `json:"marktype"`
 	// Nattype              string                     `json:"nattype"`
 	// Email                []interface{}              `json:"email"`
 
