@@ -21,7 +21,7 @@ type Sale struct {
 	EmployeeID           int64                 `json:"employee_id,string,omitempty"`     // ID ответственного
 	AdditionalEmployeeID []int64               `json:"additional_employee_id,omitempty"` // Массив ID доп. ответственных
 	DateCreate           time.Time             `json:"date_create,omitempty"`            // Дата создания
-	SalesTypeID          int64                 `json:"sales_type_id,string,omitempty"`   // ID типа активности
+	SaleTypeID           int64                 `json:"sale_type_id,string,omitempty"`    // ID типа активности
 	SaleStageID          int64                 `json:"sale_stage_id,string,omitempty"`   // ID стадии
 	SaleName             string                `json:"sale_name,omitempty"`              // Название сделки
 	SaleActivityType     string                `json:"sale_activity_type,omitempty"`     // Тип последней активности
