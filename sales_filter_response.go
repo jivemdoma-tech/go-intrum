@@ -2,6 +2,7 @@ package gointrum
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -78,30 +79,41 @@ func (s *Sale) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Методы получения значений Sale
+// Методы получения значений полей
 
-// Вспомогательная функция получения структуры поля
-func (s *Sale) getField(fieldID int64) (*SaleField, bool) {
-	f, exists := s.Fields[strconv.FormatInt(fieldID, 10)]
-	return f, exists
+// getField получает структуру поля по ID.
+func (s *Sale) getField(fieldID int64) *SaleField {
+	fieldIDStr := strconv.FormatInt(fieldID, 10)
+	if f, exists := s.Fields[fieldIDStr]; exists {
+		return f
+	}
+	return nil
 }
 
-func (s *Sale) getFieldMap(fieldID int64) (map[string]string, bool) {
-	f, exists := s.getField(fieldID)
-	if !exists {
-		return nil, false
+func (s *Sale) getFieldMap(fieldID int64) map[string]string {
+	f := s.getField(fieldID)
+	if f == nil {
+		return nil
 	}
-	m, ok := f.Value.(map[string]string)
-	if !ok {
-		return nil, false
+	switch m := f.Value.(type) {
+	case map[string]string:
+		return m
+	case map[string]any:
+		mStr := make(map[string]string, len(m))
+		for k, v := range m {
+			mStr[k] = fmt.Sprint(v)
+		}
+		return mStr
 	}
-	return m, true
+	return nil
 }
 
-// text
+// Публичные методы
+
+// Тип поля: "text".
 func (s *Sale) GetFieldText(fieldID int64) string {
-	f, exists := s.getField(fieldID)
-	if !exists {
+	f := s.getField(fieldID)
+	if f == nil {
 		return ""
 	}
 	vStr, ok := f.Value.(string)
@@ -111,7 +123,7 @@ func (s *Sale) GetFieldText(fieldID int64) string {
 	return vStr
 }
 
-// radio
+// Тип поля: "radio".
 func (s *Sale) GetFieldRadio(fieldID int64) bool {
 	vStr := s.GetFieldText(fieldID)
 	if v, err := strconv.ParseBool(vStr); err == nil {
@@ -120,88 +132,109 @@ func (s *Sale) GetFieldRadio(fieldID int64) bool {
 	return false
 }
 
-// select
+// Тип поля: "select".
 func (s *Sale) GetFieldSelect(fieldID int64) string {
 	return s.GetFieldText(fieldID)
 }
 
-// multiselect
+// Тип поля: "multiselect".
 func (s *Sale) GetFieldMultiselect(fieldID int64) []string {
-	return strings.Split(s.GetFieldText(fieldID), ",")
+	if vStr := s.GetFieldText(fieldID); vStr != "" {
+		return strings.Split(vStr, ",")
+	}
+	return nil
 }
 
-// date
+// Тип поля: "date".
 func (s *Sale) GetFieldDate(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DateLayout)
+	// Проверка на формат date
+	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
+		return vDate
+	}
+	// Проверка на формат datetime
+	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
+		return time.Date(vDatetime.Year(), vDatetime.Month(), vDatetime.Day(), 0, 0, 0, 0, vDatetime.Location())
+	}
+
+	return time.Time{}
 }
 
-// datetime
+// Тип поля: "datetime".
 func (s *Sale) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DatetimeLayout)
+	// Проверка на формат datetime
+	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
+		return vDatetime
+	}
+	// Проверка на формат date
+	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
+		return vDate
+	}
+
+	return time.Time{}
 }
 
-// time
+// Тип поля: "time".
 func (s *Sale) GetFieldTime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, TimeLayout)
 }
 
-// integer
+// Тип поля: "integer".
 func (s *Sale) GetFieldInteger(fieldID int64) int64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseInt(vStr)
 }
 
-// decimal
+// Тип поля: "decimal".
 func (s *Sale) GetFieldDecimal(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
-// price
+// Тип поля: "price".
 func (s *Sale) GetFieldPrice(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
-// file
+// Тип поля: "file".
 func (s *Sale) GetFieldFile(fieldID int64) string {
 	return s.GetFieldText(fieldID)
 }
 
-// point
+// Тип поля: "point".
 func (s *Sale) GetFieldPoint(fieldID int64) [2]string {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]string{}
 	}
 	return [2]string{m["x"], m["y"]}
 }
 
-// integer_range
+// Тип поля: "integer_range".
 func (s *Sale) GetFieldIntegerRange(fieldID int64) [2]int64 {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]int64{}
 	}
 	return parseRange(m, parseInt)
 }
 
-// decimal_range
+// Тип поля: "decimal_range".
 func (s *Sale) GetFieldDecimalRange(fieldID int64) [2]float64 {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]float64{}
 	}
 	return parseRange(m, parseFloat)
 }
 
-// date_range
+// Тип поля: "date_range".
 func (s *Sale) GetFieldDateRange(fieldID int64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
@@ -209,57 +242,73 @@ func (s *Sale) GetFieldDateRange(fieldID int64) [2]time.Time {
 	})
 }
 
-// time_range
+// Тип поля: "time_range".
 func (s *Sale) GetFieldTimeRange(fieldID int64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
+		return parseTime(s, TimeLayout)
 	})
 }
 
-// datetime_range
+// Тип поля: "datetime_range".
 func (s *Sale) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
+	m := s.getFieldMap(fieldID)
+	if m == nil {
 		return [2]time.Time{}
 	}
 	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
+		return parseTime(s, DatetimeLayout)
 	})
 }
 
-// attach
+// Тип поля: "attach".
+//
+//	! ВНИМАНИЕ ! Возвращает ID только последней прикрепленной сущности.
 func (s *Sale) GetFieldAttach(fieldID int64) []int64 {
-	f, exists := s.getField(fieldID)
-	if !exists {
+	// TODO: Подружить метод с кривым API Интрума...
+	f := s.getField(fieldID)
+	if f == nil {
 		return nil
 	}
-	arr, ok := f.Value.([]interface{})
-	if !ok || len(arr) == 0 {
-		// fmt.Println(f.Value)
+	m, ok := f.Value.(map[string]any)
+	if !ok {
 		return nil
 	}
-	vIDs := make([]int64, 0, len(arr))
-	for _, v := range arr {
-		m, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		idStr, ok := m["id"].(string)
-		if !ok {
-			// Если по какой-то причине id пришел не строкой, можно попробовать float64 (стандартное поведение encoding/json)
-			if idFloat, ok := m["id"].(float64); ok {
-				vIDs = append(vIDs, int64(idFloat))
-				continue
-			}
-			continue
-		}
-		if id, err := strconv.ParseInt(idStr, 10, 64); err == nil {
-			vIDs = append(vIDs, id)
-		}
+	idRaw, ok := m["id"]
+	if !ok || idRaw == nil {
+		return nil
 	}
-	return vIDs
+	switch id := idRaw.(type) {
+	case string:
+		if id == "" || id == "0" {
+			return nil
+		}
+		val, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return nil
+		}
+		return []int64{val}
+	}
+	return nil
+}
+
+// Обертки методов с боле привычными названиями
+
+func (s *Sale) GetFieldString(fieldID int64) string {
+	return s.GetFieldText(fieldID)
+}
+
+func (s *Sale) GetFieldFloat(fieldID int64) float64 {
+	return s.GetFieldDecimal(fieldID)
+}
+
+func (s *Sale) GetFieldFloatRange(fieldID int64) [2]float64 {
+	return s.GetFieldDecimalRange(fieldID)
+}
+
+func (s *Sale) GetFieldBool(fieldID int64) bool {
+	return s.GetFieldRadio(fieldID)
 }
