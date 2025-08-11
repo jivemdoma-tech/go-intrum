@@ -2,6 +2,7 @@ package gointrum
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
@@ -43,8 +44,8 @@ type WorkerFilterData struct {
 
 type WorkerFields struct {
 	ID       uint64 `json:"id,string,omitempty"`
-	Name     string `json:"value,omitempty"`
-	Datatype any    `json:"datatype,omitempty"`
+	Name     any    `json:"value,omitempty"`
+	Datatype string `json:"datatype,omitempty"`
 }
 
 func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
@@ -87,3 +88,65 @@ func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+// Методы получения значений полей
+
+// getField получает структуру поля по ID.
+func (w *WorkerFilterData) getField(fieldID uint64) *WorkerFields {
+	if f, exists := w.Fields[fieldID]; exists {
+		return f
+	}
+	return nil
+}
+
+func (w *WorkerFilterData) getFieldMap(fieldID uint64) map[string]string {
+	f := w.getField(fieldID)
+	if f == nil {
+		return nil
+	}
+	switch m := f.Name.(type) {
+	case map[string]string:
+		return m
+	case map[string]any:
+		mStr := make(map[string]string, len(m))
+		for k, v := range m {
+			mStr[k] = fmt.Sprint(v)
+		}
+		return mStr
+	}
+	return nil
+}
+
+// Публичные методы
+
+// Тип поля: "text".
+func (w *WorkerFilterData) GetFieldText(fieldID uint64) string {
+	f := w.getField(fieldID)
+	if f == nil {
+		return ""
+	}
+	vStr, ok := f.Name.(string)
+	if !ok {
+		return ""
+	}
+	return vStr
+}
+
+// Тип поля: "select".
+func (w *WorkerFilterData) GetFieldSelect(fieldID uint64) string {
+	return w.GetFieldText(fieldID)
+}
+
+// Тип поля: "integer".
+func (w *WorkerFilterData) GetFieldInteger(fieldID uint64) int64 {
+	vStr := w.GetFieldText(fieldID)
+	return parseInt(vStr)
+}
+
+// Тип поля: "decimal".
+func (w *WorkerFilterData) GetFieldDecimal(fieldID uint64) float64 {
+	vStr := w.GetFieldText(fieldID)
+	return parseFloat(vStr)
+}
+
+//TODO все остальные типы данных
