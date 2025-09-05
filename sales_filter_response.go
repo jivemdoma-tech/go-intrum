@@ -28,6 +28,7 @@ type Sale struct {
 	SaleActivityType     string                `json:"sale_activity_type,omitempty"`     // Тип последней активности
 	SaleActivityDate     time.Time             `json:"sale_activity_date,omitempty"`     // Дата последней активности сделк
 	Fields               map[string]*SaleField `json:"fields,omitempty"`                 // Данные полей
+	Publish              bool                  `json:"publish,omitempty"`                // Опубликован/Удален
 }
 
 // Использовать метод GetField для получения значения поля // TODO
@@ -46,6 +47,8 @@ func (s *Sale) UnmarshalJSON(data []byte) error {
 		AdditionalEmployeeID []string `json:"additional_employee_id,omitempty"`
 		DateCreate           string   `json:"date_create,omitempty"`
 		SaleActivityDate     string   `json:"sale_activity_date,omitempty"`
+		// Bool
+		Publish string `json:"publish,omitempty"`
 	}{
 		Alias: (*Alias)(s), // Приведение типа к Alias
 	}
@@ -75,6 +78,14 @@ func (s *Sale) UnmarshalJSON(data []byte) error {
 		}
 	}
 	s.AdditionalEmployeeID = newSlice
+
+	parsedBool, err := strconv.ParseBool(aux.Publish)
+	switch err {
+	case nil:
+		s.Publish = parsedBool
+	default:
+		s.Publish = false
+	}
 
 	return nil
 }
