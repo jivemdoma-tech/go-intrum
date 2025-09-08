@@ -16,7 +16,7 @@ func TasksDelete(ctx context.Context, subdomain, apiKey string, taskID int64) (*
 
 	// Параметры запроса
 	p := map[string]string{
-		"id": strconv.FormatInt(taskID, 10),
+		"params[id]": strconv.FormatInt(taskID, 10),
 	}
 
 	// Запрос
