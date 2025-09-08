@@ -1,0 +1,113 @@
+{
+  "status": "success",
+  "data": {
+    "tasks": [
+      {
+        "id": null,
+        "created_at": null,
+        "title": null,
+        "description": null,
+        "status": null,
+        "terms": null,
+        "priority": null,
+        "director": null,
+        "performer": null,
+        "coperformer": null,
+        "author": null,
+        "checklist": null,
+        "attaches": null,
+        "files": null,
+        "tags": null
+      },
+      {
+        "id": 0,
+        "created_at": "",
+        "title": "",
+        "description": "",
+        "status": "",
+        "terms": "",
+        "priority": 0,
+        "director": 0,
+        "performer": 0,
+        "coperformer": [],
+        "author": 0,
+        "checklist": [],
+        "attaches": [],
+        "files": [],
+        "tags": []
+      },
+      {
+        "id": 444,
+        "created_at": "0000-00-00 00:00:00",
+        "title": "Виртуальная задача-тест",
+        "description": "Описание виртуальной задачи.",
+        "status": "new",
+        "terms": "0000-00-00 00:00:00",
+        "priority": 3,
+        "director": 10,
+        "performer": 12,
+        "coperformer": [],
+        "author": 20,
+        "checklist": [],
+        "attaches": [
+          {
+            "id": 101,
+            "type": "request"
+          }
+        ],
+        "files": [],
+        "tags": []
+      },
+      {
+        "id": 444,
+        "created_at": "2006-01-02 15:04:05",
+        "title": "Виртуальная задача-тест",
+        "description": "Описание виртуальной задачи.",
+        "status": "new",
+        "terms": "2006-01-02 15:04:05",
+        "priority": 3,
+        "director": 10,
+        "performer": 12,
+        "coperformer": [14],
+        "author": 20,
+        "checklist": [],
+        "attaches": [
+          {
+            "id": 102,
+            "type": "stock"
+          }
+        ],
+        "files": [],
+        "tags": []
+      },
+      {
+        "id": 444,
+        "created_at": "2076-01-02 15:04:05",
+        "title": "Виртуальная задача-тест",
+        "description": "Описание виртуальной задачи.",
+        "status": "new",
+        "terms": "2076-01-02 15:04:05",
+        "priority": 3,
+        "director": 10,
+        "performer": 12,
+        "coperformer": [14, 16],
+        "author": 20,
+        "checklist": [],
+        "attaches": [
+          {
+            "id": 103,
+            "type": "sale"
+          },
+          {
+            "id": 104,
+            "type": "customer"
+          }
+        ],
+        "files": [],
+        "tags": []
+      }
+    ],
+    "count": 2000,
+    "pages": 2
+  }
+}
