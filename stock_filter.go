@@ -153,3 +153,27 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFi
 
 	return resp, nil
 }
+
+func StockFilterAll(ctx context.Context, subdomain, apiKey string, params StockFilterParams) ([]*Stock, error) {
+	stockTotal := make([]*Stock, 0, 500)
+	for page := uint16(1); ; page++ {
+		params.Page = page
+
+		resp, err := StockFilter(ctx, subdomain, apiKey, params)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(resp.Data.List) == 0 {
+			break
+		}
+
+		stockTotal = append(stockTotal, resp.Data.List...)
+
+		if len(resp.Data.List) < 500 {
+			break
+		}
+	}
+
+	return stockTotal, nil
+}
