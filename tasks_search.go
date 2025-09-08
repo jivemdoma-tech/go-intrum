@@ -53,6 +53,13 @@ func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksS
 	for page := int64(0); ; page++ {
 		params.Page = page
 
+		switch {
+		case params.Limit <= 0:
+			params.Limit = 100
+		case params.Limit > 1000:
+			params.Limit = 1000
+		}
+
 		resp, err := TasksSearch(ctx, subdomain, apiKey, params)
 		if err != nil {
 			return nil, err
@@ -60,12 +67,6 @@ func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksS
 
 		if len(resp.Data.Tasks) == 0 {
 			break
-		}
-		switch {
-		case params.Limit == 0:
-			params.Limit = 100
-		case params.Limit > 1000:
-			params.Limit = 1000
 		}
 
 		tasksTotal = append(tasksTotal, resp.Data.Tasks...)
