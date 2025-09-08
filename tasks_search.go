@@ -49,7 +49,7 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 }
 
 func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksSearchParams) ([]*Task, error) {
-	stockTotal := make([]*Task, 0, 500)
+	tasksTotal := make([]*Task, 0, 1000)
 	for page := int64(0); ; page++ {
 		params.Page = page
 
@@ -61,13 +61,19 @@ func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksS
 		if len(resp.Data.Tasks) == 0 {
 			break
 		}
+		switch {
+		case params.Limit == 0:
+			params.Limit = 100
+		case params.Limit > 1000:
+			params.Limit = 1000
+		}
 
-		stockTotal = append(stockTotal, resp.Data.Tasks...)
+		tasksTotal = append(tasksTotal, resp.Data.Tasks...)
 
-		if len(resp.Data.Tasks) < 500 {
+		if len(resp.Data.Tasks) < int(params.Limit) {
 			break
 		}
 	}
 
-	return stockTotal, nil
+	return tasksTotal, nil
 }
