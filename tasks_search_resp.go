@@ -7,11 +7,11 @@ import (
 
 type TasksSearchResp struct {
 	*Response
-	Data TasksSearchData `json:"data"`
+	Data *TasksSearchData `json:"data"`
 }
 
 type TasksSearchData struct {
-	Tasks []Task `json:"tasks"`
+	Tasks []*Task `json:"tasks"`
 	// Count int64  `json:"count"`
 	// Pages int64  `json:"pages"`
 }
