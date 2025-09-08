@@ -20,7 +20,7 @@ const (
 )
 
 // Клиент для запросов к Intrum API
-var client = http.DefaultClient
+var client = http.Client{Timeout: time.Minute * 10}
 
 // Интерфейс, принимающий структуру API-ответа.
 type respStruct interface {
