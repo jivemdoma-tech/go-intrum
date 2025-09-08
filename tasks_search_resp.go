@@ -12,8 +12,8 @@ type TasksSearchResp struct {
 
 type TasksSearchData struct {
 	Tasks []Task `json:"tasks"`
-	Count int64  `json:"count"`
-	Pages int64  `json:"pages"`
+	// Count int64  `json:"count"`
+	// Pages int64  `json:"pages"`
 }
 
 type Task struct {
