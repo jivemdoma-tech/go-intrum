@@ -41,7 +41,7 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 
 	// Запрос
 	resp := new(TasksSearchResp)
-	if err := requestFn(ctx, apiKey, subdomain, p, resp); err != nil {
+	if err := requestFn(ctx, apiKey, methodURL, p, resp); err != nil {
 		return nil, err
 	}
 
