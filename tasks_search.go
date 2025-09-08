@@ -50,7 +50,7 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 
 func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksSearchParams) ([]*Task, error) {
 	stockTotal := make([]*Task, 0, 500)
-	for page := int64(1); ; page++ {
+	for page := int64(0); ; page++ {
 		params.Page = page
 
 		resp, err := TasksSearch(ctx, subdomain, apiKey, params)
