@@ -7,7 +7,7 @@ import (
 
 type TasksSearchResp struct {
 	*Response
-	Data Data `json:"data"`
+	Data TasksSearchData `json:"data"`
 }
 
 type TasksSearchData struct {
