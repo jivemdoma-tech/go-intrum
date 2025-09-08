@@ -49,15 +49,19 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 }
 
 func TasksSearchAll(ctx context.Context, subdomain, apiKey string, params TasksSearchParams) ([]*Task, error) {
+	const (
+		stdLimit     = 100
+		maxLimit int = 1000
+	)
 	tasksTotal := make([]*Task, 0, 1000)
 	for page := int64(0); ; page++ {
 		params.Page = page
 
 		switch {
 		case params.Limit <= 0:
-			params.Limit = 100
-		case params.Limit > 1000:
-			params.Limit = 1000
+			params.Limit = stdLimit
+		case params.Limit > int64(maxLimit):
+			params.Limit = int64(maxLimit)
 		}
 
 		resp, err := TasksSearch(ctx, subdomain, apiKey, params)

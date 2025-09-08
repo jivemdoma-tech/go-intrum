@@ -155,9 +155,20 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFi
 }
 
 func StockFilterAll(ctx context.Context, subdomain, apiKey string, params StockFilterParams) ([]*Stock, error) {
+	const (
+		stdLimit     = 50
+		maxLimit int = 500
+	)
 	stockTotal := make([]*Stock, 0, 500)
 	for page := uint16(1); ; page++ {
 		params.Page = page
+
+		switch {
+		case params.Limit <= 0:
+			params.Limit = stdLimit
+		case params.Limit > uint64(maxLimit):
+			params.Limit = uint64(maxLimit)
+		}
 
 		resp, err := StockFilter(ctx, subdomain, apiKey, params)
 		if err != nil {
