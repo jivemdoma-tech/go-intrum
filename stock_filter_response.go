@@ -116,9 +116,32 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	}
 	s.AdditionalEmployeeID = newSlice
 
-	newMap := make(map[uint64]*StockField, len(aux.Fields))
-	for _, v := range aux.Fields {
-		newMap[v.ID] = v
+	var (
+		newMap        = make(map[uint64]*StockField, len(aux.Fields))
+		alreadyParsed = make(map[uint64]struct{}) // Костыль для сбора полей с дублирующимися ключами в 1 ключ
+	)
+	for _, f := range aux.Fields {
+		// Реализация костыля
+		switch f.Type {
+		case "file", "attach":
+			switch _, ok := alreadyParsed[f.ID]; {
+			case ok:
+				continue
+			default:
+				alreadyParsed[f.ID] = struct{}{}
+			}
+			// Прогон по всем полям с поиском значений под нашим ключом
+			valuesCollected := make([]string, 0)
+			for _, f2 := range aux.Fields {
+				if f.ID != f2.ID {
+					continue
+				}
+				vStr, _ := f2.Value.(string)
+				valuesCollected = append(valuesCollected, vStr)
+			}
+			f.Value = strings.Join(valuesCollected, ",")
+		}
+		newMap[f.ID] = f
 	}
 	s.Fields = newMap
 
