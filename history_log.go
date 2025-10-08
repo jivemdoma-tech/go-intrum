@@ -3,6 +3,7 @@ package gointrum
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -54,37 +55,14 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *History
 		reqDate := time.Date(inParams.Date[1].Year(), inParams.Date[1].Month(), inParams.Date[1].Day(), 23, 59, 59, 0, inParams.Date[1].Location())
 		params["params[date][to]"] = reqDate.Format(DatetimeLayout)
 	}
-	// // log
-	// for i, logParamsSlice := range inputParams.Log {
-	// 	for j, logParams := range logParamsSlice {
-	// 		// property_id
-	// 		if logParams.PropertyID != "" {
-	// 			params[fmt.Sprintf("params[log][%d][%d][property_id]", i, j)] = logParams.PropertyID
-	// 		}
-	// 		// date
-	// 		if !logParams.Date[0].IsZero() {
-	// 			params[fmt.Sprintf("params[log][%d][%d][date][from]", i, j)] = logParams.Date[0].Format(DateLayout)
-	// 		}
-	// 		if !logParams.Date[1].IsZero() {
-	// 			params[fmt.Sprintf("params[log][%d][%d][date][to]", i, j)] = logParams.Date[1].Format(DateLayout)
-	// 		}
-	// 		// value
-	// 		if logParams.Value != "" {
-	// 			params[fmt.Sprintf("params[log][%d][%d][value]", i, j)] = logParams.Value
-	// 		}
-	// 		// current
-	// 		if logParams.Current != "" {
-	// 			params[fmt.Sprintf("params[log][%d][%d][current]", i, j)] = logParams.Current
-	// 		}
-	// 	}
-	// }
 
 	// Получение ответа
-
 	resp := new(HistoryLogResponse)
 	if err := request(ctx, apiKey, methodURL, params, resp); err != nil {
 		return nil, err
 	}
+	// Сортировка
+	slices.SortFunc(resp.Data, func(a, b *HistoryLogData) int { return a.Date.Compare(b.Date) })
 
 	return resp, nil
 }
