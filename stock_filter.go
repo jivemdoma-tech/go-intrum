@@ -181,7 +181,7 @@ func StockFilterAll(ctx context.Context, subdomain, apiKey string, params StockF
 
 		stockTotal = append(stockTotal, resp.Data.List...)
 
-		if len(resp.Data.List) < 500 {
+		if len(resp.Data.List) < int(params.Limit) {
 			break
 		}
 	}
