@@ -12,7 +12,7 @@ func SalesDelete(ctx context.Context, subdomain, apiKey string, saleIDs ...int64
 
 	// Обязательность ввода параметров
 	if len(saleIDs) == 0 {
-		return nil, returnErrBadParams(methodURL)
+		return nil, fmt.Errorf("there's nothing to delete")
 	}
 
 	// Параметры запроса
