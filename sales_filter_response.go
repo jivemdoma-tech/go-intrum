@@ -276,34 +276,33 @@ func (s *Sale) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 }
 
 // Тип поля: "attach".
-//
-//	! ВНИМАНИЕ ! Возвращает ID только последней прикрепленной сущности.
 func (s *Sale) GetFieldAttach(fieldID int64) []int64 {
-	// TODO: Подружить метод с кривым API Интрума...
-	f := s.getField(fieldID)
-	if f == nil {
+	rawField := s.getField(fieldID)
+	rawValues, ok := rawField.Value.([]any)
+	if !ok || len(rawValues) == 0 {
 		return nil
 	}
-	m, ok := f.Value.(map[string]any)
-	if !ok {
-		return nil
-	}
-	idRaw, ok := m["id"]
-	if !ok || idRaw == nil {
-		return nil
-	}
-	switch id := idRaw.(type) {
-	case string:
-		if id == "" || id == "0" {
-			return nil
+	result := make([]int64, 0, len(rawValues))
+	for _, rawValue := range rawValues {
+		valueMap, ok := rawValue.(map[string]any)
+		if !ok || len(valueMap) == 0 {
+			continue
 		}
-		val, err := strconv.ParseInt(id, 10, 64)
+		idRaw, ok := valueMap["id"]
+		if !ok {
+			continue
+		}
+		idStr, ok := idRaw.(string)
+		if !ok {
+			continue
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
-			return nil
+			continue
 		}
-		return []int64{val}
+		result = append(result, id)
 	}
-	return nil
+	return result
 }
 
 // Обертки методов с боле привычными названиями
