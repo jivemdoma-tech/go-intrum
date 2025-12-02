@@ -278,6 +278,9 @@ func (s *Sale) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 // Тип поля: "attach".
 func (s *Sale) GetFieldAttach(fieldID int64) []int64 {
 	rawField := s.getField(fieldID)
+	if rawField == nil {
+		return nil
+	}
 	rawValues, ok := rawField.Value.([]any)
 	if !ok || len(rawValues) == 0 {
 		return nil
