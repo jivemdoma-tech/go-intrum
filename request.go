@@ -32,10 +32,10 @@ type respStruct interface {
 
 func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
 	const (
-		primaryPort  string        = "81"
-		backupPort   string        = "444"
-		duration1Min time.Duration = time.Minute
-		duration5Min time.Duration = time.Minute * 5
+		primaryPort  string = "81"
+		backupPort   string = "444"
+		duration1Min        = time.Minute
+		duration5Min        = time.Minute * 5
 	)
 	// Обработка паники
 	defer func() {

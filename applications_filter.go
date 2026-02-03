@@ -106,7 +106,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 	case l == 0, l >= 500:
 		p["params[limit]"] = "500"
 	default:
-		p["params[limit]"] = strconv.FormatUint(uint64(l), 10)
+		p["params[limit]"] = strconv.FormatUint(l, 10)
 	}
 	// slice_fields
 	addSliceToParams(p, "slice_fields", params.SliceFields)

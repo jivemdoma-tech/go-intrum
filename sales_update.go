@@ -42,7 +42,7 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
 	// sales_status_id
 	if inputParams.SalesStatusID != 0 {
-		params["params[0][sales_status_id]"] = strconv.FormatUint(uint64(inputParams.SalesStatusID), 10)
+		params["params[0][sales_status_id]"] = strconv.FormatUint(inputParams.SalesStatusID, 10)
 	}
 	// fields
 	countFields := 0

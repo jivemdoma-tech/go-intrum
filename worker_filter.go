@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// Ссылка на метод: https://www.intrumnet.com/api/#sales-filter
 type WorkerFilterParams struct {
 	// Group       uint64   // ID CRM группы // TODO
 	ID          []uint64 // Массив id сотрудников
@@ -32,7 +31,7 @@ type WorkerFilterParams struct {
 	Fields map[uint64]string
 }
 
-// Ссылка на метод: https://www.intrumnet.com/api/#worker-filter
+// WorkerFilter - https://www.intrumnet.com/api/#worker-filter
 func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *WorkerFilterParams) (*WorkerFilterResponse, error) {
 	u := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/worker/filter", subdomain)
 

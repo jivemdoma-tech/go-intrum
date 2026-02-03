@@ -61,7 +61,7 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	}
 	// group_id
 	if inputParams.GroupID != 0 {
-		params["params[0][group_id]"] = strconv.FormatUint(uint64(inputParams.GroupID), 10)
+		params["params[0][group_id]"] = strconv.FormatUint(inputParams.GroupID, 10)
 	}
 	// copy
 	if inputParams.Copy != 0 {
