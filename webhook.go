@@ -45,11 +45,13 @@ const (
 	ObjectTypeApp         string = "app"
 )
 
-type whPayload interface {
+type WHPayload interface {
 	WHStockPayload
 }
 
-func WebhookHandler[T whPayload](payloadCh chan<- *T) http.HandlerFunc {
+func NewWebhookPayloadCh[T WHPayload](size int) chan *T { return make(chan *T, max(size, 1)) }
+
+func WebhookHandler[T WHPayload](payloadCh chan<- *T) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
