@@ -51,7 +51,13 @@ type whGenericPayload interface {
 
 func NewWHPayloadCh[T whGenericPayload](size int) chan *T { return make(chan *T, max(size, 1)) }
 
-func WebhookHandler[T whGenericPayload](payloadCh chan<- *T) http.HandlerFunc {
+// WebhookHandler возвращает универсальный хендлер webhook-запросов.
+// Полученные хендлером данные обрабатываются в структуру, после чего отправляются в канал для последующей обработки.
+//
+// Канал можно получить при помощи функции-конструктора NewWHPayloadCh.
+func WebhookHandler[T whGenericPayload](payloadCh chan<- *T, chSendTimeout time.Duration) http.HandlerFunc {
+	chSendTimeout = max(chSendTimeout, 5*time.Second)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -74,7 +80,7 @@ func WebhookHandler[T whGenericPayload](payloadCh chan<- *T) http.HandlerFunc {
 		go func() {
 			select {
 			case payloadCh <- payload:
-			case <-time.After(5 * time.Second):
+			case <-time.After(chSendTimeout):
 			}
 		}()
 
