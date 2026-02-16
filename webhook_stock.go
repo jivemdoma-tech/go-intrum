@@ -6,52 +6,52 @@ import (
 	"strings"
 )
 
-type WHStockPayload struct {
-	SubjectType   string          `json:"subject_type"`
-	SubjectTypeID int64           `json:"subject_type_id,string"`
-	Event         string          `json:"event"`
-	ObjectType    string          `json:"object_type"`
-	ObjectSubType int64           `json:"object_sub_type"`
-	ObjectSubID   int64           `json:"object_sub_id"`
-	Snapshot      WHStockSnapshot `json:"snapshot"`
+type WebhookStockPayload struct {
+	SubjectType   string               `json:"subject_type"`
+	SubjectTypeID int64                `json:"subject_type_id,string"`
+	Event         string               `json:"event"`
+	ObjectType    string               `json:"object_type"`
+	ObjectSubType int64                `json:"object_sub_type"`
+	ObjectSubID   int64                `json:"object_sub_id"`
+	Snapshot      WebhookStockSnapshot `json:"snapshot"`
 }
 
-type WHStockSnapshot struct {
-	ID                  int64              `json:"id,string"`
-	GroupID             string             `json:"group_id"`
-	ExportID            string             `json:"export_id"`
-	Parent              string             `json:"parent"`
-	Parentname          string             `json:"parentname"`
-	ExportParent        string             `json:"export_parent"`
-	Name                string             `json:"name"`
-	Count               string             `json:"count"`
-	DateAdd             string             `json:"date_add"`
-	Publish             string             `json:"publish"`
-	PostProcessed       string             `json:"post_processed"`
-	Author              string             `json:"author"`
-	Copy                string             `json:"copy"`
-	Type                string             `json:"type"`
-	Typename            string             `json:"typename"`
-	StockActivityType   string             `json:"stock_activity_type"`
-	StockActivityDate   string             `json:"stock_activity_date"`
-	RelatedWithCustomer string             `json:"related_with_customer"`
-	StockCreatorId      string             `json:"stock_creator_id"`
-	EntitySubId         string             `json:"entity_sub_id"`
-	MainOwnerId         string             `json:"main_owner_id"`
-	SharedManagers      []any              `json:"shared_managers"`
-	Extproperty         WHStockExtproperty `json:"extproperty"`
-	Merge               WHStockMerge       `json:"merge"`
+type WebhookStockSnapshot struct {
+	ID                  int64             `json:"id,string"`
+	GroupID             string            `json:"group_id"`
+	ExportID            string            `json:"export_id"`
+	Parent              string            `json:"parent"`
+	Parentname          string            `json:"parentname"`
+	ExportParent        string            `json:"export_parent"`
+	Name                string            `json:"name"`
+	Count               string            `json:"count"`
+	DateAdd             string            `json:"date_add"`
+	Publish             string            `json:"publish"`
+	PostProcessed       string            `json:"post_processed"`
+	Author              string            `json:"author"`
+	Copy                string            `json:"copy"`
+	Type                string            `json:"type"`
+	Typename            string            `json:"typename"`
+	StockActivityType   string            `json:"stock_activity_type"`
+	StockActivityDate   string            `json:"stock_activity_date"`
+	RelatedWithCustomer string            `json:"related_with_customer"`
+	StockCreatorId      string            `json:"stock_creator_id"`
+	EntitySubId         string            `json:"entity_sub_id"`
+	MainOwnerId         string            `json:"main_owner_id"`
+	SharedManagers      []any             `json:"shared_managers"`
+	Extproperty         WebhookStockExtpr `json:"extproperty"`
+	Merge               WebhookStockMerge `json:"merge"`
 }
 
 type (
-	WHStockExtproperty      map[string]*WHStockExtpropertyField
-	WHStockExtpropertyField struct {
+	WebhookStockExtpr      map[string]*WebhookStockExtprField
+	WebhookStockExtprField struct {
 		Type  string `json:"type"`
 		Value any    `json:"value"`
 	}
 )
 
-func (ff WHStockExtproperty) field(fieldID int64) *WHStockExtpropertyField {
+func (ff WebhookStockExtpr) field(fieldID int64) *WebhookStockExtprField {
 	if len(ff) == 0 {
 		return nil
 	}
@@ -64,7 +64,7 @@ func (ff WHStockExtproperty) field(fieldID int64) *WHStockExtpropertyField {
 	return f
 }
 
-func (ff WHStockExtproperty) StringField(fieldID int64) string {
+func (ff WebhookStockExtpr) StringField(fieldID int64) string {
 	f := ff.field(fieldID)
 	if f == nil {
 		return ""
@@ -77,7 +77,7 @@ func (ff WHStockExtproperty) StringField(fieldID int64) string {
 	return fmt.Sprint(v)
 }
 
-func (ff WHStockExtproperty) BoolField(fieldID int64) bool {
+func (ff WebhookStockExtpr) BoolField(fieldID int64) bool {
 	vStr := ff.StringField(fieldID)
 	if vStr == "" {
 		return false
@@ -87,7 +87,7 @@ func (ff WHStockExtproperty) BoolField(fieldID int64) bool {
 	return vBool
 }
 
-func (ff WHStockExtproperty) FloatField(fieldID int64) float64 {
+func (ff WebhookStockExtpr) FloatField(fieldID int64) float64 {
 	vStr := ff.StringField(fieldID)
 	if vStr == "" {
 		return 0
@@ -97,12 +97,12 @@ func (ff WHStockExtproperty) FloatField(fieldID int64) float64 {
 	return vFloat64
 }
 
-func (ff WHStockExtproperty) IntField(fieldID int64) int64 {
+func (ff WebhookStockExtpr) IntField(fieldID int64) int64 {
 	vFloat := ff.FloatField(fieldID)
 	return int64(vFloat)
 }
 
-func (ff WHStockExtproperty) StringSliceField(fieldID int64) []string {
+func (ff WebhookStockExtpr) StringSliceField(fieldID int64) []string {
 	vStr := ff.StringField(fieldID)
 	if vStr == "" {
 		return nil
@@ -117,19 +117,19 @@ func (ff WHStockExtproperty) StringSliceField(fieldID int64) []string {
 }
 
 type (
-	WHStockMerge      map[string]*WHStockMergeField
-	WHStockMergeField struct {
+	WebhookStockMerge      map[string]*WebhookStockMergeField
+	WebhookStockMergeField struct {
 		Type    string `json:"type"`
 		Value   any    `json:"value"`
 		Current any    `json:"current"`
 	}
-	WHStockMergeFieldEdit[T any] struct {
+	WebhookStockMergeEdit[T any] struct {
 		Before T
 		After  T
 	}
 )
 
-func (ff WHStockMerge) fieldEdit(fieldID int64) *WHStockMergeField {
+func (ff WebhookStockMerge) fieldEdit(fieldID int64) *WebhookStockMergeField {
 	if len(ff) == 0 {
 		return nil
 	}
@@ -142,7 +142,7 @@ func (ff WHStockMerge) fieldEdit(fieldID int64) *WHStockMergeField {
 	return f
 }
 
-func (ff WHStockMerge) StringFieldEdit(fieldID int64) *WHStockMergeFieldEdit[string] {
+func (ff WebhookStockMerge) StringFieldEdit(fieldID int64) *WebhookStockMergeEdit[string] {
 	f := ff.fieldEdit(fieldID)
 	if f == nil {
 		return nil
@@ -158,13 +158,13 @@ func (ff WHStockMerge) StringFieldEdit(fieldID int64) *WHStockMergeFieldEdit[str
 		vAfter = fmt.Sprint(v)
 	}
 
-	return &WHStockMergeFieldEdit[string]{
+	return &WebhookStockMergeEdit[string]{
 		Before: vBefore,
 		After:  vAfter,
 	}
 }
 
-func (ff WHStockMerge) BoolFieldEdit(fieldID int64) *WHStockMergeFieldEdit[bool] {
+func (ff WebhookStockMerge) BoolFieldEdit(fieldID int64) *WebhookStockMergeEdit[bool] {
 	editStr := ff.StringFieldEdit(fieldID)
 	if editStr == nil {
 		return nil
@@ -175,13 +175,13 @@ func (ff WHStockMerge) BoolFieldEdit(fieldID int64) *WHStockMergeFieldEdit[bool]
 		vAfterBool, _  = strconv.ParseBool(editStr.After)
 	)
 
-	return &WHStockMergeFieldEdit[bool]{
+	return &WebhookStockMergeEdit[bool]{
 		Before: vBeforeBool,
 		After:  vAfterBool,
 	}
 }
 
-func (ff WHStockMerge) FloatFieldEdit(fieldID int64) *WHStockMergeFieldEdit[float64] {
+func (ff WebhookStockMerge) FloatFieldEdit(fieldID int64) *WebhookStockMergeEdit[float64] {
 	editStr := ff.StringFieldEdit(fieldID)
 	if editStr == nil {
 		return nil
@@ -192,25 +192,25 @@ func (ff WHStockMerge) FloatFieldEdit(fieldID int64) *WHStockMergeFieldEdit[floa
 		vAfterFloat64, _  = strconv.ParseFloat(editStr.After, 64)
 	)
 
-	return &WHStockMergeFieldEdit[float64]{
+	return &WebhookStockMergeEdit[float64]{
 		Before: vBeforeFloat64,
 		After:  vAfterFloat64,
 	}
 }
 
-func (ff WHStockMerge) IntFieldEdit(fieldID int64) *WHStockMergeFieldEdit[int64] {
+func (ff WebhookStockMerge) IntFieldEdit(fieldID int64) *WebhookStockMergeEdit[int64] {
 	editFloat := ff.FloatFieldEdit(fieldID)
 	if editFloat == nil {
 		return nil
 	}
 
-	return &WHStockMergeFieldEdit[int64]{
+	return &WebhookStockMergeEdit[int64]{
 		Before: int64(editFloat.Before),
 		After:  int64(editFloat.After),
 	}
 }
 
-func (ff WHStockMerge) StringSliceFieldEdit(fieldID int64) *WHStockMergeFieldEdit[[]string] {
+func (ff WebhookStockMerge) StringSliceFieldEdit(fieldID int64) *WebhookStockMergeEdit[[]string] {
 	editStr := ff.StringFieldEdit(fieldID)
 	if editStr == nil {
 		return nil
@@ -226,7 +226,7 @@ func (ff WHStockMerge) StringSliceFieldEdit(fieldID int64) *WHStockMergeFieldEdi
 		vAfterStrSlice = nil
 	}
 
-	return &WHStockMergeFieldEdit[[]string]{
+	return &WebhookStockMergeEdit[[]string]{
 		Before: vBeforeStrSlice,
 		After:  vAfterStrSlice,
 	}

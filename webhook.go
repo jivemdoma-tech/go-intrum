@@ -45,46 +45,53 @@ const (
 	ObjectTypeApp         string = "app"
 )
 
-type whGenericPayload interface {
-	WHStockPayload
+type payloader interface {
+	WebhookStockPayload
 }
 
-func NewWHPayloadCh[T whGenericPayload](size int) chan *T { return make(chan *T, max(size, 1)) }
-
-// WebhookHandler возвращает универсальный хендлер webhook-запросов.
-// Полученные хендлером данные обрабатываются в структуру, после чего отправляются в канал для последующей обработки.
+// NewWebhookHandler возвращает обработчик webhook-событий и канал.
 //
-// Канал можно получить при помощи функции-конструктора NewWHPayloadCh.
-func WebhookHandler[T whGenericPayload](payloadCh chan<- *T, chSendTimeout time.Duration) http.HandlerFunc {
-	chSendTimeout = max(chSendTimeout, 5*time.Second)
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "failed to read body", http.StatusBadRequest)
-			return
-		}
-		defer r.Body.Close()
-
-		payload := new(T)
-		if err := json.Unmarshal(body, payload); err != nil {
-			http.Error(w, "invalid JSON", http.StatusBadRequest)
-			return
-		}
-
-		go func() {
-			select {
-			case payloadCh <- payload:
-			case <-time.After(chSendTimeout):
-			}
-		}()
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
+// В канал отправляются полученные обработчиком события, обработанные в структуру.
+func NewWebhookHandler[T payloader](chSize int, chSendTimeout time.Duration) (http.HandlerFunc, chan *T) {
+	if chSize <= 0 {
+		chSize = 1
 	}
+	if chSendTimeout <= 0 {
+		chSendTimeout = 5 * time.Second
+	}
+
+	var (
+		ch      = make(chan *T, chSize)
+		handler = func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, "failed to read body", http.StatusBadRequest)
+				return
+			}
+			defer r.Body.Close()
+
+			payload := new(T)
+			if err := json.Unmarshal(body, payload); err != nil {
+				http.Error(w, "invalid JSON", http.StatusBadRequest)
+				return
+			}
+
+			go func() {
+				select {
+				case ch <- payload:
+				case <-time.After(chSendTimeout):
+				}
+			}()
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+		}
+	)
+
+	return handler, ch
 }
