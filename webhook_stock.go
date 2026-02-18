@@ -11,8 +11,8 @@ type WebhookStockPayload struct {
 	SubjectTypeID int64                `json:"subject_type_id,string"`
 	Event         string               `json:"event"`
 	ObjectType    string               `json:"object_type"`
-	ObjectSubType int64                `json:"object_sub_type"`
-	ObjectSubID   int64                `json:"object_sub_id"`
+	ObjectSubType int64                `json:"object_sub_type,string"`
+	ObjectSubID   int64                `json:"object_sub_id,string"`
 	Snapshot      WebhookStockSnapshot `json:"snapshot"`
 }
 
