@@ -209,3 +209,5 @@ fabric.properties
 **/.env
 
 ### Etc
+
+/test
