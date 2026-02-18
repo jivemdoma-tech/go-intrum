@@ -8,10 +8,10 @@ import (
 
 type WorkerFilterResponse struct {
 	*Response
-	Data map[string]*workerFilterData `json:"data"`
+	Data map[string]*WorkerFilterData `json:"data"`
 }
 
-type workerFilterData struct {
+type WorkerFilterData struct {
 	ID          string                   `json:"id"`
 	Type        string                   `json:"type"`
 	DivisionID  string                   `json:"division_id"`
@@ -47,12 +47,12 @@ type workerFields struct {
 	Datatype string `json:"datatype,omitempty"`
 }
 
-func (w *workerFilterData) UnmarshalJSON(data []byte) error {
+func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
 	// Оригинальная структура типа Alias для предовтращения рекурсии
-	type Alias workerFilterData
+	type Alias WorkerFilterData
 
 	// Вспомогательная структура
-	var aux = &struct {
+	aux := &struct {
 		*Alias
 		Fields any `json:"fields"`
 	}{
@@ -91,14 +91,14 @@ func (w *workerFilterData) UnmarshalJSON(data []byte) error {
 // Методы получения значений полей
 
 // getField получает структуру поля по ID.
-func (w *workerFilterData) getField(fieldID uint64) *workerFields {
+func (w *WorkerFilterData) getField(fieldID uint64) *workerFields {
 	if f, exists := w.Fields[fieldID]; exists {
 		return f
 	}
 	return nil
 }
 
-func (w *workerFilterData) getFieldMap(fieldID uint64) map[string]string {
+func (w *WorkerFilterData) getFieldMap(fieldID uint64) map[string]string {
 	f := w.getField(fieldID)
 	if f == nil {
 		return nil
@@ -119,7 +119,7 @@ func (w *workerFilterData) getFieldMap(fieldID uint64) map[string]string {
 // Публичные методы
 
 // GetFieldText возвращает string значение поля.
-func (w *workerFilterData) GetFieldText(fieldID uint64) string {
+func (w *WorkerFilterData) GetFieldText(fieldID uint64) string {
 	f := w.getField(fieldID)
 	if f == nil {
 		return ""
@@ -132,18 +132,18 @@ func (w *workerFilterData) GetFieldText(fieldID uint64) string {
 }
 
 // GetFieldSelect возвращает string значение поля.
-func (w *workerFilterData) GetFieldSelect(fieldID uint64) string {
+func (w *WorkerFilterData) GetFieldSelect(fieldID uint64) string {
 	return w.GetFieldText(fieldID)
 }
 
 // GetFieldInteger возвращает int64 значение поля.
-func (w *workerFilterData) GetFieldInteger(fieldID uint64) int64 {
+func (w *WorkerFilterData) GetFieldInteger(fieldID uint64) int64 {
 	vStr := w.GetFieldText(fieldID)
 	return parseInt(vStr)
 }
 
 // GetFieldDecimal возвращает float64 значение поля.
-func (w *workerFilterData) GetFieldDecimal(fieldID uint64) float64 {
+func (w *WorkerFilterData) GetFieldDecimal(fieldID uint64) float64 {
 	vStr := w.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
