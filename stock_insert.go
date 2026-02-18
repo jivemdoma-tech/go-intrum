@@ -15,13 +15,19 @@ type StockInsertParams struct {
 	RelatedWithCustomer uint64   // ID контакта, прикрепленного к объекту
 	GroupID             uint64   // ID группы
 	Copy                uint64   // Родительский объект группы
-
 	// Дополнительные поля
 	//
 	// 	Ключ uint64 == ID поля
 	// 	Значение any == Значение поля
 	//		"знач1,знач2,знач3" (Для значений с типом "множественный выбор")
-	Fields map[uint64]string
+	Fields       map[uint64]string
+	FieldsCoords map[uint64]CoordsVal // Поле с координатами (относится к fields)
+	FieldsFiles  map[uint64][]string  // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
+}
+
+type CoordsVal struct {
+	Lat float64 // Широта
+	Lon float64 // Долгота
 }
 
 // Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
@@ -67,12 +73,28 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *Sto
 	if inputParams.Copy != 0 {
 		params["params[0][copy]"] = strconv.FormatUint(inputParams.Copy, 10)
 	}
-	// fields
+
 	countFields := 0
+	// fields
 	for k, v := range inputParams.Fields {
 		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
 		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 		countFields++
+	}
+	// fieldsCoords
+	for k, v := range inputParams.FieldsCoords {
+		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+		params[fmt.Sprintf("params[0][fields][%d][value][lat]", countFields)] = strconv.FormatFloat(v.Lat, 'f', 10, 64)
+		params[fmt.Sprintf("params[0][fields][%d][value][lon]", countFields)] = strconv.FormatFloat(v.Lon, 'f', 10, 64)
+		countFields++
+	}
+	// fieldsFiles
+	for k, fileNames := range inputParams.FieldsFiles {
+		for _, fileName := range fileNames {
+			params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+			params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = fileName
+			countFields++
+		}
 	}
 
 	// Получение ответа
