@@ -68,6 +68,9 @@ type StockFilterParams struct {
 	//  Log
 }
 
+// MaxLimit возвращает максимальное значение параметра Limit.
+func (p StockFilterParams) MaxLimit() int64 { return 500 }
+
 // copy возвращает shallow-копию структуры.
 func (p StockFilterParams) copy() *StockFilterParams {
 	copyParams := p
@@ -168,14 +171,12 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, p *StockFilterPa
 
 // StockFilterAll - поиск объектов в CRM по всем страницам. Документация: https://www.intrumnet.com/api/#stock-search
 func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilterParams) ([]Stock, error) {
-	const maxLimit int64 = 500
-
 	resultStock := make([]Stock, 0, 500)
 	for page := int64(1); ; page++ {
 		// Shallow-копирование структуры для итерации
 		pageParams := p.copyWithPage(page)
 		// Установка максимального кол-ва элементов в ответе
-		if pageParams.Limit != maxLimit {
+		if maxLimit := pageParams.MaxLimit(); pageParams.Limit != maxLimit {
 			pageParams.Limit = maxLimit
 		}
 		// Запрос
@@ -187,7 +188,7 @@ func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilte
 		if len(resp.Data.List) == 0 {
 			break
 		}
-		// Добавление в итоговый слайс
+
 		resultStock = append(resultStock, resp.Data.List...)
 
 		if len(resp.Data.List) < int(pageParams.Limit) {
