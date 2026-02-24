@@ -51,10 +51,12 @@ func (r *StockFilterResponse) GetErrorMessage() string {
 	switch {
 	case r == nil:
 		return ""
-	case r.Status == "" && r.Message == "":
-		return ""
 	default:
+		return ""
+	case r.Status != "" && r.Message != "":
 		return fmt.Sprintf("%s: %s", r.Status, r.Message)
+	case r.Message != "":
+		return r.Message
 	}
 }
 
