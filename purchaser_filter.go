@@ -8,23 +8,23 @@ import (
 )
 
 type PurchaserFilterParams struct {
-	Groups              []uint64     // массив id CRM групп
-	Manager             uint64       // id ответственного
-	AdditionlaManagerID []uint64     // массив ID дополнительных ответственных
-	CustomerCreatorID   uint64       // id создателя
-	ByID                []uint64     // id контакта или массив id контактов
-	Marktype            []uint64     // массив id типов
+	Groups              []int64      // массив id CRM групп
+	Manager             int64        // id ответственного
+	AdditionlaManagerID []int64      // массив ID дополнительных ответственных
+	CustomerCreatorID   int64        // id создателя
+	ByID                []int64      // id контакта или массив id контактов
+	Marktype            []int64      // массив id типов
 	Search              string       // поисковая строка (может содержать фамилию или имя, email, телефон)
 	Date                [2]time.Time // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
-	Page                uint16       // номер страницы выборки (нумерация с 1)
+	Page                int64        // номер страницы выборки (нумерация с 1)
 	Publish             string       // 1 - активные, 0 - удаленные, по умолчанию 1
-	Limit               uint64       // число записей в выборке (макс. 500)
-	SliceFields         []uint64     // массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
+	Limit               int64        // число записей в выборке (макс. 500)
+	SliceFields         []int64      // массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
 	// массив условий поиска по полям [{id:id свойства,value: значение},{...}] для полей с типом integer,decimal,price,time,date,datetime возможно указывать границы:
 	// 	value: '>= значение' - больше или равно
 	//	value: '<= значение' - меньше или равно
 	// 	value: 'значение_1 & значение_2' - между значением 1 и 2
-	Fields map[uint64]string
+	Fields map[int64]string
 	// TODO
 	// NatType // одно из значений подтипа physface - Юрлицо, jurface - Физлицо, по умолчанию выводятся все
 	// IndexFields // индексировать массив полей по id свойства, 1 - да, 0 - нет, (по умолчанию 0)
@@ -32,7 +32,7 @@ type PurchaserFilterParams struct {
 	// OrderField //
 	// DateField string       //  если в качестве значения указать customer_activity_date выборка будет сортироваться по дате активности;
 	// create_date - по дате создания, delete_date - по дате удаления, id - по id
-	// CountTotal uint64 // подсчет общего количества найденых записей, 1 - считать, 0 - нет (по умолчанию 0)
+	// CountTotal int64 // подсчет общего количества найденых записей, 1 - считать, 0 - нет (по умолчанию 0)
 	// OnlyCountField // 1 - вывести в ответе только количество, 0 - стандартный вывод (по умолчанию 0)
 }
 
@@ -44,21 +44,21 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	p := make(map[string]string, 8)
 
 	// groups
-	addSliceToParams(p, "groups", params.Groups)
+	addSliceToSingularParams(p, "groups", params.Groups)
 	// manager
 	if params.Manager != 0 {
-		p["params[manager]"] = strconv.FormatUint(params.Manager, 10)
+		p["params[manager]"] = strconv.FormatInt(params.Manager, 10)
 	}
 	// additional_manager_id
-	addSliceToParams(p, "additional_manager_id", params.AdditionlaManagerID)
+	addSliceToSingularParams(p, "additional_manager_id", params.AdditionlaManagerID)
 	// customer_creator_id
 	if params.CustomerCreatorID != 0 {
-		p["params[customer_creator_id ]"] = strconv.FormatUint(params.CustomerCreatorID, 10)
+		p["params[customer_creator_id ]"] = strconv.FormatInt(params.CustomerCreatorID, 10)
 	}
 	// byid
-	addSliceToParams(p, "byid", params.ByID)
+	addSliceToSingularParams(p, "byid", params.ByID)
 	// marktype
-	addSliceToParams(p, "marktype", params.Marktype)
+	addSliceToSingularParams(p, "marktype", params.Marktype)
 	// search
 	if params.Search != "" {
 		p["params[search]"] = params.Search
@@ -72,7 +72,7 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	}
 	// page
 	if params.Page != 0 {
-		p["params[page]"] = strconv.FormatUint(uint64(params.Page), 10)
+		p["params[page]"] = strconv.FormatInt(params.Page, 10)
 	}
 	// publish
 	switch params.Publish {
@@ -88,10 +88,10 @@ func PurchaserFilter(ctx context.Context, subdomain, apiKey string, params *Purc
 	case l == 0, l >= 500:
 		p["params[limit]"] = "500"
 	default:
-		p["params[limit]"] = strconv.FormatUint(l, 10)
+		p["params[limit]"] = strconv.FormatInt(l, 10)
 	}
 	// slice_fields
-	addSliceToParams(p, "slice_fields", params.SliceFields)
+	addSliceToSingularParams(p, "slice_fields", params.SliceFields)
 	// fields
 	fieldCount := 0
 	for k, v := range params.Fields {

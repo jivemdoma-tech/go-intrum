@@ -21,12 +21,12 @@ type Sale struct {
 	CustomersID          int64                 `json:"customers_id,string,omitempty"`    // ID контакта
 	EmployeeID           int64                 `json:"employee_id,string,omitempty"`     // ID ответственного
 	AdditionalEmployeeID []int64               `json:"additional_employee_id,omitempty"` // Массив ID доп. ответственных
-	DateCreate           time.Time             `json:"date_create,omitempty"`            // Дата создания
+	DateCreate           time.Time             `json:"date_create"`                      // Дата создания
 	SaleTypeID           int64                 `json:"sale_type_id,string,omitempty"`    // ID типа активности
 	SaleStageID          int64                 `json:"sale_stage_id,string,omitempty"`   // ID стадии
 	SaleName             string                `json:"sale_name,omitempty"`              // Название сделки
 	SaleActivityType     string                `json:"sale_activity_type,omitempty"`     // Тип последней активности
-	SaleActivityDate     time.Time             `json:"sale_activity_date,omitempty"`     // Дата последней активности сделк
+	SaleActivityDate     time.Time             `json:"sale_activity_date"`               // Дата последней активности сделк
 	Fields               map[string]*SaleField `json:"fields,omitempty"`                 // Данные полей
 	Publish              bool                  `json:"publish,omitempty"`                // Опубликован/Удален
 }

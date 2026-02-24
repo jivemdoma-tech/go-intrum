@@ -6,16 +6,16 @@ import (
 )
 
 type WorkerFilterParams struct {
-	// Group       uint64   // ID CRM группы // TODO
-	ID          []uint64 // Массив id сотрудников
-	DivisionID  []uint64 // Массив id отделов
-	SubofficeID []uint64 // Массив id филиалов
-	Surname     string   // Фамилия
-	Name        string   // Имя
-	Email       string   // Email
-	Phone       string   // Телефон
-	Boss        string   // 1 - Начадьник отдела, 0 - Не начальник отдела, не указано - вывод всех
-	SliceFields []uint64 // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
+	// Group       int64   // ID CRM группы // TODO
+	ID          []int64 // Массив id сотрудников
+	DivisionID  []int64 // Массив id отделов
+	SubofficeID []int64 // Массив id филиалов
+	Surname     string  // Фамилия
+	Name        string  // Имя
+	Email       string  // Email
+	Phone       string  // Телефон
+	Boss        string  // 1 - Начадьник отдела, 0 - Не начальник отдела, не указано - вывод всех
+	SliceFields []int64 // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
 	// По умолчанию - 1
 	// 	"1" - активные
 	// 	"0" - удаленные
@@ -28,7 +28,7 @@ type WorkerFilterParams struct {
 	//	Value: ">= {значение}" - больше или равно
 	//	Value: "<= {значение}" - меньше или равно
 	//	Value: "{значение_1} & {значение_2}" - между значением 1 и 2
-	Fields map[uint64]string
+	Fields map[int64]string
 }
 
 // WorkerFilter - https://www.intrumnet.com/api/#worker-filter
@@ -39,11 +39,11 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 
 	paramsResult := make(map[string]string, 12+len(paramsInput.Fields)+len(paramsInput.SliceFields))
 	// id
-	addSliceToParams(paramsResult, "id", paramsInput.ID)
+	addSliceToSingularParams(paramsResult, "id", paramsInput.ID)
 	// division_id
-	addSliceToParams(paramsResult, "division_id", paramsInput.DivisionID)
+	addSliceToSingularParams(paramsResult, "division_id", paramsInput.DivisionID)
 	// suboffice_id
-	addSliceToParams(paramsResult, "suboffice_id", paramsInput.SubofficeID)
+	addSliceToSingularParams(paramsResult, "suboffice_id", paramsInput.SubofficeID)
 	// surname
 	if paramsInput.Surname != "" {
 		paramsResult["params[surname]"] = paramsInput.Surname
@@ -70,7 +70,7 @@ func WorkerFilter(ctx context.Context, subdomain, apiKey string, paramsInput *Wo
 		paramsResult["params[boss]"] = paramsInput.Boss
 	}
 	// slice_fields
-	addSliceToParams(paramsResult, "slice_fields", paramsInput.SliceFields)
+	addSliceToSingularParams(paramsResult, "slice_fields", paramsInput.SliceFields)
 	// fields
 	var count int
 	for k, v := range paramsInput.Fields {

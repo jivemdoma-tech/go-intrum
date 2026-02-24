@@ -11,8 +11,8 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#history
 type HistoryLogParams struct {
 	ObjectType string       // Обязательно. Одно из значений: stock | customer | sale | request
-	ObjectID   []uint64     // Массив ID объекта
-	EmployeeID []uint64     // Массив ID сотрудников, проводивших изменения
+	ObjectID   []int64      // Массив ID объекта
+	EmployeeID []int64      // Массив ID сотрудников, проводивших изменения
 	Date       [2]time.Time // Выборка за определенный период
 	// Log        [][]*HistoryLogParamsLog // Массив условий. Не работает со стороны Intrum.
 }
@@ -40,11 +40,11 @@ func HistoryLog(ctx context.Context, subdomain, apiKey string, inParams *History
 	params["params[object_type]"] = inParams.ObjectType
 	// object_id
 	for i, id := range inParams.ObjectID {
-		params[fmt.Sprintf("params[object_id][%d]", i)] = strconv.FormatUint(id, 10)
+		params[fmt.Sprintf("params[object_id][%d]", i)] = strconv.FormatInt(id, 10)
 	}
 	// employee_id
 	for i, id := range inParams.EmployeeID {
-		params[fmt.Sprintf("params[employee_id][%d]", i)] = strconv.FormatUint(id, 10)
+		params[fmt.Sprintf("params[employee_id][%d]", i)] = strconv.FormatInt(id, 10)
 	}
 	// date
 	if !inParams.Date[0].IsZero() {

@@ -30,7 +30,7 @@ type TasksCreateParams struct {
 	//	7 - срочная задача
 	//	...
 	//	1 - низкий приоритет
-	Priority int8
+	Priority int64
 
 	// Список прикрепленных сущностей
 	//	Key: Сущность ("stock" | "customer" | "sale" | "request")
@@ -50,22 +50,22 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inParams TasksCr
 	// Обязательность ввода параметров
 	switch {
 	case inParams.Title == "" && inParams.Description == "":
-		return nil, returnErrBadParams(methodURL)
+		return nil, newErrEmptyRequiredFields(methodURL)
 	case inParams.Director <= 0, inParams.Performer <= 0:
-		return nil, returnErrBadParams(methodURL)
+		return nil, newErrEmptyRequiredFields(methodURL)
 	}
 
 	// Параметры запроса
 	params := make(map[string]string, 8)
 
 	// title
-	addToParams(params, "title", inParams.Title)
+	addToSingularParams(params, "title", inParams.Title)
 	// description
-	addToParams(params, "description", inParams.Description)
+	addToSingularParams(params, "description", inParams.Description)
 	// director
-	addToParams(params, "director", inParams.Director)
+	addToSingularParams(params, "director", inParams.Director)
 	// performer
-	addToParams(params, "performer", inParams.Performer)
+	addToSingularParams(params, "performer", inParams.Performer)
 	// coperformer
 	if slice := inParams.Coperformer; len(slice) != 0 {
 		// Преобразование в слайс строк
@@ -73,14 +73,14 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inParams TasksCr
 		for _, v := range slice {
 			sliceStr = append(sliceStr, strconv.FormatInt(v, 10))
 		}
-		addToParams(params, "coperformer", strings.Join(sliceStr, ","))
+		addToSingularParams(params, "coperformer", strings.Join(sliceStr, ","))
 	}
 	// terms
-	addToParams(params, "terms", inParams.Terms)
+	addToSingularParams(params, "terms", inParams.Terms)
 	// priority
 	switch v := inParams.Priority; v {
 	case 1, 2, 3, 4, 5, 6, 7:
-		addToParams(params, "priority", v)
+		addToSingularParams(params, "priority", v)
 	}
 	// attaches
 	if m := inParams.Attaches; len(m) != 0 {
@@ -94,7 +94,7 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inParams TasksCr
 				s = append(s, k+"#"+strconv.FormatInt(v, 10))
 			}
 		}
-		addToParams(params, "attaches", strings.Join(s, ","))
+		addToSingularParams(params, "attaches", strings.Join(s, ","))
 	}
 
 	// Запрос

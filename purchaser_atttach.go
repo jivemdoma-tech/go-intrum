@@ -7,7 +7,7 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#purchaser-attach
 type PurchaserAttachParams struct {
-	IDs []uint64 // ID объектов
+	IDs []int64 // ID объектов
 }
 
 // PurchaserAttach. Ссылка на метод: https://www.intrumnet.com/api/#purchaser-attach
@@ -18,7 +18,7 @@ func PurchaserAttach(ctx context.Context, subdomain, apiKey string, params *Purc
 
 	p := make(map[string]string, len(params.IDs))
 	// id
-	addSliceToParams(p, "ids", params.IDs)
+	addSliceToSingularParams(p, "ids", params.IDs)
 
 	// Получение ответа
 

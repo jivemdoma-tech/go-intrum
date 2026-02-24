@@ -63,7 +63,7 @@ type SalesFilterParams struct {
 	Publish string
 
 	// Число записей в выборке (По умолчанию 500)
-	Limit uint64
+	Limit int64
 
 	// Номер страницы выборки (нумерация с 1)
 	Page int64
@@ -92,27 +92,27 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inParams *SalesF
 	// byid + by_ids
 	switch {
 	case len(inParams.ByIDs) == 1:
-		addToParams(p, "byid", inParams.ByIDs[0])
+		addToSingularParams(p, "byid", inParams.ByIDs[0])
 	case len(inParams.ByIDs) >= 2:
-		addSliceToParams(p, "by_ids", inParams.ByIDs)
+		addSliceToSingularParams(p, "by_ids", inParams.ByIDs)
 	}
 	// search
-	addToParams(p, "search", inParams.Search)
+	addToSingularParams(p, "search", inParams.Search)
 	// type
-	addSliceToParams(p, "type", inParams.Type)
+	addSliceToSingularParams(p, "type", inParams.Type)
 	// stage
-	addSliceToParams(p, "stage", inParams.Stage)
+	addSliceToSingularParams(p, "stage", inParams.Stage)
 	// manager
-	addSliceToParams(p, "manager", inParams.Manager)
+	addSliceToSingularParams(p, "manager", inParams.Manager)
 	// groups
-	addSliceToParams(p, "groups", inParams.Groups)
+	addSliceToSingularParams(p, "groups", inParams.Groups)
 	// sale_creator_id
 	if v := inParams.SaleCreatorID; v > 0 {
-		addToParams(p, "sale_creator_id", v)
+		addToSingularParams(p, "sale_creator_id", v)
 	}
 	// customer
 	if v := inParams.Customer; v > 0 {
-		addToParams(p, "customer", v)
+		addToSingularParams(p, "customer", v)
 	}
 	// fields
 	fieldsCount := 0
@@ -125,19 +125,19 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inParams *SalesF
 		fieldsCount++
 	}
 	// slice_fields
-	addSliceToParams(p, "slice_fields", inParams.SliceFields)
+	addSliceToSingularParams(p, "slice_fields", inParams.SliceFields)
 	// order
 	switch v := inParams.Order; v {
 	case "asc", "desc":
-		addToParams(p, "order", v)
+		addToSingularParams(p, "order", v)
 	}
 	// order_field
 	switch v := inParams.OrderField; v {
 	case "sale_activity_date", "create_date", "delete_date":
-		addToParams(p, "order_field", v)
+		addToSingularParams(p, "order_field", v)
 	default:
-		if _, err := strconv.ParseUint(v, 10, 64); err == nil {
-			addToParams(p, "order_field", v)
+		if _, err := strconv.ParseInt(v, 10, 64); err == nil {
+			addToSingularParams(p, "order_field", v)
 		}
 	}
 	// date
@@ -148,19 +148,19 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, inParams *SalesF
 		p["params[date][to]"] = inParams.Date[1].Format(DateLayout)
 	}
 	// date_field
-	addToParams(p, "date_field", inParams.DateField)
+	addToSingularParams(p, "date_field", inParams.DateField)
 	// publish
-	addBoolStringToParams(p, "publish", inParams.Publish)
+	addBoolToSingularParams(p, "publish", inParams.Publish)
 	// limit
 	switch v := inParams.Limit; {
 	case v == 0, v >= 500:
-		addToParams(p, "limit", "500")
+		addToSingularParams(p, "limit", "500")
 	default:
-		addToParams(p, "limit", v)
+		addToSingularParams(p, "limit", v)
 	}
 	// page
 	if v := inParams.Page; v >= 1 {
-		addToParams(p, "page", v)
+		addToSingularParams(p, "page", v)
 	}
 
 	// Запрос

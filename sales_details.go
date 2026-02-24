@@ -18,7 +18,7 @@ func SalesDetails(ctx context.Context, subdomain, apiKey string, params *SalesDe
 	p := make(map[string]string, len(params.IDs))
 
 	// ids
-	addSliceToParams(p, "ids", params.IDs)
+	addSliceToSingularParams(p, "ids", params.IDs)
 
 	// Получение ответа
 

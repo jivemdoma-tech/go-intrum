@@ -10,23 +10,23 @@ import (
 // Ссылка на метод: https://www.intrumnet.com/api/#applications-filter
 type ApplicationFilterParams struct {
 	Search           string           // поисковая строка (может содержать фамилию, телефон контакта или название заявки)
-	Groups           []uint64         // массив CRM групп
-	Manager          []uint64         // id ответственного или массив с несколькими id
-	RequestCreatorID uint64           // id создателя
-	ByID             uint64           // id заявки
-	ByIDs            []uint64         // массив ids заявок
-	Customer         uint64           // id контакта
+	Groups           []int64          // массив CRM групп
+	Manager          []int64          // id ответственного или массив с несколькими id
+	RequestCreatorID int64            // id создателя
+	ByID             int64            // id заявки
+	ByIDs            []int64          // массив ids заявок
+	Customer         int64            // id контакта
 	Fields           map[int64]string // массив условий поиска по полям
-	Types            []uint64         // массив id типов
+	Types            []int64          // массив id типов
 	OrderField       string           // если в качестве значения указать request_activity_date выборка будет сортироваться по дате активности
 	Order            string           // направление сортировки asc - по возрастанию, desc - по убыванию (сортировка только по дате последней активности)
 	Date             [2]time.Time     // {from: "2015-10-29", to: "2015-11-19"} выборка за определенный период
 	DateField        string           // если в качестве значения указать request_activity_date выборка по параметру заявки, create_date - по дате создания, delete_date - по дате удаления, id - по id
 	Statuses         []string         // массив id статусов
-	Page             uint16           // номер страницы выборки (нумерация с 1)
+	Page             int64            // номер страницы выборки (нумерация с 1)
 	Publish          string           // 1 - активные, 0 - удаленные, по умолчанию 1
-	Limit            uint64           // число записей в выборке (макс. 500)
-	SliceFields      []uint64         // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
+	Limit            int64            // число записей в выборке (макс. 500)
+	SliceFields      []int64          // массив id дополнительных полей, которые будут в ответе (по умолчанию, если не задано, то выводятся все)
 }
 
 func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *ApplicationFilterParams) (*ApplicationFilterResponse, error) {
@@ -40,22 +40,22 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[search]"] = params.Search
 	}
 	// groups
-	addSliceToParams(p, "groups", params.Groups)
+	addSliceToSingularParams(p, "groups", params.Groups)
 	// manager
-	addSliceToParams(p, "manager", params.Manager)
+	addSliceToSingularParams(p, "manager", params.Manager)
 	// request_creator_id
 	if params.RequestCreatorID != 0 {
-		p["params[request_creator_id]"] = strconv.FormatUint(params.RequestCreatorID, 10)
+		p["params[request_creator_id]"] = strconv.FormatInt(params.RequestCreatorID, 10)
 	}
 	// byid
 	if params.ByID != 0 {
-		p["params[byid]"] = strconv.FormatUint(params.ByID, 10)
+		p["params[byid]"] = strconv.FormatInt(params.ByID, 10)
 	}
 	// by_ids
-	addSliceToParams(p, "by_ids", params.ByIDs)
+	addSliceToSingularParams(p, "by_ids", params.ByIDs)
 	// customer
 	if params.Customer != 0 {
-		p["params[customer]"] = strconv.FormatUint(params.Customer, 10)
+		p["params[customer]"] = strconv.FormatInt(params.Customer, 10)
 	}
 	// fields
 	fieldCount := 0
@@ -65,7 +65,7 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		fieldCount++
 	}
 	// types
-	addSliceToParams(p, "types", params.Types)
+	addSliceToSingularParams(p, "types", params.Types)
 	// order_field
 	if params.OrderField != "" {
 		p["params[order_field]"] = params.OrderField
@@ -86,10 +86,10 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 		p["params[date_field]"] = params.DateField
 	}
 	// statuses
-	addSliceToParams(p, "statuses", params.Statuses)
+	addSliceToSingularParams(p, "statuses", params.Statuses)
 	// page
 	if params.Page != 0 {
-		p["params[page]"] = strconv.FormatUint(uint64(params.Page), 10)
+		p["params[page]"] = strconv.FormatInt(params.Page, 10)
 	}
 	// publish
 	switch params.Publish {
@@ -106,10 +106,10 @@ func ApplicationFilter(ctx context.Context, subdomain, apiKey string, params *Ap
 	case l == 0, l >= 500:
 		p["params[limit]"] = "500"
 	default:
-		p["params[limit]"] = strconv.FormatUint(l, 10)
+		p["params[limit]"] = strconv.FormatInt(l, 10)
 	}
 	// slice_fields
-	addSliceToParams(p, "slice_fields", params.SliceFields)
+	addSliceToSingularParams(p, "slice_fields", params.SliceFields)
 	// Получение ответа
 
 	resp := new(ApplicationFilterResponse)

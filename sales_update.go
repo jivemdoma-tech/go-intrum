@@ -8,15 +8,15 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-update
 type SalesUpdateParams struct {
-	ID            uint64 // ID существующего объекта // ! Обязательно
-	SalesStatusID uint64 // ID стадии сделки
+	ID            int64 // ID существующего объекта // ! Обязательно
+	SalesStatusID int64 // ID стадии сделки
 
 	// Дополнительные поля
 	//
-	// 	Ключ uint64 == ID поля
+	// 	Ключ int64 == ID поля
 	// 	Значение any == Значение поля
 	//		"знач1,знач2,знач3" (Для значений с типом "множественный выбор")
-	Fields map[uint64]string // Дополнительные поля
+	Fields map[int64]string // Дополнительные поля
 
 	// TODO: Добавить больше параметров запроса
 }
@@ -39,15 +39,15 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 		len(inputParams.Fields)*2)
 
 	// id
-	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
+	params["params[0][id]"] = strconv.FormatInt(inputParams.ID, 10)
 	// sales_status_id
 	if inputParams.SalesStatusID != 0 {
-		params["params[0][sales_status_id]"] = strconv.FormatUint(inputParams.SalesStatusID, 10)
+		params["params[0][sales_status_id]"] = strconv.FormatInt(inputParams.SalesStatusID, 10)
 	}
 	// fields
 	countFields := 0
 	for k, v := range inputParams.Fields {
-		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
 		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 		countFields++
 	}

@@ -2,5 +2,5 @@ package gointrum
 
 type PurchaserInsertResp struct {
 	*Response
-	Data []uint64 `json:"data,omitempty"`
+	Data []int64 `json:"data,omitempty"`
 }

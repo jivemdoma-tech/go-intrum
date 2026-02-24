@@ -21,7 +21,7 @@ const (
 
 // Клиент для запросов к Intrum API
 var (
-	client    = http.Client{Timeout: time.Minute * 10}
+	client    = http.Client{Timeout: 10 * time.Minute}
 	requestFn = request // For test purposes
 )
 
@@ -35,7 +35,7 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 		primaryPort  string = "81"
 		backupPort   string = "444"
 		duration1Min        = time.Minute
-		duration5Min        = time.Minute * 5
+		duration5Min        = 5 * time.Minute
 	)
 	// Обработка паники
 	defer func() {

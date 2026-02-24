@@ -8,15 +8,15 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/example.php#purchaser-update
 type PurchaserUpdateParams struct {
-	ID uint64 // ID контакта // ! Обязательно
+	ID int64 // ID контакта // ! Обязательно
 	// Параметр работает интуитивно и очень интересно. Первый элемент массива - гл. ответственный, остальные - доп. ответственные.
 	// 	Передача {0, n...} удаляет главного ответственного.
 	// 	Передача {n, 0} удаляет доп. ответственных. Передайте {1, 0} чтобы пропустить гл. ответственного.
 	// 	Передача {0, 0} удаляет всех ответственных.
-	Authors []uint64
-	Fields  map[uint64]string
-	//Surname string // Фамилия
-	//Name    string // Имя
+	Authors []int64
+	Fields  map[int64]string
+	// Surname string // Фамилия
+	// Name    string // Имя
 
 	// TODO: Добавить больше параметров запроса
 }
@@ -38,7 +38,7 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 	params := make(map[string]string, 4+len(inputParams.Fields))
 
 	// id
-	params["params[0][id]"] = strconv.FormatUint(inputParams.ID, 10)
+	params["params[0][id]"] = strconv.FormatInt(inputParams.ID, 10)
 
 	// author + additional_autor
 	if len(inputParams.Authors) != 0 {
@@ -52,7 +52,7 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 			break
 		// Изменение
 		default:
-			params["params[0][author]"] = strconv.FormatUint(inputParams.Authors[0], 10)
+			params["params[0][author]"] = strconv.FormatInt(inputParams.Authors[0], 10)
 		}
 
 		// Доп. ответственные
@@ -66,10 +66,10 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 				for i, v := range additional {
 					if v > 0 {
 						k := fmt.Sprintf("params[0][additional_author][%d]", i)
-						params[k] = strconv.FormatUint(v, 10)
+						params[k] = strconv.FormatInt(v, 10)
 					}
 				}
-				addSliceToParams(params, "additional_author", additional)
+				addSliceToSingularParams(params, "additional_author", additional)
 			}
 		}
 	}
@@ -77,7 +77,7 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 	// fields
 	countFields := 0
 	for k, v := range inputParams.Fields {
-		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatUint(k, 10)
+		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
 		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 		countFields++
 	}
