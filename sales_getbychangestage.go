@@ -10,8 +10,8 @@ import (
 type SalesGetByChangeStageParams struct {
 	DateStart time.Time
 	DateEnd   time.Time
-	SaleID    []uint64
-	Stage     []uint64
+	SaleID    []int64
+	Stage     []int64
 }
 
 // Ссылка на метод: https://www.intrumnet.com/api/#sales-filter-stage-period
@@ -31,9 +31,9 @@ func SalesGetByChangeStage(ctx context.Context, subdomain, apiKey string, inputP
 		params["params[date_end]"] = inputParams.DateEnd.Format(DateLayout)
 	}
 	// sale_id
-	addSliceToParams(params, "sale_id", inputParams.SaleID)
+	addSliceToSingularParams(params, "sale_id", inputParams.SaleID)
 	// stage
-	addSliceToParams(params, "stage", inputParams.Stage)
+	addSliceToSingularParams(params, "stage", inputParams.Stage)
 
 	// Получение ответа
 

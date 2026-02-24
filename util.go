@@ -2,7 +2,6 @@ package gointrum
 
 import (
 	"fmt"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -18,41 +17,16 @@ const (
 	TypeRequest    string = "request"             // Тип сущности "Заявка"
 )
 
-func returnErrBadParams(methodURL string) error {
-	u, _ := url.ParseRequestURI(methodURL)
-	return fmt.Errorf("failed to create request for method %s: %s", u.Path, statusBadParams)
-}
-
-func addToParams[T string | int8 | uint8 | uint16 | uint64 | int16 | int64 | time.Time](params map[string]string, paramName string, v T) {
+func addToSingularParams[T string | int64 | time.Time](params map[string]string, paramName string, paramValue T) {
 	k := fmt.Sprintf("params[%s]", paramName)
-	switch v := any(v).(type) {
+	switch v := any(paramValue).(type) {
 	case string:
 		if v != "" {
 			params[k] = v
 		}
-	case int8:
-		if v > 0 {
-			params[k] = strconv.FormatInt(int64(v), 10)
-		}
-	case uint8:
-		if v > 0 {
-			params[k] = strconv.FormatInt(int64(v), 10)
-		}
-	case int16:
-		if v > 0 {
-			params[k] = strconv.FormatInt(int64(v), 10)
-		}
-	case uint16:
-		if v > 0 {
-			params[k] = strconv.FormatInt(int64(v), 10)
-		}
 	case int64:
-		if v > 0 {
+		if v != 0 {
 			params[k] = strconv.FormatInt(v, 10)
-		}
-	case uint64:
-		if v > 0 {
-			params[k] = strconv.FormatUint(v, 10)
 		}
 	case time.Time:
 		if !v.IsZero() {
@@ -61,26 +35,25 @@ func addToParams[T string | int8 | uint8 | uint16 | uint64 | int16 | int64 | tim
 	}
 }
 
-func addBoolStringToParams(params map[string]string, paramName string, v string) {
-	k := fmt.Sprintf("params[%s]", paramName)
-	switch vLower := strings.ToLower(strings.TrimSpace(v)); {
-	case vLower == "1", vLower == "true":
-		params[k] = "1"
-	case vLower == "0", vLower == "false":
-		params[k] = "0"
-	case vLower == "ignore":
-		params[k] = "ignore"
+func addBoolToSingularParams(params map[string]string, paramName string, paramValue string) {
+	switch lower := strings.ToLower(strings.TrimSpace(paramValue)); lower {
+	case "1", "true", "да":
+		addToSingularParams(params, paramName, "1")
+	case "0", "false", "нет":
+		addToSingularParams(params, paramName, "0")
+	case "ignore":
+		addToSingularParams(params, paramName, "ignore")
 	}
 }
 
-func addSliceToParams[T string | int16 | uint16 | int64 | uint64](params map[string]string, paramName string, paramSlice []T) {
-	if len(paramSlice) == 0 {
+func addSliceToSingularParams[T string | int64](params map[string]string, paramName string, paramValue []T) {
+	if len(paramValue) == 0 {
 		return
 	}
 
-	for i, v := range paramSlice {
-		k := fmt.Sprintf("params[%s][%d]", paramName, i)
-		switch v := any(v).(type) {
+	for index, value := range paramValue {
+		k := fmt.Sprintf("params[%s][%d]", paramName, index)
+		switch v := any(value).(type) {
 		case string:
 			if v != "" {
 				params[k] = v
@@ -88,10 +61,6 @@ func addSliceToParams[T string | int16 | uint16 | int64 | uint64](params map[str
 		case int64:
 			if v != 0 {
 				params[k] = strconv.FormatInt(v, 10)
-			}
-		case uint64:
-			if v != 0 {
-				params[k] = strconv.FormatUint(v, 10)
 			}
 		}
 	}

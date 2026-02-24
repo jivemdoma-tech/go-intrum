@@ -7,7 +7,7 @@ import (
 
 // Ссылка на метод: https://www.intrumnet.com/api/#stock-attach
 type StockAttachParams struct {
-	ID []uint64 // ID объектов
+	ID []int64 // ID объектов
 }
 
 // StockAttach. Ссылка на метод: https://www.intrumnet.com/api/#stock-attach
@@ -18,7 +18,7 @@ func StockAttach(ctx context.Context, subdomain, apiKey string, params *StockAtt
 
 	p := make(map[string]string, len(params.ID))
 	// id
-	addSliceToParams(p, "id", params.ID)
+	addSliceToSingularParams(p, "id", params.ID)
 
 	// Получение ответа
 

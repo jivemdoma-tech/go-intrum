@@ -16,12 +16,12 @@ type ApplicationFilterData struct {
 	Count bool           `json:"count"`
 }
 type Application struct {
-	ID                   uint64                       `json:"id,string"`
+	ID                   int64                        `json:"id,string"`
 	Publish              string                       `json:"publish"`
-	EmployeeID           uint64                       `json:"employee_id,string"`
-	CustomerID           uint64                       `json:"customer_id,string"`
-	VisitID              uint64                       `json:"visit_id,string"`
-	RequestTypeID        uint64                       `json:"request_type_id,string"`
+	EmployeeID           int64                        `json:"employee_id,string"`
+	CustomerID           int64                        `json:"customer_id,string"`
+	VisitID              int64                        `json:"visit_id,string"`
+	RequestTypeID        int64                        `json:"request_type_id,string"`
 	RequestTypeName      string                       `json:"request_type_name"`
 	Source               string                       `json:"source"`
 	DateCreate           time.Time                    `json:"date_create"`
@@ -76,12 +76,12 @@ func (s *Application) UnmarshalJSON(data []byte) error {
 // Методы получения значений Application
 
 // Вспомогательная функция получения структуры поля
-func (s *Application) getField(fieldID uint64) (*ApplicationField, bool) {
-	f, exists := s.Fields[strconv.FormatUint(fieldID, 10)]
+func (s *Application) getField(fieldID int64) (*ApplicationField, bool) {
+	f, exists := s.Fields[strconv.FormatInt(fieldID, 10)]
 	return f, exists
 }
 
-func (s *Application) getFieldMap(fieldID uint64) (map[string]string, bool) {
+func (s *Application) getFieldMap(fieldID int64) (map[string]string, bool) {
 	f, exists := s.getField(fieldID)
 	if !exists {
 		return nil, false
@@ -94,7 +94,7 @@ func (s *Application) getFieldMap(fieldID uint64) (map[string]string, bool) {
 }
 
 // text
-func (s *Application) GetFieldText(fieldID uint64) string {
+func (s *Application) GetFieldText(fieldID int64) string {
 	f, exists := s.getField(fieldID)
 	if !exists {
 		return ""
@@ -107,7 +107,7 @@ func (s *Application) GetFieldText(fieldID uint64) string {
 }
 
 // radio
-func (s *Application) GetFieldRadio(fieldID uint64) bool {
+func (s *Application) GetFieldRadio(fieldID int64) bool {
 	vStr := s.GetFieldText(fieldID)
 	if v, err := strconv.ParseBool(vStr); err == nil {
 		return v
@@ -116,58 +116,58 @@ func (s *Application) GetFieldRadio(fieldID uint64) bool {
 }
 
 // select
-func (s *Application) GetFieldSelect(fieldID uint64) string {
+func (s *Application) GetFieldSelect(fieldID int64) string {
 	return s.GetFieldText(fieldID)
 }
 
 // multiselect
-func (s *Application) GetFieldMultiselect(fieldID uint64) []string {
+func (s *Application) GetFieldMultiselect(fieldID int64) []string {
 	return strings.Split(s.GetFieldText(fieldID), ",")
 }
 
 // date
-func (s *Application) GetFieldDate(fieldID uint64) time.Time {
+func (s *Application) GetFieldDate(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, DateLayout)
 }
 
 // datetime
-func (s *Application) GetFieldDatetime(fieldID uint64) time.Time {
+func (s *Application) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, DatetimeLayout)
 }
 
 // time
-func (s *Application) GetFieldTime(fieldID uint64) time.Time {
+func (s *Application) GetFieldTime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 	return parseTime(vStr, TimeLayout)
 }
 
 // integer
-func (s *Application) GetFieldInteger(fieldID uint64) int64 {
+func (s *Application) GetFieldInteger(fieldID int64) int64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseInt(vStr)
 }
 
 // decimal
-func (s *Application) GetFieldDecimal(fieldID uint64) float64 {
+func (s *Application) GetFieldDecimal(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
 // price
-func (s *Application) GetFieldPrice(fieldID uint64) float64 {
+func (s *Application) GetFieldPrice(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }
 
 // file
-func (s *Application) GetFieldFile(fieldID uint64) string {
+func (s *Application) GetFieldFile(fieldID int64) string {
 	return s.GetFieldText(fieldID)
 }
 
 // point
-func (s *Application) GetFieldPoint(fieldID uint64) [2]string {
+func (s *Application) GetFieldPoint(fieldID int64) [2]string {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]string{}
@@ -176,7 +176,7 @@ func (s *Application) GetFieldPoint(fieldID uint64) [2]string {
 }
 
 // integer_range
-func (s *Application) GetFieldIntegerRange(fieldID uint64) [2]int64 {
+func (s *Application) GetFieldIntegerRange(fieldID int64) [2]int64 {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]int64{}
@@ -185,7 +185,7 @@ func (s *Application) GetFieldIntegerRange(fieldID uint64) [2]int64 {
 }
 
 // decimal_range
-func (s *Application) GetFieldDecimalRange(fieldID uint64) [2]float64 {
+func (s *Application) GetFieldDecimalRange(fieldID int64) [2]float64 {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]float64{}
@@ -194,7 +194,7 @@ func (s *Application) GetFieldDecimalRange(fieldID uint64) [2]float64 {
 }
 
 // date_range
-func (s *Application) GetFieldDateRange(fieldID uint64) [2]time.Time {
+func (s *Application) GetFieldDateRange(fieldID int64) [2]time.Time {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]time.Time{}
@@ -205,7 +205,7 @@ func (s *Application) GetFieldDateRange(fieldID uint64) [2]time.Time {
 }
 
 // time_range
-func (s *Application) GetFieldTimeRange(fieldID uint64) [2]time.Time {
+func (s *Application) GetFieldTimeRange(fieldID int64) [2]time.Time {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]time.Time{}
@@ -216,7 +216,7 @@ func (s *Application) GetFieldTimeRange(fieldID uint64) [2]time.Time {
 }
 
 // datetime_range
-func (s *Application) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
+func (s *Application) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 	m, ok := s.getFieldMap(fieldID)
 	if !ok {
 		return [2]time.Time{}
@@ -227,7 +227,7 @@ func (s *Application) GetFieldDatetimeRange(fieldID uint64) [2]time.Time {
 }
 
 // attach
-func (s *Application) GetFieldAttach(fieldID uint64) []uint64 {
+func (s *Application) GetFieldAttach(fieldID int64) []int64 {
 	f, exists := s.getField(fieldID)
 	if !exists {
 		return nil
@@ -236,9 +236,9 @@ func (s *Application) GetFieldAttach(fieldID uint64) []uint64 {
 	if !ok || len(vAttach) <= 0 {
 		return nil
 	}
-	vIDs := make([]uint64, 0, len(vAttach))
+	vIDs := make([]int64, 0, len(vAttach))
 	for _, v := range vAttach {
-		if id, err := strconv.ParseUint(v["id"], 10, 64); err == nil {
+		if id, err := strconv.ParseInt(v["id"], 10, 64); err == nil {
 			vIDs = append(vIDs, id)
 		}
 	}

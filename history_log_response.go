@@ -10,12 +10,12 @@ type HistoryLogResponse struct {
 	Data []*HistoryLogData `json:"data,omitempty"`
 }
 type HistoryLogData struct {
-	ObjectID   uint64    `json:"object_id,string"`
+	ObjectID   int64     `json:"object_id,string"`
 	PropertyID string    `json:"property_id"`
 	Value      string    `json:"value"`
 	Current    string    `json:"current"`
 	Date       time.Time `json:"date"`
-	EmployeeID uint64    `json:"employee_id,string"`
+	EmployeeID int64     `json:"employee_id,string"`
 }
 
 func (d *HistoryLogData) UnmarshalJSON(data []byte) error {

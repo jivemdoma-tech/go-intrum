@@ -8,13 +8,13 @@ type PurchaserAttachResponse struct {
 }
 
 type PurchaserAttachData struct {
-	Stock           []interface{}     `json:"stock,omitempty"`
-	StockExtended   []interface{}     `json:"stock_extended,omitempty"`
-	StockArchive    []interface{}     `json:"stock_archive,omitempty"`
+	Stock           []any             `json:"stock,omitempty"`
+	StockExtended   []any             `json:"stock_extended,omitempty"`
+	StockArchive    []any             `json:"stock_archive,omitempty"`
 	Request         []string          `json:"request,omitempty"`
 	RequestExtended []RequestExtended `json:"request_extended,omitempty"`
-	Sale            []interface{}     `json:"sale,omitempty"`
-	SaleExtended    []interface{}     `json:"sale_extended,omitempty"`
+	Sale            []any             `json:"sale,omitempty"`
+	SaleExtended    []any             `json:"sale_extended,omitempty"`
 }
 
 type RequestExtended struct {

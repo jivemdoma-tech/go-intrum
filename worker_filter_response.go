@@ -12,16 +12,16 @@ type WorkerFilterResponse struct {
 }
 
 type WorkerFilterData struct {
-	ID          string                   `json:"id"`
-	Type        string                   `json:"type"`
-	DivisionID  string                   `json:"division_id"`
-	SubofficeID string                   `json:"suboffice_id"`
-	Post        string                   `json:"post"`
-	Boss        string                   `json:"boss"`
-	Status      string                   `json:"status"`
-	Name        string                   `json:"name"`
-	Surname     string                   `json:"surname"`
-	Fields      map[uint64]*workerFields `json:"fields"`
+	ID          string                  `json:"id"`
+	Type        string                  `json:"type"`
+	DivisionID  string                  `json:"division_id"`
+	SubofficeID string                  `json:"suboffice_id"`
+	Post        string                  `json:"post"`
+	Boss        string                  `json:"boss"`
+	Status      string                  `json:"status"`
+	Name        string                  `json:"name"`
+	Surname     string                  `json:"surname"`
+	Fields      map[int64]*workerFields `json:"fields"`
 	// Secondname          string           `json:"secondname"`
 	// Internalemail       []string         `json:"internalemail"`
 	// Externalemail       []interface{}    `json:"externalemail"`
@@ -42,7 +42,7 @@ type WorkerFilterData struct {
 }
 
 type workerFields struct {
-	ID       uint64 `json:"id,string,omitempty"`
+	ID       int64  `json:"id,string,omitempty"`
 	Name     any    `json:"value,omitempty"`
 	Datatype string `json:"datatype,omitempty"`
 }
@@ -64,9 +64,9 @@ func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
 	}
 
 	if m, ok := aux.Fields.(map[string]any); ok {
-		out := make(map[uint64]*workerFields, len(m))
+		out := make(map[int64]*workerFields, len(m))
 		for k, v := range m {
-			id, err := strconv.ParseUint(k, 10, 64)
+			id, err := strconv.ParseInt(k, 10, 64)
 			if err != nil {
 				// пропускаем некорректный ключ
 				continue
@@ -78,7 +78,7 @@ func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
 			}
 			// если в объекте нет id, всё равно ключ у нас верный — установим
 			if f.ID == 0 {
-				f.ID, _ = strconv.ParseUint(k, 10, 64)
+				f.ID, _ = strconv.ParseInt(k, 10, 64)
 			}
 			out[id] = &f
 		}
@@ -91,14 +91,14 @@ func (w *WorkerFilterData) UnmarshalJSON(data []byte) error {
 // Методы получения значений полей
 
 // getField получает структуру поля по ID.
-func (w *WorkerFilterData) getField(fieldID uint64) *workerFields {
+func (w *WorkerFilterData) getField(fieldID int64) *workerFields {
 	if f, exists := w.Fields[fieldID]; exists {
 		return f
 	}
 	return nil
 }
 
-func (w *WorkerFilterData) getFieldMap(fieldID uint64) map[string]string {
+func (w *WorkerFilterData) getFieldMap(fieldID int64) map[string]string {
 	f := w.getField(fieldID)
 	if f == nil {
 		return nil
@@ -119,7 +119,7 @@ func (w *WorkerFilterData) getFieldMap(fieldID uint64) map[string]string {
 // Публичные методы
 
 // GetFieldText возвращает string значение поля.
-func (w *WorkerFilterData) GetFieldText(fieldID uint64) string {
+func (w *WorkerFilterData) GetFieldText(fieldID int64) string {
 	f := w.getField(fieldID)
 	if f == nil {
 		return ""
@@ -132,18 +132,18 @@ func (w *WorkerFilterData) GetFieldText(fieldID uint64) string {
 }
 
 // GetFieldSelect возвращает string значение поля.
-func (w *WorkerFilterData) GetFieldSelect(fieldID uint64) string {
+func (w *WorkerFilterData) GetFieldSelect(fieldID int64) string {
 	return w.GetFieldText(fieldID)
 }
 
 // GetFieldInteger возвращает int64 значение поля.
-func (w *WorkerFilterData) GetFieldInteger(fieldID uint64) int64 {
+func (w *WorkerFilterData) GetFieldInteger(fieldID int64) int64 {
 	vStr := w.GetFieldText(fieldID)
 	return parseInt(vStr)
 }
 
 // GetFieldDecimal возвращает float64 значение поля.
-func (w *WorkerFilterData) GetFieldDecimal(fieldID uint64) float64 {
+func (w *WorkerFilterData) GetFieldDecimal(fieldID int64) float64 {
 	vStr := w.GetFieldText(fieldID)
 	return parseFloat(vStr)
 }

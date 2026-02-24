@@ -19,25 +19,25 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 
 	// Обязательность ввода параметров
 	if inParams.Title == "" {
-		return nil, returnErrBadParams(methodURL)
+		return nil, newErrEmptyRequiredFields(methodURL)
 	}
 
 	// Параметры запроса
 	p := make(map[string]string, 3)
 
 	// title
-	addToParams(p, "title", inParams.Title)
+	addToSingularParams(p, "title", inParams.Title)
 	// limit
 	switch v := inParams.Limit; {
 	case v == 0:
-		addToParams(p, "limit", "100")
+		addToSingularParams(p, "limit", "100")
 	case v >= 1000:
-		addToParams(p, "limit", "1000")
+		addToSingularParams(p, "limit", "1000")
 	default:
-		addToParams(p, "limit", v)
+		addToSingularParams(p, "limit", v)
 	}
 	// page
-	addToParams(p, "page", inParams.Page)
+	addToSingularParams(p, "page", inParams.Page)
 
 	// Запрос
 	resp := new(TasksSearchResp)

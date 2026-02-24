@@ -9,7 +9,7 @@ import (
 type StockUpdateParams struct {
 	// ID существующего объекта
 	//	! ОБЯЗАТЕЛЬНО !
-	ID uint64
+	ID int64
 
 	Parent int64  // ID категории объекта
 	Name   string // Наименование объекта
@@ -43,7 +43,7 @@ func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUp
 
 	// Обязательность ввода параметров
 	if inParams.ID == 0 {
-		return nil, returnErrBadParams(methodURL)
+		return nil, newErrEmptyRequiredFields(methodURL)
 	}
 
 	// Параметры запроса
@@ -52,7 +52,7 @@ func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUp
 		len(inParams.Fields)*2)
 
 	// id
-	p["params[0][id]"] = strconv.FormatUint(inParams.ID, 10)
+	p["params[0][id]"] = strconv.FormatInt(inParams.ID, 10)
 	// parent
 	if v := inParams.Parent; v > 0 {
 		p["params[0][parent]"] = strconv.FormatInt(v, 10)

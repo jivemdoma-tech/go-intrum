@@ -4,173 +4,183 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 )
 
+// StockFilterParams - параметры запроса.
+//
+// Обязательные поля:
+//   - Type || ByIDs
+//
+// Основные параметры запроса:
+//   - Type: ID типа объекта.
+//   - Category: ID категории объекта.
+//   - ByIDs: массив ID объектов. Все объекты в массиве должны быть одного типа.
+//   - Publish: активность объектов. Активные (по умолчанию): "1". Удаленные: "0". Все: "ignore".
+//   - Fields: массив ID полей и значений.
+//     Для типов (integer, decimal, price, time, date, datetime) возможно указывать границы.
+//     Больше или равно: ">= {ЗНАЧЕНИЕ}".
+//     Меньше или равно: "<= {ЗНАЧЕНИЕ}".
+//     Между двумя значениями: "{ЗНАЧЕНИЕ} & {ЗНАЧЕНИЕ}".
+//
+// Параметры ответа:
+//   - SliceFields: массив ID полей, значения которых будут в ответе. По умолчанию выводятся все.
+//   - Limit: кол-во объектов в ответе.
+//   - Page: номер страницы ответа. Начинается с 1. Игнорируется StockFilterAll.
 type StockFilterParams struct {
-	// ID типа объекта
-	// 	! ОБЯЗАТЕЛЬНО ! (Если не указан "ByIDs")
-	Type uint64
+	Type           int64   // ID типа объекта.
+	Category       int64   // ID категории объекта.
+	ByIDs          []int64 // Массив ID объектов. Все объекты в массиве должны быть одного типа.
+	Search         string  // Поисковая строка. Может содержать имся объекта или вхождения в поля с типами (text, select, multiselect).
+	Manager        []int64 // Массив ID ответственных.
+	Groups         []int64 // Массив ID CRM-групп.
+	StockCreatorID int64   // ID создателя объекта.
+	// Массив ID полей и значений.
+	//  {ID ПОЛЯ}: "{ЗНАЧЕНИЕ}"
+	// Для типов (integer, decimal, price, time, date, datetime) возможно указывать границы:
+	//	Больше или равно: ">= {ЗНАЧЕНИЕ}"
+	//	Меньше или равно: "<= {ЗНАЧЕНИЕ}"
+	//	Между двумя значениям: "{ЗНАЧЕНИЕ} & {ЗНАЧЕНИЕ}"
+	Fields              map[int64]string
+	RelatedWithCustomer int64 // ID контакта, прикрепленного к объекту.
+	Page                int64 // Номер страницы ответа. Начинается с 1. Игнорируется StockFilterAll.
+	// Активность объектов.
+	//  Активные: "1" (по умолчанию)
+	//  Удаленные: "0"
+	//  Все: "ignore"
+	Publish     string
+	Limit       int64   // Кол-во объектов в ответе.
+	SliceFields []int64 // Массив ID полей, значения которых будут в ответе. По умолчанию выводятся все.
 
-	// Массив условий поиска.
-	//	Key: ID поля
-	//	Value: Значение поля
-	// Для полей с типом integer, decimal, price, time, date, datetime возможно указывать границы:
-	//	Value: ">= {значение}" - больше или равно
-	//	Value: "<= {значение}" - меньше или равно
-	//	Value: "{значение_1} & {значение_2}" - между значением 1 и 2
-	Fields map[uint64]string
-
-	ByIDs               []uint64 // Массив ID объектов (Все объекты из массива должны быть одного типа)
-	Category            uint64   // ID категории объекта
-	Nested              string   // (bool) Включить вложенные категории
-	Search              string   // Поисковая строка. Может содержать имя объекта или вхождения в поля с типами text, select, multiselect (Полнотекстовый поиск)
-	Manager             []uint64 // Массив ID ответственных
-	Groups              []uint64 // Массив CRM групп
-	StockCreatorID      uint64   // ID создателя
-	IndexFields         string   // (bool) Индексировать массив полей по ID свойства
-	RelatedWithCustomer uint64   // ID контакта, связанного с объектом
-	Order               string   // Направление сортировки (asc - по возрастанию, desc - по убыванию)
-	// ID поля, по которому нужно сделать сортировку. Если в качестве значения указать:
-	// 	"stock_activity_date" - сортировка по дате активности
-	// 	"date_add" - сортировка по дате создания
-	// 	"date_delete" - сортировка по дате удаления
-	OrderField    string
-	Date          [2]time.Time // Выборка за определенный период
-	DateField     string       // Если в качестве значения указать stock_activity_date, то выборка по параметру последней активности (в этом случае период выборки нужно передавать в параметре date)
-	Page          uint16       // Номер страницы выборки (например, 2 страница с limit 500 на каждой, нумерация page начиная с 1)
-	Publish       string       // (bool) "1" - активные | "0" - удаленные | "ignore" - вывод всех (по умолчанию "1")
-	Limit         uint64       // Число записей в выборке (По умолчанию 500)
-	OnlyPrimaryID string       // (bool) Вывести в ответе только ID объектов
-	SliceFields   []uint64     // Массив id дополнительных полей, которые будут в ответе (по умолчанию если не задано то выводятся все)
-
-	// TODO
-	// CountTotal     string // (bool) Подсчет общего количества найденых записей
-	// OnlyCountField string // (bool) Вывести в ответе только количество
-	// Log            string // Фильтр по истории изменений
-	// SumField       uint64 // ID поля, которое нужно просуммировать. В ответе будет сумма значений поля результатов выборки (переменная: sum_field) и их число (count_field). Опция работает только для числовых полей (целое, число, цена)
-	// GroupID        uint64 // ID группы для группированных объектов
-	// Copy           uint64 // ID Родителя группы для группированных объектов
-	// ObjectGroups   uint64 // Число записей в выборке, по умолчанию 20, макс. 500
+	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для resultParams в методе params.
+	//  Nested
+	//  IndexFields
+	//  Order
+	//  OrderField
+	//  Date
+	//  DateField
+	//  GroupID
+	//  Copy
+	//  ObjectGroups
+	//  CountTotal
+	//  OnlyPrimaryID
+	//  OnlyCountField
+	//  SumField
+	//  Log
 }
 
-// Ссылка на метод: https://www.intrumnet.com/api/#stock-search
-func StockFilter(ctx context.Context, subdomain, apiKey string, inParams StockFilterParams) (*StockFilterResponse, error) {
-	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
+// MaxLimit возвращает максимальное значение параметра Limit.
+func (p StockFilterParams) MaxLimit() int64 { return 500 }
 
-	// Обязательность ввода параметров
-	if inParams.Type == 0 && len(inParams.ByIDs) == 0 {
-		return nil, returnErrBadParams(methodURL)
-	}
+// copy возвращает shallow-копию структуры.
+func (p StockFilterParams) copy() *StockFilterParams {
+	copyParams := p
+	return &copyParams
+}
 
-	// Параметры запроса
-	p := make(map[string]string, 8+
-		len(inParams.ByIDs)+
-		len(inParams.Manager)+
-		len(inParams.Groups)+
-		len(inParams.SliceFields)+
-		len(inParams.Fields)*2)
+// copyWithPage возвращает shallow-копию структуры с новой страницей.
+func (p StockFilterParams) copyWithPage(page int64) *StockFilterParams {
+	pageParams := p.copy()
+	pageParams.Page = page
+	return pageParams
+}
+
+// params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
+func (p StockFilterParams) params() map[string]string {
+	// Выделение памяти
+	resultParams := make(map[string]string,
+		// Единичные поля
+		8+
+			// Слайсы
+			len(p.ByIDs)+
+			len(p.Manager)+
+			len(p.Groups)+
+			len(p.SliceFields)+
+			// Мапы
+			len(p.Fields)*2,
+	)
 
 	// type
-	addToParams(p, "type", inParams.Type)
-	// byid + by_ids
-	switch {
-	case len(inParams.ByIDs) == 1:
-		addToParams(p, "byid", inParams.ByIDs[0])
-	case len(inParams.ByIDs) >= 2:
-		addSliceToParams(p, "by_ids", inParams.ByIDs)
-	}
+	addToSingularParams(resultParams, "type", p.Type)
 	// category
-	addToParams(p, "category", inParams.Category)
-	// nested
-	addBoolStringToParams(p, "nested", inParams.Nested)
+	addToSingularParams(resultParams, "category", p.Category)
+	// byid | by_ids
+	switch {
+	case len(p.ByIDs) == 1:
+		addToSingularParams(resultParams, "byid", p.ByIDs[0])
+	case len(p.ByIDs) >= 2:
+		addSliceToSingularParams(resultParams, "by_ids", p.ByIDs)
+	}
 	// search
-	addToParams(p, "search", inParams.Search)
+	addToSingularParams(resultParams, "search", p.Search)
 	// manager
-	addSliceToParams(p, "manager", inParams.Manager)
+	addSliceToSingularParams(resultParams, "manager", p.Manager)
 	// groups
-	addSliceToParams(p, "groups", inParams.Groups)
+	addSliceToSingularParams(resultParams, "groups", p.Groups)
 	// stock_creator_id
-	addToParams(p, "stock_creator_id", inParams.StockCreatorID)
+	addToSingularParams(resultParams, "stock_creator_id", p.StockCreatorID)
 	// fields
 	fieldsCount := 0
-	for k, v := range inParams.Fields {
+	for k, v := range p.Fields {
 		if k == 0 || v == "" {
 			continue
 		}
-		p[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatUint(k, 10)
-		p[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
+		resultParams[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		resultParams[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
 		fieldsCount++
 	}
-	// index_fields
-	addBoolStringToParams(p, "index_fields", inParams.IndexFields)
 	// related_with_customer
-	addToParams(p, "related_with_customer", inParams.RelatedWithCustomer)
-	// order
-	switch v := inParams.Order; v {
-	case "asc", "desc":
-		addToParams(p, "order", v)
-	}
-	// order_field
-	switch v := inParams.OrderField; v {
-	case "stock_activity_date", "date_add", "date_delete":
-		addToParams(p, "order_field", v)
-	default:
-		if _, err := strconv.ParseUint(v, 10, 64); err == nil {
-			addToParams(p, "order_field", v)
-		}
-	}
-	// date
-	if !inParams.Date[0].IsZero() {
-		p["params[date][from]"] = inParams.Date[0].Format(DatetimeLayout)
-	}
-	if !inParams.Date[1].IsZero() {
-		p["params[date][to]"] = inParams.Date[1].Format(DatetimeLayout)
-	}
-	// date_field
-	addToParams(p, "date_field", inParams.DateField)
+	addToSingularParams(resultParams, "related_with_customer", p.RelatedWithCustomer)
 	// page
-	addToParams(p, "page", inParams.Page)
+	addToSingularParams(resultParams, "page", p.Page)
 	// publish
-	addBoolStringToParams(p, "publish", inParams.Publish)
+	addBoolToSingularParams(resultParams, "publish", p.Publish)
 	// limit
-	switch v := inParams.Limit; {
+	switch v := p.Limit; {
 	case v == 0, v >= 500:
-		addToParams(p, "limit", "500")
+		addToSingularParams(resultParams, "limit", "500")
 	default:
-		addToParams(p, "limit", v)
+		addToSingularParams(resultParams, "limit", v)
 	}
-	// only_primary_id
-	addBoolStringToParams(p, "only_primary_id", inParams.OnlyPrimaryID)
 	// slice_fields
-	addSliceToParams(p, "slice_fields", inParams.SliceFields)
+	addSliceToSingularParams(resultParams, "slice_fields", p.SliceFields)
+
+	return resultParams
+}
+
+// StockFilter - поиск объектов в CRM. Документация: https://www.intrumnet.com/api/#stock-search
+func StockFilter(ctx context.Context, subdomain, apiKey string, p *StockFilterParams) (*StockFilterResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
+
+	// Валидация
+	if p == nil {
+		return nil, newErrNilParams(methodURL)
+	}
+	// Обязательные поля
+	if p.Type <= 0 && len(p.ByIDs) == 0 {
+		return nil, newErrEmptyRequiredFields(methodURL)
+	}
 
 	// Запрос
-	resp := new(StockFilterResponse)
-	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
+	resp := &StockFilterResponse{}
+	if err := request(ctx, apiKey, methodURL, p.params(), resp); err != nil {
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func StockFilterAll(ctx context.Context, subdomain, apiKey string, params StockFilterParams) ([]*Stock, error) {
-	const (
-		stdLimit     = 50
-		maxLimit int = 500
-	)
-	stockTotal := make([]*Stock, 0, 500)
-	for page := uint16(1); ; page++ {
-		params.Page = page
-
-		switch {
-		case params.Limit <= 0:
-			params.Limit = stdLimit
-		case params.Limit > uint64(maxLimit):
-			params.Limit = uint64(maxLimit)
+// StockFilterAll - поиск объектов в CRM по всем страницам. Документация: https://www.intrumnet.com/api/#stock-search
+func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilterParams) ([]Stock, error) {
+	resultStock := make([]Stock, 0, 500)
+	for page := int64(1); ; page++ {
+		// Shallow-копирование структуры для итерации
+		pageParams := p.copyWithPage(page)
+		// Установка максимального кол-ва элементов в ответе
+		if maxLimit := pageParams.MaxLimit(); pageParams.Limit != maxLimit {
+			pageParams.Limit = maxLimit
 		}
-
-		resp, err := StockFilter(ctx, subdomain, apiKey, params)
+		// Запрос
+		resp, err := StockFilter(ctx, subdomain, apiKey, pageParams)
 		if err != nil {
 			return nil, err
 		}
@@ -179,12 +189,15 @@ func StockFilterAll(ctx context.Context, subdomain, apiKey string, params StockF
 			break
 		}
 
-		stockTotal = append(stockTotal, resp.Data.List...)
+		resultStock = append(resultStock, resp.Data.List...)
 
-		if len(resp.Data.List) < int(params.Limit) {
+		if len(resp.Data.List) < int(pageParams.Limit) {
 			break
 		}
 	}
+	if len(resultStock) == 0 {
+		return nil, nil
+	}
 
-	return stockTotal, nil
+	return resultStock, nil
 }

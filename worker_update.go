@@ -9,7 +9,7 @@ import (
 type WorkerUpdateParams struct {
 	// ID сотрудника
 	//	! ОБЯЗАТЕЛЬНО !
-	ID uint64
+	ID int64
 
 	// Доп. поля
 	//	Key: ID поля
@@ -28,7 +28,7 @@ func WorkerUpdate(ctx context.Context, subdomain, apiKey string, inParams Worker
 
 	// Обязательность ввода параметров
 	if inParams.ID == 0 {
-		return nil, returnErrBadParams(methodURL)
+		return nil, newErrEmptyRequiredFields(methodURL)
 	}
 
 	// Параметры запроса
@@ -36,7 +36,7 @@ func WorkerUpdate(ctx context.Context, subdomain, apiKey string, inParams Worker
 		len(inParams.Fields)*2)
 
 	// id
-	p["params[0][id]"] = strconv.FormatUint(inParams.ID, 10)
+	p["params[0][id]"] = strconv.FormatInt(inParams.ID, 10)
 	// fields
 	countFields := 0
 	for k, v := range inParams.Fields {

@@ -21,7 +21,7 @@ const (
 
 // Клиент для запросов к Intrum API
 var (
-	client    = http.Client{Timeout: time.Minute * 10}
+	client    = http.Client{Timeout: 10 * time.Minute}
 	requestFn = request // For test purposes
 )
 
@@ -35,7 +35,7 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 		primaryPort  string = "81"
 		backupPort   string = "444"
 		duration1Min        = time.Minute
-		duration5Min        = time.Minute * 5
+		duration5Min        = 5 * time.Minute
 	)
 	// Обработка паники
 	defer func() {
@@ -62,11 +62,6 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 
 	// Цикл для повторного запроса на запасной порт в случае ошибки
 	for _, isBackup := range []bool{false, true} {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
 		if isBackup {
 			var (
 				hostNameParts = strings.Split(u.Hostname(), ".")
@@ -106,13 +101,20 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 			if isBackup {
 				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u.Path)
 			}
-			// Повторный запрос
-			switch resp.StatusCode {
-			case http.StatusGatewayTimeout:
-				time.Sleep(duration5Min)
-				continue
-			default:
-				time.Sleep(duration1Min)
+			// Таймаут + повторный запрос
+			timeout := func() time.Duration {
+				switch resp.StatusCode {
+				default:
+					return duration1Min
+				// Ошибка на стороне сервера (502, 504)
+				case http.StatusBadGateway, http.StatusGatewayTimeout:
+					return duration5Min
+				}
+			}()
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(timeout):
 				continue
 			}
 		}
