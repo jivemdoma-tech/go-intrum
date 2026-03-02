@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+const (
+	StockFilterMaxLimit int64 = 500
+)
+
 // StockFilterParams - параметры запроса.
 //
 // Обязательные поля:
@@ -67,9 +71,6 @@ type StockFilterParams struct {
 	//  SumField
 	//  Log
 }
-
-// MaxLimit возвращает максимальное значение параметра Limit.
-func (p StockFilterParams) MaxLimit() int64 { return 500 }
 
 // copy возвращает shallow-копию структуры.
 func (p StockFilterParams) copy() *StockFilterParams {
@@ -141,8 +142,15 @@ func (p StockFilterParams) params() map[string]string {
 	default:
 		addToSingularParams(resultParams, "limit", v)
 	}
-	// slice_fields
-	addSliceToSingularParams(resultParams, "slice_fields", p.SliceFields)
+	// slice_fields (SliceFields + Fields)
+	sliceFields := make([]int64, 0, len(p.SliceFields)+len(p.Fields))
+	sliceFields = append(sliceFields, p.SliceFields...)
+	for id := range p.Fields {
+		if id != 0 {
+			sliceFields = append(sliceFields, id)
+		}
+	}
+	addSliceToSingularParams(resultParams, "slice_fields", sliceFields)
 
 	return resultParams
 }
@@ -176,8 +184,8 @@ func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilte
 		// Shallow-копирование структуры для итерации
 		pageParams := p.copyWithPage(page)
 		// Установка максимального кол-ва элементов в ответе
-		if maxLimit := pageParams.MaxLimit(); pageParams.Limit != maxLimit {
-			pageParams.Limit = maxLimit
+		if pageParams.Limit != StockFilterMaxLimit {
+			pageParams.Limit = StockFilterMaxLimit
 		}
 		// Запрос
 		resp, err := StockFilter(ctx, subdomain, apiKey, pageParams)
