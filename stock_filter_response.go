@@ -54,7 +54,7 @@ func (r *StockFilterResponse) GetErrorMessage() string {
 	default:
 		return ""
 	case r.Status != "" && r.Message != "":
-		return fmt.Sprintf("%s: %s", r.Status, r.Message)
+		return r.Status + ": " + r.Message
 	case r.Message != "":
 		return r.Message
 	}
@@ -115,18 +115,11 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 		s.StockActivityDate = time.Time{}
 	}
 
-	// Bool
+	// (bool) Publish
+	newPublish, _ := strconv.ParseBool(aux.Publish)
+	s.Publish = newPublish
 
-	newPublish, err := strconv.ParseBool(aux.Publish)
-	switch err {
-	case nil:
-		s.Publish = newPublish
-	default:
-		s.Publish = false
-	}
-
-	// Массивы
-
+	// ([]int64) AdditionalEmployeeID
 	newAdditionalEmployeeID := make([]int64, 0, len(aux.AdditionalEmployeeID))
 	for _, v := range aux.AdditionalEmployeeID {
 		if value, err := strconv.ParseInt(v, 10, 64); err == nil {
@@ -141,17 +134,31 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 		// Реализация костыля
 		switch f.Type {
 		case "file", "attach":
-			// Проверка, что поле уже обработано
-			if _, ok := alreadyParsedFields[f.ID]; ok {
+			// Проверка: поле уже обработано
+			switch _, ok := alreadyParsedFields[f.ID]; {
+			case ok:
 				continue
+			default:
+				alreadyParsedFields[f.ID] = struct{}{}
 			}
-			alreadyParsedFields[f.ID] = struct{}{}
-			// Сбор значений по ключу во всех полях
+			// Сбор значений
 			collectedValues := make([]string, 0)
 			for _, ff := range aux.Fields {
-				if f.ID == ff.ID {
-					vStr, _ := ff.Value.(string)
-					collectedValues = append(collectedValues, vStr)
+				if f.ID != ff.ID {
+					continue
+				}
+				if ff.Value == nil {
+					continue
+				}
+				// Строка
+				if valueStr, ok := ff.Value.(string); ok && valueStr != "" {
+					collectedValues = append(collectedValues, valueStr)
+				}
+				// Хэш-таблица
+				if valueMap, ok := ff.Value.(map[string]any); ok && valueMap != nil {
+					if valueMapID, ok := valueMap["id"]; ok && valueMapID != nil {
+						collectedValues = append(collectedValues, fmt.Sprint(valueMapID))
+					}
 				}
 			}
 			f.Value = strings.Join(collectedValues, ",")
@@ -163,243 +170,228 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// getField получает поле по ID.
-func (s *Stock) getField(fieldID int64) *StockField {
+// getField возвращает поле по id.
+func (s *Stock) getField(id int64) (*StockField, bool) {
 	if s == nil {
-		return nil
+		return nil, false
+	}
+	// Проверка: поле существует
+	field, exists := s.Fields[id]
+	if !exists {
+		return nil, false
 	}
 
-	switch f, ok := s.Fields[fieldID]; {
-	case ok:
-		return &f
+	return &field, true
+}
+
+// getFieldMap возвращает значение поля (map[string]string) по id.
+func (s *Stock) getFieldMap(id int64) (map[string]string, bool) {
+	// Проверка: поле существует
+	field, exists := s.getField(id)
+	if !exists {
+		return nil, false
+	}
+	value := field.Value
+
+	if resultMap, ok := value.(map[string]string); ok {
+		return resultMap, true
+	}
+	if rawMap, ok := value.(map[string]any); ok {
+		resultMap := make(map[string]string, len(rawMap))
+		for k, v := range rawMap {
+			switch v {
+			default:
+				resultMap[k] = fmt.Sprint(v)
+			case nil:
+				resultMap[k] = ""
+			}
+		}
+		return resultMap, true
+	}
+
+	return nil, false
+}
+
+// GetFieldText возвращает значение поля (text) по id.
+func (s *Stock) GetFieldText(id int64) (string, bool) {
+	// Проверка: поле существует
+	field, exists := s.getField(id)
+	if !exists {
+		return "", false
+	}
+	value := field.Value
+
+	switch value {
+	case nil:
+		return "", true
 	default:
-		return nil
+		return fmt.Sprint(value), true
 	}
 }
 
-func (s *Stock) getFieldMap(fieldID int64) map[string]string {
-	if s == nil {
-		return nil
+// GetFieldRadio возвращает значение поля (radio) по id.
+func (s *Stock) GetFieldRadio(id int64) (bool, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return false, false
 	}
 
-	f := s.getField(fieldID)
-	if f == nil {
-		return nil
+	// Поле существует
+	valueBool, _ := strconv.ParseBool(valueStr)
+	return valueBool, true
+}
+
+// GetFieldSelect возвращает значение поля (select) по id.
+func (s *Stock) GetFieldSelect(id int64) (string, bool) { return s.GetFieldText(id) }
+
+// GetFieldMultiselect возвращает значение поля (multiselect) по id.
+func (s *Stock) GetFieldMultiselect(id int64) ([]string, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return nil, false
 	}
-	switch m := f.Value.(type) {
-	case map[string]string:
-		return m
-	case map[string]any:
-		mStr := make(map[string]string, len(m))
-		for k, v := range m {
-			mStr[k] = fmt.Sprint(v)
+
+	switch valueStr {
+	case "":
+		return nil, true
+	default:
+		return strings.Split(valueStr, ","), true
+	}
+}
+
+// GetFieldDate возвращает значение поля (date) по id.
+func (s *Stock) GetFieldDate(id int64) (time.Time, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return time.Time{}, false
+	}
+
+	return parseDate(valueStr), true
+}
+
+// GetFieldDatetime возвращает значение поля (datetime) по id.
+func (s *Stock) GetFieldDatetime(id int64) (time.Time, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return time.Time{}, false
+	}
+
+	return parseDatetime(valueStr), true
+}
+
+// TODO: GetFieldTime
+// // GetFieldTime возвращает значение поля (time) по id.
+// func (s *Stock) GetFieldTime(id int64) (time.Time, bool) {}
+
+// GetFieldInteger возвращает значение поля (integer) по id.
+func (s *Stock) GetFieldInteger(id int64) (int64, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return 0, false
+	}
+
+	return parseInt(valueStr), true
+}
+
+// GetFieldDecimal возвращает значение поля (decimal) по id.
+func (s *Stock) GetFieldDecimal(id int64) (float64, bool) {
+	// Проверка: поле существует
+	valueStr, exists := s.GetFieldText(id)
+	if !exists {
+		return 0, false
+	}
+
+	return parseFloat(valueStr), true
+}
+
+// GetFieldPrice возвращает значение поля (price) по id.
+func (s *Stock) GetFieldPrice(id int64) (float64, bool) { return s.GetFieldDecimal(id) }
+
+// GetFieldFile возвращает значение поля (file) по id.
+func (s *Stock) GetFieldFile(id int64) ([]string, bool) { return s.GetFieldMultiselect(id) }
+
+// GetFieldPoint возвращает значение поля (point) по id.
+func (s *Stock) GetFieldPoint(id int64) ([2]string, bool) {
+	// Проверка: поле существует
+	valueMap, exists := s.getFieldMap(id)
+	if !exists {
+		return [2]string{}, false
+	}
+
+	var (
+		x, _ = valueMap["x"]
+		y, _ = valueMap["y"]
+	)
+	return [2]string{x, y}, true
+}
+
+// GetFieldIntegerRange возвращает значение поля (integer_range) по id.
+func (s *Stock) GetFieldIntegerRange(id int64) ([2]int64, bool) {
+	// Проверка: поле существует
+	valueMap, exists := s.getFieldMap(id)
+	if !exists {
+		return [2]int64{}, false
+	}
+
+	return parseRange(valueMap, parseInt), true
+}
+
+// GetFieldDecimalRange возвращает значение поля (decimal_range) по id.
+func (s *Stock) GetFieldDecimalRange(id int64) ([2]float64, bool) {
+	// Проверка: поле существует
+	valueMap, exists := s.getFieldMap(id)
+	if !exists {
+		return [2]float64{}, false
+	}
+
+	return parseRange(valueMap, parseFloat), true
+}
+
+// GetFieldDateRange возвращает значение поля (date_range) по id.
+func (s *Stock) GetFieldDateRange(id int64) ([2]time.Time, bool) {
+	// Проверка: поле существует
+	valueMap, exists := s.getFieldMap(id)
+	if !exists {
+		return [2]time.Time{}, false
+	}
+
+	return parseRange(valueMap, parseDate), true
+}
+
+// TODO: GetFieldTimeRange
+// // GetFieldTimeRange возвращает значение поля (time_range) по id.
+// func (s *Stock) GetFieldTimeRange(id int64) [2]time.Time {}
+
+// GetFieldDatetimeRange возвращает значение поля (datetime_range) по id.
+func (s *Stock) GetFieldDatetimeRange(id int64) ([2]time.Time, bool) {
+	// Проверка: поле существует
+	valueMap, exists := s.getFieldMap(id)
+	if !exists {
+		return [2]time.Time{}, false
+	}
+
+	return parseRange(valueMap, parseDatetime), true
+}
+
+// GetFieldAttach возвращает значение поля (attach) по id.
+func (s *Stock) GetFieldAttach(id int64) ([]int64, bool) {
+	// Проверка: поле существует
+	fieldStringSlice, exists := s.GetFieldMultiselect(id)
+	if !exists {
+		return nil, false
+	}
+
+	valueInt64Slice := make([]int64, 0, len(fieldStringSlice))
+	for _, vStr := range fieldStringSlice {
+		if vInt64 := parseInt(vStr); vInt64 != 0 {
+			valueInt64Slice = append(valueInt64Slice, vInt64)
 		}
-		return mStr
-	}
-	return nil
-}
-
-// Публичные методы
-
-// Тип поля: "text".
-func (s *Stock) GetFieldText(fieldID int64) string {
-	f := s.getField(fieldID)
-	if f == nil {
-		return ""
-	}
-	vStr, ok := f.Value.(string)
-	if !ok {
-		return ""
-	}
-	return vStr
-}
-
-// Тип поля: "radio".
-func (s *Stock) GetFieldRadio(fieldID int64) bool {
-	vStr := s.GetFieldText(fieldID)
-	if v, err := strconv.ParseBool(vStr); err == nil {
-		return v
-	}
-	return false
-}
-
-// Тип поля: "select".
-func (s *Stock) GetFieldSelect(fieldID int64) string {
-	return s.GetFieldText(fieldID)
-}
-
-// Тип поля: "multiselect".
-func (s *Stock) GetFieldMultiselect(fieldID int64) []string {
-	if vStr := s.GetFieldText(fieldID); vStr != "" {
-		return strings.Split(vStr, ",")
-	}
-	return nil
-}
-
-// Тип поля: "date".
-func (s *Stock) GetFieldDate(fieldID int64) time.Time {
-	vStr := s.GetFieldText(fieldID)
-	// Проверка на формат date
-	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
-		return vDate
-	}
-	// Проверка на формат datetime
-	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
-		return time.Date(vDatetime.Year(), vDatetime.Month(), vDatetime.Day(), 0, 0, 0, 0, vDatetime.Location())
 	}
 
-	return time.Time{}
-}
-
-// Тип поля: "datetime".
-func (s *Stock) GetFieldDatetime(fieldID int64) time.Time {
-	vStr := s.GetFieldText(fieldID)
-	// Проверка на формат datetime
-	if vDatetime := parseTime(vStr, DatetimeLayout); !vDatetime.IsZero() {
-		return vDatetime
-	}
-	// Проверка на формат date
-	if vDate := parseTime(vStr, DateLayout); !vDate.IsZero() {
-		return vDate
-	}
-
-	return time.Time{}
-}
-
-// Тип поля: "time".
-func (s *Stock) GetFieldTime(fieldID int64) time.Time {
-	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, TimeLayout)
-}
-
-// Тип поля: "integer".
-func (s *Stock) GetFieldInteger(fieldID int64) int64 {
-	vStr := s.GetFieldText(fieldID)
-	return parseInt(vStr)
-}
-
-// Тип поля: "decimal".
-func (s *Stock) GetFieldDecimal(fieldID int64) float64 {
-	vStr := s.GetFieldText(fieldID)
-	return parseFloat(vStr)
-}
-
-// Тип поля: "price".
-func (s *Stock) GetFieldPrice(fieldID int64) float64 {
-	vStr := s.GetFieldText(fieldID)
-	return parseFloat(vStr)
-}
-
-// Тип поля: "file".
-func (s *Stock) GetFieldFile(fieldID int64) string {
-	return s.GetFieldText(fieldID)
-}
-
-// Тип поля: "point".
-func (s *Stock) GetFieldPoint(fieldID int64) [2]string {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]string{}
-	}
-	return [2]string{m["x"], m["y"]}
-}
-
-// Тип поля: "integer_range".
-func (s *Stock) GetFieldIntegerRange(fieldID int64) [2]int64 {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]int64{}
-	}
-	return parseRange(m, parseInt)
-}
-
-// Тип поля: "decimal_range".
-func (s *Stock) GetFieldDecimalRange(fieldID int64) [2]float64 {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]float64{}
-	}
-	return parseRange(m, parseFloat)
-}
-
-// Тип поля: "date_range".
-func (s *Stock) GetFieldDateRange(fieldID int64) [2]time.Time {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]time.Time{}
-	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
-	})
-}
-
-// Тип поля: "time_range".
-func (s *Stock) GetFieldTimeRange(fieldID int64) [2]time.Time {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]time.Time{}
-	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, TimeLayout)
-	})
-}
-
-// Тип поля: "datetime_range".
-func (s *Stock) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
-	m := s.getFieldMap(fieldID)
-	if m == nil {
-		return [2]time.Time{}
-	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DatetimeLayout)
-	})
-}
-
-// Тип поля: "attach".
-//
-//	! ВНИМАНИЕ ! Возвращает ID только последней прикрепленной сущности.
-func (s *Stock) GetFieldAttach(fieldID int64) []int64 {
-	// TODO: Подружить метод с кривым API Интрума...
-	f := s.getField(fieldID)
-	if f == nil {
-		return nil
-	}
-	m, ok := f.Value.(map[string]any)
-	if !ok {
-		return nil
-	}
-	idRaw, ok := m["id"]
-	if !ok || idRaw == nil {
-		return nil
-	}
-	switch id := idRaw.(type) {
-	case string:
-		if id == "" || id == "0" {
-			return nil
-		}
-		val, err := strconv.ParseInt(id, 10, 64)
-		if err != nil {
-			return nil
-		}
-		return []int64{val}
-	}
-	return nil
-}
-
-// Обертки методов с боле привычными названиями
-
-func (s *Stock) GetFieldString(fieldID int64) string {
-	return s.GetFieldText(fieldID)
-}
-
-func (s *Stock) GetFieldFloat(fieldID int64) float64 {
-	return s.GetFieldDecimal(fieldID)
-}
-
-func (s *Stock) GetFieldFloatRange(fieldID int64) [2]float64 {
-	return s.GetFieldDecimalRange(fieldID)
-}
-
-func (s *Stock) GetFieldBool(fieldID int64) bool {
-	return s.GetFieldRadio(fieldID)
+	return valueInt64Slice, true
 }

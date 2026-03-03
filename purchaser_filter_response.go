@@ -181,20 +181,22 @@ func (p *Purchaser) GetFieldMultiselect(fieldID int64) []string {
 // date
 func (p *Purchaser) GetFieldDate(fieldID int64) time.Time {
 	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, DateLayout)
+
+	return parseDate(vStr)
 }
 
 // datetime
 func (p *Purchaser) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, DatetimeLayout)
+
+	return parseDatetime(vStr)
 }
 
-// time
-func (p *Purchaser) GetFieldTime(fieldID int64) time.Time {
-	vStr := p.GetFieldText(fieldID)
-	return parseTime(vStr, TimeLayout)
-}
+// // time
+// func (p *Purchaser) GetFieldTime(fieldID int64) time.Time {
+// 	vStr := p.GetFieldText(fieldID)
+// 	return parseTime(vStr, TimeLayout)
+// }
 
 // integer
 func (p *Purchaser) GetFieldInteger(fieldID int64) int64 {
@@ -252,21 +254,19 @@ func (p *Purchaser) GetFieldDateRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, DateLayout)
-	})
+	return parseRange(m, parseDate)
 }
 
-// time_range
-func (p *Purchaser) GetFieldTimeRange(fieldID int64) [2]time.Time {
-	m, ok := p.getFieldMap(fieldID)
-	if !ok {
-		return [2]time.Time{}
-	}
-	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, DateLayout)
-	})
-}
+// // time_range
+// func (p *Purchaser) GetFieldTimeRange(fieldID int64) [2]time.Time {
+// 	m, ok := p.getFieldMap(fieldID)
+// 	if !ok {
+// 		return [2]time.Time{}
+// 	}
+// 	return parseRange(m, func(p string) time.Time {
+// 		return parseTime(p, DateLayout)
+// 	})
+// }
 
 // datetime_range
 func (p *Purchaser) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
@@ -274,9 +274,7 @@ func (p *Purchaser) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, func(p string) time.Time {
-		return parseTime(p, DateLayout)
-	})
+	return parseRange(m, parseDatetime)
 }
 
 // attach

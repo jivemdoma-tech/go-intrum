@@ -128,20 +128,22 @@ func (s *Application) GetFieldMultiselect(fieldID int64) []string {
 // date
 func (s *Application) GetFieldDate(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DateLayout)
+
+	return parseDate(vStr)
 }
 
 // datetime
 func (s *Application) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, DatetimeLayout)
+
+	return parseDatetime(vStr)
 }
 
-// time
-func (s *Application) GetFieldTime(fieldID int64) time.Time {
-	vStr := s.GetFieldText(fieldID)
-	return parseTime(vStr, TimeLayout)
-}
+// // time
+// func (s *Application) GetFieldTime(fieldID int64) time.Time {
+// 	vStr := s.GetFieldText(fieldID)
+// 	return parseTime(vStr, TimeLayout)
+// }
 
 // integer
 func (s *Application) GetFieldInteger(fieldID int64) int64 {
@@ -199,21 +201,19 @@ func (s *Application) GetFieldDateRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
-	})
+	return parseRange(m, parseDate)
 }
 
-// time_range
-func (s *Application) GetFieldTimeRange(fieldID int64) [2]time.Time {
-	m, ok := s.getFieldMap(fieldID)
-	if !ok {
-		return [2]time.Time{}
-	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
-	})
-}
+// // time_range
+// func (s *Application) GetFieldTimeRange(fieldID int64) [2]time.Time {
+// 	m, ok := s.getFieldMap(fieldID)
+// 	if !ok {
+// 		return [2]time.Time{}
+// 	}
+// 	return parseRange(m, func(s string) time.Time {
+// 		return parseTime(s, DateLayout)
+// 	})
+// }
 
 // datetime_range
 func (s *Application) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
@@ -221,9 +221,8 @@ func (s *Application) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, func(s string) time.Time {
-		return parseTime(s, DateLayout)
-	})
+
+	return parseRange(m, parseDatetime)
 }
 
 // attach

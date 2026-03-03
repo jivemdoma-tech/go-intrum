@@ -8,15 +8,26 @@ import (
 )
 
 const (
-	DatetimeLayout string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
-	DateLayout     string = "2006-01-02"          // Формат даты Intrum
-	TimeLayout     string = "15:04:05"            // Формат времени Intrum
+	DatetimeLayout   string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
+	DatetimeLayoutUI string = "02.01.2006 15:04:05" // Формат даты и времени Intrum (UI)
+	DateLayout       string = "2006-01-02"          // Формат даты Intrum
+	DateLayoutUI     string = "02.01.2006"          // Формат даты Intrum (UI)
+	TimeLayout       string = "15:04:05"            // Формат времени Intrum
 
-	TypeStock    string = "stock"    // Тип сущности "Объект"
-	TypeCustomer string = "customer" // Тип сущности "Контакт"
-	TypeSale     string = "sale"     // Тип сущности "Сделка"
-	TypeRequest  string = "request"  // Тип сущности "Заявка"
+	EntityTypeStock    string = "stock"    // Тип сущности "Объект"
+	EntityTypeCustomer string = "customer" // Тип сущности "Контакт"
+	EntityTypeSale     string = "sale"     // Тип сущности "Сделка"
+	EntityTypeRequest  string = "request"  // Тип сущности "Заявка"
 )
+
+var (
+	dateLayouts     = []string{DateLayout, DatetimeLayoutUI, DatetimeLayout, DateLayoutUI}
+	datetimeLayouts = []string{DatetimeLayout, DateLayoutUI, DateLayout, DatetimeLayoutUI}
+)
+
+func localizeTime(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.Local)
+}
 
 func addToSingularParams[T string | int64 | time.Time](params map[string]string, paramName string, paramValue T) {
 	k := fmt.Sprintf("params[%s]", paramName)
@@ -81,11 +92,42 @@ func parseFloat(s string) float64 {
 	return 0.0
 }
 
-func parseTime(s, layout string) time.Time {
-	if t, err := time.Parse(layout, s); err == nil {
-		return t
+func parseDate(s string) time.Time {
+	var result time.Time
+
+	if s != "" {
+		// Отказоустойчивый парсинг
+		for _, layout := range dateLayouts {
+			if parsed, err := time.Parse(layout, s); err == nil {
+				result = parsed
+			}
+		}
+		// Локализация часового пояса
+		if !result.IsZero() {
+			result = localizeTime(result)
+		}
 	}
-	return time.Time{}
+
+	return result
+}
+
+func parseDatetime(s string) time.Time {
+	var result time.Time
+
+	if s != "" {
+		// Отказоустойчивый парсинг
+		for _, layout := range datetimeLayouts {
+			if parsed, err := time.Parse(layout, s); err == nil {
+				result = parsed
+			}
+		}
+		// Локализация часового пояса
+		if !result.IsZero() {
+			result = localizeTime(result)
+		}
+	}
+
+	return result
 }
 
 func parseRange[T any](m map[string]string, parseFunc func(string) T) [2]T {
