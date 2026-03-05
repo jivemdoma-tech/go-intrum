@@ -139,12 +139,6 @@ func (s *Application) GetFieldDatetime(fieldID int64) time.Time {
 	return parseDatetime(vStr)
 }
 
-// // time
-// func (s *Application) GetFieldTime(fieldID int64) time.Time {
-// 	vStr := s.GetFieldText(fieldID)
-// 	return parseTime(vStr, TimeLayout)
-// }
-
 // integer
 func (s *Application) GetFieldInteger(fieldID int64) int64 {
 	vStr := s.GetFieldText(fieldID)
@@ -203,17 +197,6 @@ func (s *Application) GetFieldDateRange(fieldID int64) [2]time.Time {
 	}
 	return parseRange(m, parseDate)
 }
-
-// // time_range
-// func (s *Application) GetFieldTimeRange(fieldID int64) [2]time.Time {
-// 	m, ok := s.getFieldMap(fieldID)
-// 	if !ok {
-// 		return [2]time.Time{}
-// 	}
-// 	return parseRange(m, func(s string) time.Time {
-// 		return parseTime(s, DateLayout)
-// 	})
-// }
 
 // datetime_range
 func (s *Application) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
