@@ -94,39 +94,39 @@ func parseFloat(s string) float64 {
 
 func parseDate(s string) time.Time {
 	var result time.Time
-
+	// Отказоустойчивый парсинг
 	if s != "" {
-		// Отказоустойчивый парсинг
 		for _, layout := range dateLayouts {
 			if parsed, err := time.Parse(layout, s); err == nil {
 				result = parsed
 			}
 		}
-		// Локализация часового пояса
-		if !result.IsZero() {
-			result = localizeTime(result)
-		}
+	}
+	if result.IsZero() {
+		return time.Time{}
 	}
 
+	result = localizeTime(result)
+	result = time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, result.Location())
 	return result
 }
 
 func parseDatetime(s string) time.Time {
 	var result time.Time
-
+	// Отказоустойчивый парсинг
 	if s != "" {
-		// Отказоустойчивый парсинг
 		for _, layout := range datetimeLayouts {
 			if parsed, err := time.Parse(layout, s); err == nil {
 				result = parsed
 			}
 		}
-		// Локализация часового пояса
-		if !result.IsZero() {
-			result = localizeTime(result)
-		}
+	}
+	if result.IsZero() {
+		return time.Time{}
 	}
 
+	result = localizeTime(result)
+	result = time.Date(result.Year(), result.Month(), result.Day(), result.Hour(), result.Day(), result.Minute(), 0, result.Location())
 	return result
 }
 
