@@ -208,11 +208,11 @@ func (s *Stock) FieldText(id int64) (string, bool) {
 	}
 }
 
-// // FieldTextOrZero возвращает значение поля (text) по id.
-// func (s *Stock) FieldTextOrZero(id int64) string {
-// 	result, _ := s.FieldText(id)
-// 	return result
-// }
+// FieldTextOrZero возвращает значение поля (text) по id.
+func (s *Stock) FieldTextOrZero(id int64) string {
+	result, _ := s.FieldText(id)
+	return result
+}
 
 // FieldRadio возвращает значение поля (radio) по id.
 func (s *Stock) FieldRadio(id int64) (bool, bool) {
@@ -227,14 +227,17 @@ func (s *Stock) FieldRadio(id int64) (bool, bool) {
 	return valueBool, true
 }
 
-// // FieldRadioOrZero возвращает значение поля (radio) по id.
-// func (s *Stock) FieldRadioOrZero(id int64) bool {
-// 	result, _ := s.FieldRadio(id)
-// 	return result
-// }
+// FieldRadioOrZero возвращает значение поля (radio) по id.
+func (s *Stock) FieldRadioOrZero(id int64) bool {
+	result, _ := s.FieldRadio(id)
+	return result
+}
 
 // FieldSelect возвращает значение поля (select) по id.
 func (s *Stock) FieldSelect(id int64) (string, bool) { return s.FieldText(id) }
+
+// FieldSelectOrZero возвращает значение поля (select) по id.
+func (s *Stock) FieldSelectOrZero(id int64) string { return s.FieldTextOrZero(id) }
 
 // FieldMultiselect возвращает значение поля (multiselect) по id.
 func (s *Stock) FieldMultiselect(id int64) ([]string, bool) {
@@ -252,6 +255,12 @@ func (s *Stock) FieldMultiselect(id int64) ([]string, bool) {
 	}
 }
 
+// FieldMultiselectOrZero возвращает значение поля (multiselect) по id.
+func (s *Stock) FieldMultiselectOrZero(id int64) []string {
+	result, _ := s.FieldMultiselect(id)
+	return result
+}
+
 // FieldDate возвращает значение поля (date) по id.
 func (s *Stock) FieldDate(id int64) (time.Time, bool) {
 	// Проверка: поле существует
@@ -261,6 +270,12 @@ func (s *Stock) FieldDate(id int64) (time.Time, bool) {
 	}
 
 	return parseDate(valueStr), true
+}
+
+// FieldDateOrZero возвращает значение поля (date) по id.
+func (s *Stock) FieldDateOrZero(id int64) time.Time {
+	result, _ := s.FieldDate(id)
+	return result
 }
 
 // FieldDatetime возвращает значение поля (datetime) по id.
@@ -274,9 +289,11 @@ func (s *Stock) FieldDatetime(id int64) (time.Time, bool) {
 	return parseDatetime(valueStr), true
 }
 
-// TODO: GetFieldTime
-// // GetFieldTime возвращает значение поля (time) по id.
-// func (s *Stock) GetFieldTime(id int64) (time.Time, bool) {}
+// FieldDatetimeOrZero возвращает значение поля (datetime) по id.
+func (s *Stock) FieldDatetimeOrZero(id int64) time.Time {
+	result, _ := s.FieldDatetime(id)
+	return result
+}
 
 // FieldInteger возвращает значение поля (integer) по id.
 func (s *Stock) FieldInteger(id int64) (int64, bool) {
@@ -287,6 +304,12 @@ func (s *Stock) FieldInteger(id int64) (int64, bool) {
 	}
 
 	return parseInt(valueStr), true
+}
+
+// FieldIntegerOrZero возвращает значение поля (integer) по id.
+func (s *Stock) FieldIntegerOrZero(id int64) int64 {
+	result, _ := s.FieldInteger(id)
+	return result
 }
 
 // FieldDecimal возвращает значение поля (decimal) по id.
@@ -300,8 +323,17 @@ func (s *Stock) FieldDecimal(id int64) (float64, bool) {
 	return parseFloat(valueStr), true
 }
 
+// FieldDecimalOrZero возвращает значение поля (decimal) по id.
+func (s *Stock) FieldDecimalOrZero(id int64) float64 {
+	result, _ := s.FieldDecimal(id)
+	return result
+}
+
 // FieldPrice возвращает значение поля (price) по id.
 func (s *Stock) FieldPrice(id int64) (float64, bool) { return s.FieldDecimal(id) }
+
+// FieldPriceOrZero возвращает значение поля (price) по id.
+func (s *Stock) FieldPriceOrZero(id int64) float64 { return s.FieldDecimalOrZero(id) }
 
 // FieldFile возвращает значение поля (file) по id.
 func (s *Stock) FieldFile(id int64) ([]string, bool) { return s.FieldMultiselect(id) }
@@ -319,6 +351,12 @@ func (s *Stock) FieldPoint(id int64) ([2]string, bool) {
 		y, _ = valueMap["y"]
 	)
 	return [2]string{x, y}, true
+}
+
+// FieldPointOrZero возвращает значение поля (point) по id.
+func (s *Stock) FieldPointOrZero(id int64) [2]string {
+	result, _ := s.FieldPoint(id)
+	return result
 }
 
 // FieldIntegerRange возвращает значение поля (integer_range) по id.
