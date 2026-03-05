@@ -89,31 +89,10 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 
 	// Обработка полей и добавление в оригинальную структуру
 
-	// Дата + время
-
-	newDateCreate, err := time.Parse(DatetimeLayout, aux.DateCreate)
-	switch err {
-	case nil:
-		s.DateCreate = newDateCreate
-	default:
-		s.DateCreate = time.Time{}
-	}
-
-	newLastModify, err := time.Parse(DatetimeLayout, aux.LastModify)
-	switch err {
-	case nil:
-		s.LastModify = newLastModify
-	default:
-		s.LastModify = time.Time{}
-	}
-
-	newStockActivityDate, err := time.Parse(DatetimeLayout, aux.StockActivityDate)
-	switch err {
-	case nil:
-		s.StockActivityDate = newStockActivityDate
-	default:
-		s.StockActivityDate = time.Time{}
-	}
+	// (time.Time) Поля типа datetime
+	s.DateCreate = parseDatetime(aux.DateCreate)
+	s.LastModify = parseDatetime(aux.LastModify)
+	s.StockActivityDate = parseDatetime(aux.StockActivityDate)
 
 	// (bool) Publish
 	newPublish, _ := strconv.ParseBool(aux.Publish)
