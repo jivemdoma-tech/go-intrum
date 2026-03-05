@@ -170,8 +170,8 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// getField возвращает поле по id.
-func (s *Stock) getField(id int64) (*StockField, bool) {
+// field возвращает поле по id.
+func (s *Stock) field(id int64) (*StockField, bool) {
 	if s == nil {
 		return nil, false
 	}
@@ -184,10 +184,10 @@ func (s *Stock) getField(id int64) (*StockField, bool) {
 	return &field, true
 }
 
-// getFieldMap возвращает значение поля (map[string]string) по id.
-func (s *Stock) getFieldMap(id int64) (map[string]string, bool) {
+// fieldMap возвращает значение поля (map[string]string) по id.
+func (s *Stock) fieldMap(id int64) (map[string]string, bool) {
 	// Проверка: поле существует
-	field, exists := s.getField(id)
+	field, exists := s.field(id)
 	if !exists {
 		return nil, false
 	}
@@ -212,10 +212,10 @@ func (s *Stock) getFieldMap(id int64) (map[string]string, bool) {
 	return nil, false
 }
 
-// GetFieldText возвращает значение поля (text) по id.
-func (s *Stock) GetFieldText(id int64) (string, bool) {
+// FieldText возвращает значение поля (text) по id.
+func (s *Stock) FieldText(id int64) (string, bool) {
 	// Проверка: поле существует
-	field, exists := s.getField(id)
+	field, exists := s.field(id)
 	if !exists {
 		return "", false
 	}
@@ -231,8 +231,10 @@ func (s *Stock) GetFieldText(id int64) (string, bool) {
 
 // GetFieldRadio возвращает значение поля (radio) по id.
 func (s *Stock) GetFieldRadio(id int64) (bool, bool) {
+// FieldRadio возвращает значение поля (radio) по id.
+func (s *Stock) FieldRadio(id int64) (bool, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return false, false
 	}
@@ -245,10 +247,13 @@ func (s *Stock) GetFieldRadio(id int64) (bool, bool) {
 // GetFieldSelect возвращает значение поля (select) по id.
 func (s *Stock) GetFieldSelect(id int64) (string, bool) { return s.GetFieldText(id) }
 
-// GetFieldMultiselect возвращает значение поля (multiselect) по id.
-func (s *Stock) GetFieldMultiselect(id int64) ([]string, bool) {
+// FieldSelect возвращает значение поля (select) по id.
+func (s *Stock) FieldSelect(id int64) (string, bool) { return s.FieldText(id) }
+
+// FieldMultiselect возвращает значение поля (multiselect) по id.
+func (s *Stock) FieldMultiselect(id int64) ([]string, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return nil, false
 	}
@@ -261,10 +266,10 @@ func (s *Stock) GetFieldMultiselect(id int64) ([]string, bool) {
 	}
 }
 
-// GetFieldDate возвращает значение поля (date) по id.
-func (s *Stock) GetFieldDate(id int64) (time.Time, bool) {
+// FieldDate возвращает значение поля (date) по id.
+func (s *Stock) FieldDate(id int64) (time.Time, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return time.Time{}, false
 	}
@@ -272,10 +277,10 @@ func (s *Stock) GetFieldDate(id int64) (time.Time, bool) {
 	return parseDate(valueStr), true
 }
 
-// GetFieldDatetime возвращает значение поля (datetime) по id.
-func (s *Stock) GetFieldDatetime(id int64) (time.Time, bool) {
+// FieldDatetime возвращает значение поля (datetime) по id.
+func (s *Stock) FieldDatetime(id int64) (time.Time, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return time.Time{}, false
 	}
@@ -287,10 +292,10 @@ func (s *Stock) GetFieldDatetime(id int64) (time.Time, bool) {
 // // GetFieldTime возвращает значение поля (time) по id.
 // func (s *Stock) GetFieldTime(id int64) (time.Time, bool) {}
 
-// GetFieldInteger возвращает значение поля (integer) по id.
-func (s *Stock) GetFieldInteger(id int64) (int64, bool) {
+// FieldInteger возвращает значение поля (integer) по id.
+func (s *Stock) FieldInteger(id int64) (int64, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return 0, false
 	}
@@ -298,10 +303,10 @@ func (s *Stock) GetFieldInteger(id int64) (int64, bool) {
 	return parseInt(valueStr), true
 }
 
-// GetFieldDecimal возвращает значение поля (decimal) по id.
-func (s *Stock) GetFieldDecimal(id int64) (float64, bool) {
+// FieldDecimal возвращает значение поля (decimal) по id.
+func (s *Stock) FieldDecimal(id int64) (float64, bool) {
 	// Проверка: поле существует
-	valueStr, exists := s.GetFieldText(id)
+	valueStr, exists := s.FieldText(id)
 	if !exists {
 		return 0, false
 	}
@@ -309,16 +314,16 @@ func (s *Stock) GetFieldDecimal(id int64) (float64, bool) {
 	return parseFloat(valueStr), true
 }
 
-// GetFieldPrice возвращает значение поля (price) по id.
-func (s *Stock) GetFieldPrice(id int64) (float64, bool) { return s.GetFieldDecimal(id) }
+// FieldPrice возвращает значение поля (price) по id.
+func (s *Stock) FieldPrice(id int64) (float64, bool) { return s.FieldDecimal(id) }
 
-// GetFieldFile возвращает значение поля (file) по id.
-func (s *Stock) GetFieldFile(id int64) ([]string, bool) { return s.GetFieldMultiselect(id) }
+// FieldFile возвращает значение поля (file) по id.
+func (s *Stock) FieldFile(id int64) ([]string, bool) { return s.FieldMultiselect(id) }
 
-// GetFieldPoint возвращает значение поля (point) по id.
-func (s *Stock) GetFieldPoint(id int64) ([2]string, bool) {
+// FieldPoint возвращает значение поля (point) по id.
+func (s *Stock) FieldPoint(id int64) ([2]string, bool) {
 	// Проверка: поле существует
-	valueMap, exists := s.getFieldMap(id)
+	valueMap, exists := s.fieldMap(id)
 	if !exists {
 		return [2]string{}, false
 	}
@@ -330,10 +335,10 @@ func (s *Stock) GetFieldPoint(id int64) ([2]string, bool) {
 	return [2]string{x, y}, true
 }
 
-// GetFieldIntegerRange возвращает значение поля (integer_range) по id.
-func (s *Stock) GetFieldIntegerRange(id int64) ([2]int64, bool) {
+// FieldIntegerRange возвращает значение поля (integer_range) по id.
+func (s *Stock) FieldIntegerRange(id int64) ([2]int64, bool) {
 	// Проверка: поле существует
-	valueMap, exists := s.getFieldMap(id)
+	valueMap, exists := s.fieldMap(id)
 	if !exists {
 		return [2]int64{}, false
 	}
@@ -341,10 +346,10 @@ func (s *Stock) GetFieldIntegerRange(id int64) ([2]int64, bool) {
 	return parseRange(valueMap, parseInt), true
 }
 
-// GetFieldDecimalRange возвращает значение поля (decimal_range) по id.
-func (s *Stock) GetFieldDecimalRange(id int64) ([2]float64, bool) {
+// FieldDecimalRange возвращает значение поля (decimal_range) по id.
+func (s *Stock) FieldDecimalRange(id int64) ([2]float64, bool) {
 	// Проверка: поле существует
-	valueMap, exists := s.getFieldMap(id)
+	valueMap, exists := s.fieldMap(id)
 	if !exists {
 		return [2]float64{}, false
 	}
@@ -352,10 +357,10 @@ func (s *Stock) GetFieldDecimalRange(id int64) ([2]float64, bool) {
 	return parseRange(valueMap, parseFloat), true
 }
 
-// GetFieldDateRange возвращает значение поля (date_range) по id.
-func (s *Stock) GetFieldDateRange(id int64) ([2]time.Time, bool) {
+// FieldDateRange возвращает значение поля (date_range) по id.
+func (s *Stock) FieldDateRange(id int64) ([2]time.Time, bool) {
 	// Проверка: поле существует
-	valueMap, exists := s.getFieldMap(id)
+	valueMap, exists := s.fieldMap(id)
 	if !exists {
 		return [2]time.Time{}, false
 	}
@@ -363,14 +368,10 @@ func (s *Stock) GetFieldDateRange(id int64) ([2]time.Time, bool) {
 	return parseRange(valueMap, parseDate), true
 }
 
-// TODO: GetFieldTimeRange
-// // GetFieldTimeRange возвращает значение поля (time_range) по id.
-// func (s *Stock) GetFieldTimeRange(id int64) [2]time.Time {}
-
-// GetFieldDatetimeRange возвращает значение поля (datetime_range) по id.
-func (s *Stock) GetFieldDatetimeRange(id int64) ([2]time.Time, bool) {
+// FieldDatetimeRange возвращает значение поля (datetime_range) по id.
+func (s *Stock) FieldDatetimeRange(id int64) ([2]time.Time, bool) {
 	// Проверка: поле существует
-	valueMap, exists := s.getFieldMap(id)
+	valueMap, exists := s.fieldMap(id)
 	if !exists {
 		return [2]time.Time{}, false
 	}
@@ -378,10 +379,10 @@ func (s *Stock) GetFieldDatetimeRange(id int64) ([2]time.Time, bool) {
 	return parseRange(valueMap, parseDatetime), true
 }
 
-// GetFieldAttach возвращает значение поля (attach) по id.
-func (s *Stock) GetFieldAttach(id int64) ([]int64, bool) {
+// FieldAttach возвращает значение поля (attach) по id.
+func (s *Stock) FieldAttach(id int64) ([]int64, bool) {
 	// Проверка: поле существует
-	fieldStringSlice, exists := s.GetFieldMultiselect(id)
+	fieldStringSlice, exists := s.FieldMultiselect(id)
 	if !exists {
 		return nil, false
 	}
