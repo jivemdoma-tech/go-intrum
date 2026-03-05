@@ -229,8 +229,12 @@ func (s *Stock) FieldText(id int64) (string, bool) {
 	}
 }
 
-// GetFieldRadio возвращает значение поля (radio) по id.
-func (s *Stock) GetFieldRadio(id int64) (bool, bool) {
+// // FieldTextOrZero возвращает значение поля (text) по id.
+// func (s *Stock) FieldTextOrZero(id int64) string {
+// 	result, _ := s.FieldText(id)
+// 	return result
+// }
+
 // FieldRadio возвращает значение поля (radio) по id.
 func (s *Stock) FieldRadio(id int64) (bool, bool) {
 	// Проверка: поле существует
@@ -244,8 +248,11 @@ func (s *Stock) FieldRadio(id int64) (bool, bool) {
 	return valueBool, true
 }
 
-// GetFieldSelect возвращает значение поля (select) по id.
-func (s *Stock) GetFieldSelect(id int64) (string, bool) { return s.GetFieldText(id) }
+// // FieldRadioOrZero возвращает значение поля (radio) по id.
+// func (s *Stock) FieldRadioOrZero(id int64) bool {
+// 	result, _ := s.FieldRadio(id)
+// 	return result
+// }
 
 // FieldSelect возвращает значение поля (select) по id.
 func (s *Stock) FieldSelect(id int64) (string, bool) { return s.FieldText(id) }
