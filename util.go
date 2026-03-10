@@ -8,16 +8,20 @@ import (
 )
 
 const (
-	DatetimeLayout   string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
-	DatetimeLayoutUI string = "02.01.2006 15:04:05" // Формат даты и времени Intrum (UI)
-	DateLayout       string = "2006-01-02"          // Формат даты Intrum
-	DateLayoutUI     string = "02.01.2006"          // Формат даты Intrum (UI)
-	TimeLayout       string = "15:04:05"            // Формат времени Intrum
+	// Типы основных сущностей
 
 	EntityTypeStock    string = "stock"    // Тип сущности "Объект"
 	EntityTypeCustomer string = "customer" // Тип сущности "Контакт"
 	EntityTypeSale     string = "sale"     // Тип сущности "Сделка"
 	EntityTypeRequest  string = "request"  // Тип сущности "Заявка"
+
+	// Форматы даты и времени
+
+	DatetimeLayout   string = "2006-01-02 15:04:05" // Формат даты и времени Intrum
+	DatetimeLayoutUI string = "02.01.2006 15:04:05" // Формат даты и времени Intrum (UI)
+	DateLayout       string = "2006-01-02"          // Формат даты Intrum
+	DateLayoutUI     string = "02.01.2006"          // Формат даты Intrum (UI)
+	TimeLayout       string = "15:04:05"            // Формат времени Intrum
 )
 
 var (
@@ -25,9 +29,98 @@ var (
 	datetimeLayouts = []string{DatetimeLayout, DateLayoutUI, DateLayout, DatetimeLayoutUI}
 )
 
+// localizeTime применяет локальный часовой пояс (без сдвига) к time.Time.
 func localizeTime(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.Local)
 }
+
+// parseDate возвращает дату из переданной строки.
+func parseDate(s string) time.Time {
+	var result time.Time
+	// Отказоустойчивый парсинг
+	if s != "" {
+		for _, layout := range dateLayouts {
+			if parsed, err := time.Parse(layout, s); err == nil {
+				result = parsed
+			}
+		}
+	}
+	if result.IsZero() {
+		return time.Time{}
+	}
+
+	result = localizeTime(result)
+	result = time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, result.Location())
+	return result
+}
+
+// parseDatetime возвращает дату и время из переданной строки.
+func parseDatetime(s string) time.Time {
+	var result time.Time
+	// Отказоустойчивый парсинг
+	if s != "" {
+		for _, layout := range datetimeLayouts {
+			if parsed, err := time.Parse(layout, s); err == nil {
+				result = parsed
+			}
+		}
+	}
+	if result.IsZero() {
+		return time.Time{}
+	}
+
+	result = localizeTime(result)
+	result = time.Date(result.Year(), result.Month(), result.Day(), result.Hour(), result.Day(), result.Minute(), 0, result.Location())
+	return result
+}
+
+func parseInt(s string) int64 {
+	if r, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return r
+	}
+	return 0
+}
+
+func parseFloat(s string) float64 {
+	if r, err := strconv.ParseFloat(s, 64); err == nil {
+		return r
+	}
+	return 0.0
+}
+
+func parseRange[T any](m map[string]string, parseFunc func(string) T) [2]T {
+	var r [2]T
+	r[0] = parseFunc(m["from"])
+	r[1] = parseFunc(m["to"])
+	return r
+}
+
+// Координаты
+
+// Point - координата на карте.
+type Point struct {
+	Lat float64 // Широта
+	Lon float64 // Долгота
+}
+
+// NewPoint создает Point из [2]float64.
+func NewPoint(point [2]float64) Point { return Point{Lat: point[0], Lon: point[1]} }
+
+// NewPointFromStrings парсит [2]string и возвращает Point.
+func NewPointFromStrings(point [2]string) (Point, error) {
+	parsedLat, err := strconv.ParseFloat(point[0], 64)
+	if err != nil {
+		return Point{}, fmt.Errorf("failed to parse lat: %w", err)
+	}
+	parsedLon, err := strconv.ParseFloat(point[1], 64)
+	if err != nil {
+		return Point{}, fmt.Errorf("failed to parse lon: %w", err)
+	}
+
+	return Point{Lat: parsedLat, Lon: parsedLon}, nil
+}
+
+// Добавление в параметры запроса
 
 func addToSingularParams[T string | int64 | time.Time](params map[string]string, paramName string, paramValue T) {
 	k := fmt.Sprintf("params[%s]", paramName)
@@ -76,63 +169,4 @@ func addSliceToSingularParams[T string | int64](params map[string]string, paramN
 			}
 		}
 	}
-}
-
-func parseInt(s string) int64 {
-	if r, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return r
-	}
-	return 0
-}
-
-func parseFloat(s string) float64 {
-	if r, err := strconv.ParseFloat(s, 64); err == nil {
-		return r
-	}
-	return 0.0
-}
-
-func parseDate(s string) time.Time {
-	var result time.Time
-	// Отказоустойчивый парсинг
-	if s != "" {
-		for _, layout := range dateLayouts {
-			if parsed, err := time.Parse(layout, s); err == nil {
-				result = parsed
-			}
-		}
-	}
-	if result.IsZero() {
-		return time.Time{}
-	}
-
-	result = localizeTime(result)
-	result = time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, result.Location())
-	return result
-}
-
-func parseDatetime(s string) time.Time {
-	var result time.Time
-	// Отказоустойчивый парсинг
-	if s != "" {
-		for _, layout := range datetimeLayouts {
-			if parsed, err := time.Parse(layout, s); err == nil {
-				result = parsed
-			}
-		}
-	}
-	if result.IsZero() {
-		return time.Time{}
-	}
-
-	result = localizeTime(result)
-	result = time.Date(result.Year(), result.Month(), result.Day(), result.Hour(), result.Day(), result.Minute(), 0, result.Location())
-	return result
-}
-
-func parseRange[T any](m map[string]string, parseFunc func(string) T) [2]T {
-	var r [2]T
-	r[0] = parseFunc(m["from"])
-	r[1] = parseFunc(m["to"])
-	return r
 }

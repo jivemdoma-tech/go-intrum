@@ -30,8 +30,8 @@ type StockUpdateParams struct {
 	//		"{знач1},{знач2}..." - для полей типа 'multiselect'
 	Fields map[int64]string
 
-	FieldsCoords map[int64]CoordsVal // Поле с координатами (относится к fields)
-	FieldsFiles  map[int64][]string  // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
+	FieldsCoords map[int64]Point    // Поле с координатами (относится к fields)
+	FieldsFiles  map[int64][]string // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
 
 	// TODO: Добавить больше параметров запроса
 	// Проблема конечно в том что нормальной документации нет

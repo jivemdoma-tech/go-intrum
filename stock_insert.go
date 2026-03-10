@@ -32,18 +32,15 @@ type StockInsertParams struct {
 	// Для типа (multiselect) возможно указывать несколько вариантов:
 	//  "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
 	Fields      map[int64]string
-	FieldsPoint map[int64]StockInsertPoint // Аналогично Fields для типа "point".
-	FieldsFile  map[int64][]string         // Аналогично Fields для типа "file".
+	FieldsPoint map[int64]Point // Аналогично Fields для типа "point".
+	FieldsFile  map[int64][]string        // Аналогично Fields для типа "file".
 
 	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для paramsMap в методе params.
 	//  GroupID
 	//  Copy
 }
 
-type StockInsertPoint struct {
-	Lat float64 // Широта
-	Lon float64 // Долгота
-}
+
 
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockInsertParams) params() map[string]string {
