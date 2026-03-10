@@ -55,7 +55,7 @@ type StockFilterParams struct {
 	Limit       int64   // Кол-во объектов в ответе.
 	SliceFields []int64 // Массив ID полей, значения которых будут в ответе. По умолчанию выводятся все.
 
-	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для resultParams в методе params.
+	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для paramsMap в методе params.
 	//  Nested
 	//  IndexFields
 	//  Order
@@ -72,15 +72,14 @@ type StockFilterParams struct {
 	//  Log
 }
 
-// copy возвращает shallow-копию структуры.
-func (p StockFilterParams) copy() *StockFilterParams {
-	copyParams := p
-	return &copyParams
+// clone возвращает shallow-копию StockFilterParams.
+func (p StockFilterParams) clone() *StockFilterParams {
+	return new(p)
 }
 
-// copyWithPage возвращает shallow-копию структуры с новой страницей.
-func (p StockFilterParams) copyWithPage(page int64) *StockFilterParams {
-	pageParams := p.copy()
+// cloneWithPage возвращает shallow-копию StockFilterParams с указанной страницей.
+func (p StockFilterParams) cloneWithPage(page int64) *StockFilterParams {
+	pageParams := p.clone()
 	pageParams.Page = page
 	return pageParams
 }
@@ -88,7 +87,7 @@ func (p StockFilterParams) copyWithPage(page int64) *StockFilterParams {
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockFilterParams) params() map[string]string {
 	// Выделение памяти
-	resultParams := make(map[string]string,
+	paramsMap := make(map[string]string,
 		// Единичные поля
 		8+
 			// Слайсы
@@ -101,46 +100,46 @@ func (p StockFilterParams) params() map[string]string {
 	)
 
 	// type
-	addToSingularParams(resultParams, "type", p.Type)
+	addToSingularParams(paramsMap, "type", p.Type)
 	// category
-	addToSingularParams(resultParams, "category", p.Category)
+	addToSingularParams(paramsMap, "category", p.Category)
 	// byid | by_ids
 	switch {
 	case len(p.ByIDs) == 1:
-		addToSingularParams(resultParams, "byid", p.ByIDs[0])
+		addToSingularParams(paramsMap, "byid", p.ByIDs[0])
 	case len(p.ByIDs) >= 2:
-		addSliceToSingularParams(resultParams, "by_ids", p.ByIDs)
+		addSliceToSingularParams(paramsMap, "by_ids", p.ByIDs)
 	}
 	// search
-	addToSingularParams(resultParams, "search", p.Search)
+	addToSingularParams(paramsMap, "search", p.Search)
 	// manager
-	addSliceToSingularParams(resultParams, "manager", p.Manager)
+	addSliceToSingularParams(paramsMap, "manager", p.Manager)
 	// groups
-	addSliceToSingularParams(resultParams, "groups", p.Groups)
+	addSliceToSingularParams(paramsMap, "groups", p.Groups)
 	// stock_creator_id
-	addToSingularParams(resultParams, "stock_creator_id", p.StockCreatorID)
+	addToSingularParams(paramsMap, "stock_creator_id", p.StockCreatorID)
 	// fields
 	fieldsCount := 0
 	for k, v := range p.Fields {
 		if k == 0 || v == "" {
 			continue
 		}
-		resultParams[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
-		resultParams[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
+		paramsMap[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
 		fieldsCount++
 	}
 	// related_with_customer
-	addToSingularParams(resultParams, "related_with_customer", p.RelatedWithCustomer)
+	addToSingularParams(paramsMap, "related_with_customer", p.RelatedWithCustomer)
 	// page
-	addToSingularParams(resultParams, "page", p.Page)
+	addToSingularParams(paramsMap, "page", p.Page)
 	// publish
-	addBoolToSingularParams(resultParams, "publish", p.Publish)
+	addBoolToSingularParams(paramsMap, "publish", p.Publish)
 	// limit
 	switch v := p.Limit; {
 	case v == 0, v >= 500:
-		addToSingularParams(resultParams, "limit", "500")
+		addToSingularParams(paramsMap, "limit", "500")
 	default:
-		addToSingularParams(resultParams, "limit", v)
+		addToSingularParams(paramsMap, "limit", v)
 	}
 	// slice_fields (SliceFields + Fields)
 	sliceFields := make([]int64, 0, len(p.SliceFields)+len(p.Fields))
@@ -150,9 +149,9 @@ func (p StockFilterParams) params() map[string]string {
 			sliceFields = append(sliceFields, id)
 		}
 	}
-	addSliceToSingularParams(resultParams, "slice_fields", sliceFields)
+	addSliceToSingularParams(paramsMap, "slice_fields", sliceFields)
 
-	return resultParams
+	return paramsMap
 }
 
 // StockFilter - поиск объектов в CRM. Документация: https://www.intrumnet.com/api/#stock-search
@@ -179,10 +178,10 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, p *StockFilterPa
 
 // StockFilterAll - поиск объектов в CRM по всем страницам. Документация: https://www.intrumnet.com/api/#stock-search
 func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilterParams) ([]Stock, error) {
-	resultStock := make([]Stock, 0, 500)
+	result := make([]Stock, 0, 500)
 	for page := int64(1); ; page++ {
 		// Shallow-копирование структуры для итерации
-		pageParams := p.copyWithPage(page)
+		pageParams := p.cloneWithPage(page)
 		// Установка максимального кол-ва элементов в ответе
 		if pageParams.Limit != StockFilterMaxLimit {
 			pageParams.Limit = StockFilterMaxLimit
@@ -197,15 +196,15 @@ func StockFilterAll(ctx context.Context, subdomain, apiKey string, p *StockFilte
 			break
 		}
 
-		resultStock = append(resultStock, resp.Data.List...)
+		result = append(result, resp.Data.List...)
 
 		if len(resp.Data.List) < int(pageParams.Limit) {
 			break
 		}
 	}
-	if len(resultStock) == 0 {
-		return nil, nil
+	if len(result) == 0 {
+		return nil, ErrNothingFound
 	}
 
-	return resultStock, nil
+	return result, nil
 }

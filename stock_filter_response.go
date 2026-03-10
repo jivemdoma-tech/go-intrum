@@ -12,7 +12,7 @@ type (
 	StockFilterResponse struct {
 		Status  string          `json:"status,omitempty"`
 		Message string          `json:"message,omitempty"`
-		Data    StockFilterData `json:"data,omitempty"`
+		Data    StockFilterData `json:"data"`
 	}
 	StockFilterData struct {
 		List []Stock `json:"list"`
