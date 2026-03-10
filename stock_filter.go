@@ -159,12 +159,15 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, p *StockFilterPa
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/filter", subdomain)
 
 	// Валидация
+	if err := validateRequestArgs(methodURL, subdomain, apiKey); err != nil {
+		return nil, err
+	}
 	if p == nil {
-		return nil, newErrNilParams(methodURL)
+		return nil, newErrEmptyParams(methodURL)
 	}
 	// Обязательные поля
 	if p.Type <= 0 && len(p.ByIDs) == 0 {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Запрос

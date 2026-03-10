@@ -12,7 +12,7 @@ func StockDelete(ctx context.Context, subdomain, apiKey string, stockIDs ...int6
 
 	// Обязательность ввода параметров
 	if len(stockIDs) == 0 {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Параметры запроса

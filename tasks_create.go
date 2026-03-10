@@ -50,9 +50,9 @@ func TasksCreate(ctx context.Context, subdomain, apiKey string, inParams TasksCr
 	// Обязательность ввода параметров
 	switch {
 	case inParams.Title == "" && inParams.Description == "":
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	case inParams.Director <= 0, inParams.Performer <= 0:
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Параметры запроса

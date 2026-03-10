@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // StockInsertParams - параметры запроса.
@@ -14,17 +16,17 @@ import (
 // Основные параметры запроса:
 //   - Type: ID типа объекта.
 //   - Name: Название объекта.
-//   - Manager: ID главного ответственного ответственных.
+//   - Manager: ID главного ответственного.
 //   - AdditionalManagers: Массив ID доп. ответственных.
-//   - RelatedWithCustomer: ID контакта, прикрепленного к объекту
+//   - RelatedWithCustomer: ID контакта, прикрепленного к объекту.
 //   - Fields: массив ID полей и значений.
 //     Для типа (multiselect) возможно указывать несколько вариантов: "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
 type StockInsertParams struct {
 	Type                int64   // ID типа объекта.
 	Name                string  // Название объекта.
-	Manager             int64   // ID главного ответственного ответственных.
+	Manager             int64   // ID главного ответственного.
 	AdditionalManagers  []int64 // Массив ID доп. ответственных.
-	RelatedWithCustomer int64   // ID контакта, прикрепленного к объекту
+	RelatedWithCustomer int64   // ID контакта, прикрепленного к объекту.
 	// Fields: массив ID полей и значений.
 	//
 	// Для типа (multiselect) возможно указывать несколько вариантов:
@@ -46,6 +48,10 @@ type StockInsertPoint struct {
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockInsertParams) params() map[string]string {
 	// Выделение памяти
+	filesCount := 0
+	for _, files := range p.FieldsFile {
+		filesCount += len(files)
+	}
 	paramsMap := make(map[string]string,
 		// Единичные поля
 		4+
@@ -53,8 +59,8 @@ func (p StockInsertParams) params() map[string]string {
 			len(p.AdditionalManagers)+
 			// Мапы
 			len(p.Fields)*2+
-			len(p.FieldsPoint)*2+
-			len(p.FieldsFile)*2,
+			len(p.FieldsPoint)*3+
+			filesCount*2,
 	)
 
 	// parent
@@ -100,19 +106,21 @@ func (p StockInsertParams) params() map[string]string {
 	return paramsMap
 }
 
-// StockInsert - поиск объектов в CRM. Документация: https://www.intrumnet.com/api/#stock-insert
+// StockInsert - добавление объекта в CRM.
 //
-// Ограничение: 1 запрос == 1 объект
+// Документация: https://www.intrumnet.com/api/#stock-insert
 func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertParams) (*StockInsertResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
 
 	// Валидация
-	if p == nil {
-		return nil, newErrNilParams(methodURL)
+	if err := validateRequestArgs(methodURL, subdomain, apiKey); err != nil {
+		return nil, err
 	}
-	// Обязательные поля
+	if p == nil {
+		return nil, newErrEmptyParams(methodURL)
+	}
 	if p.Type <= 0 {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Запрос
@@ -122,4 +130,35 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertPa
 	}
 
 	return resp, nil
+}
+
+// StockInsertConcurrent - добавление объектов в CRM.
+//
+// Документация: https://www.intrumnet.com/api/#stock-insert
+//
+// Лимит одновременных запросов устанавливается в n. Диапазон: 1-8.
+func StockInsertConcurrent(ctx context.Context, subdomain, apiKey string, n int, params []*StockInsertParams) error {
+	const (
+		nMin int = 1
+		nMax int = 8
+	)
+	n = min(max(n, nMin), nMax)
+
+	// Валидация
+	if len(params) == 0 {
+		return nil
+	}
+
+	// Параллельные запросы до первой ошибки
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(n)
+	for _, p := range params {
+		p := p
+		g.Go(func() error {
+			_, err := StockInsert(ctx, subdomain, apiKey, p)
+			return err
+		})
+	}
+
+	return g.Wait()
 }

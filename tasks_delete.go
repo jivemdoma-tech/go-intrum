@@ -11,7 +11,7 @@ func TasksDelete(ctx context.Context, subdomain, apiKey string, taskID int64) (*
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/tasks/delete", subdomain)
 
 	if taskID == 0 {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Параметры запроса

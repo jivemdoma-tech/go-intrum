@@ -19,7 +19,7 @@ func TasksSearch(ctx context.Context, subdomain, apiKey string, inParams TasksSe
 
 	// Обязательность ввода параметров
 	if inParams.Title == "" {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Параметры запроса

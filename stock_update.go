@@ -46,7 +46,7 @@ func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUp
 
 	// Обязательность ввода параметров
 	if inParams.ID == 0 {
-		return nil, newErrEmptyRequiredFields(methodURL)
+		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
 	// Параметры запроса
