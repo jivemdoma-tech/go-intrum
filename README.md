@@ -1,5 +1,20 @@
-<h1>Intrum Go</h1>
-<p>Библиотека API-запросов к Intrum CRM на Golang.</p>
-<p>Оригинальная документация API Intrum: https://www.intrumnet.com/api/</p>
-<h2>Установка</h2>
-<pre><code>go get -u github.com/jivemdoma-tech/go-intrum</code></pre>
+# go-intrum
+
+Библиотека API-запросов к Intrum CRM на Go.
+Оригинальная документация: https://www.intrumnet.com/api/
+
+## Установка
+
+```shell
+go get -u github.com/jivemdoma-tech/go-intrum
+```
+
+## Важно
+
+Библиотека находится в пассивной разработке.
+
+На данный момент протестированы и готовы к работе следующие методы:
+
+- Объекты
+    - Добавление объектов: `/stock/insert`
+    - Вывод объектов (фильтры, поиск): `/stock/filter`
