@@ -89,10 +89,7 @@ func parseFloat(s string) float64 {
 }
 
 func parseRange[T any](m map[string]string, parseFunc func(string) T) [2]T {
-	var r [2]T
-	r[0] = parseFunc(m["from"])
-	r[1] = parseFunc(m["to"])
-	return r
+	return [2]T{parseFunc(m["from"]), parseFunc(m["to"])}
 }
 
 // Координаты
