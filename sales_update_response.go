@@ -1,4 +1,4 @@
-package gointrum
+package intrum
 
 type SalesUpdateResponse struct {
 	*Response

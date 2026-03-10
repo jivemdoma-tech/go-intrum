@@ -1,4 +1,4 @@
-package gointrum
+package intrum
 
 type StockInsertResponse struct {
 	Status  string  `json:"status,omitempty"`

@@ -1,4 +1,4 @@
-package gointrum
+package intrum
 
 type WorkerUpdateResponse struct {
 	*Response

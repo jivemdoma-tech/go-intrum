@@ -1,4 +1,4 @@
-package gointrum
+package intrum
 
 type StockDeleteResp struct {
 	*Response

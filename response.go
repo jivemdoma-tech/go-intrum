@@ -1,4 +1,4 @@
-package gointrum
+package intrum
 
 // Ответ API Intrum
 type Response struct {
