@@ -6,103 +6,120 @@ import (
 	"strconv"
 )
 
-// Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
+// StockInsertParams - параметры запроса.
+//
+// Обязательные поля:
+//   - Type
+//
+// Основные параметры запроса:
+//   - Type: ID типа объекта.
+//   - Name: Название объекта.
+//   - Manager: ID главного ответственного ответственных.
+//   - AdditionalManagers: Массив ID доп. ответственных.
+//   - RelatedWithCustomer: ID контакта, прикрепленного к объекту
+//   - Fields: массив ID полей и значений.
+//     Для типа (multiselect) возможно указывать несколько вариантов: "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
 type StockInsertParams struct {
-	Parent              int64   // ID категории объекта // Обязательно
-	Name                string  // Название объекта
-	Author              int64   // ID ответственного
-	AdditionalAuthor    []int64 // Массив ID дополнительных ответственных
+	Type                int64   // ID типа объекта.
+	Name                string  // Название объекта.
+	Manager             int64   // ID главного ответственного ответственных.
+	AdditionalManagers  []int64 // Массив ID доп. ответственных.
 	RelatedWithCustomer int64   // ID контакта, прикрепленного к объекту
-	GroupID             int64   // ID группы
-	Copy                int64   // Родительский объект группы
-	// Дополнительные поля
+	// Fields: массив ID полей и значений.
 	//
-	// 	Ключ int64 == ID поля
-	// 	Значение any == Значение поля
-	//		"знач1,знач2,знач3" (Для значений с типом "множественный выбор")
-	Fields       map[int64]string
-	FieldsCoords map[int64]CoordsVal // Поле с координатами (относится к fields)
-	FieldsFiles  map[int64][]string  // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
+	// Для типа (multiselect) возможно указывать несколько вариантов:
+	//  "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
+	Fields      map[int64]string
+	FieldsPoint map[int64]StockInsertPoint // Аналогично Fields для типа "point".
+	FieldsFile  map[int64][]string         // Аналогично Fields для типа "file".
+
+	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для paramsMap в методе params.
+	//  GroupID
+	//  Copy
 }
 
-type CoordsVal struct {
+type StockInsertPoint struct {
 	Lat float64 // Широта
 	Lon float64 // Долгота
 }
 
-// Ссылка на метод: 	http://domainname.intrumnet.com:81/sharedapi/stock/insert
-//
-// Ограничение 1 запрос == 1 объект
-func StockInsert(ctx context.Context, subdomain, apiKey string, inputParams *StockInsertParams) (*StockInsertResponse, error) {
-	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
-
-	// Обязательность параметров
-	switch {
-	case inputParams.Parent == 0:
-		return nil, fmt.Errorf("error create request for method stock insert: parent param is required")
-	}
-
-	// Параметры запроса
-
-	params := make(map[string]string, 8+
-		len(inputParams.Fields)*2)
+// params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
+func (p StockInsertParams) params() map[string]string {
+	// Выделение памяти
+	paramsMap := make(map[string]string,
+		// Единичные поля
+		4+
+			// Слайсы
+			len(p.AdditionalManagers)+
+			// Мапы
+			len(p.Fields)*2+
+			len(p.FieldsPoint)*2+
+			len(p.FieldsFile)*2,
+	)
 
 	// parent
-	params["params[0][parent]"] = strconv.FormatInt(inputParams.Parent, 10)
+	paramsMap["params[0][parent]"] = strconv.FormatInt(p.Type, 10)
 	// name
-	if inputParams.Name != "" {
-		params["params[0][name]"] = inputParams.Name
+	if p.Name != "" {
+		paramsMap["params[0][name]"] = p.Name
 	}
 	// author
-	if inputParams.Author != 0 {
-		params["params[0][author]"] = strconv.FormatInt(inputParams.Author, 10)
+	if p.Manager != 0 {
+		paramsMap["params[0][author]"] = strconv.FormatInt(p.Manager, 10)
 	}
 	// additional_author
-	for i, v := range inputParams.AdditionalAuthor {
-		params[fmt.Sprintf("params[0][additional_author][%d]", i)] = strconv.FormatInt(v, 10)
+	for i, v := range p.AdditionalManagers {
+		paramsMap[fmt.Sprintf("params[0][additional_author][%d]", i)] = strconv.FormatInt(v, 10)
 	}
 	// related_with_customer
-	if inputParams.RelatedWithCustomer != 0 {
-		params["params[0][related_with_customer]"] = strconv.FormatInt(inputParams.RelatedWithCustomer, 10)
-	}
-	// group_id
-	if inputParams.GroupID != 0 {
-		params["params[0][group_id]"] = strconv.FormatInt(inputParams.GroupID, 10)
-	}
-	// copy
-	if inputParams.Copy != 0 {
-		params["params[0][copy]"] = strconv.FormatInt(inputParams.Copy, 10)
+	if p.RelatedWithCustomer != 0 {
+		paramsMap["params[0][related_with_customer]"] = strconv.FormatInt(p.RelatedWithCustomer, 10)
 	}
 
 	countFields := 0
 	// fields
-	for k, v := range inputParams.Fields {
-		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-		params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
+	for k, v := range p.Fields {
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 		countFields++
 	}
-	// fieldsCoords
-	for k, v := range inputParams.FieldsCoords {
-		params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-		params[fmt.Sprintf("params[0][fields][%d][value][lat]", countFields)] = strconv.FormatFloat(v.Lat, 'f', 10, 64)
-		params[fmt.Sprintf("params[0][fields][%d][value][lon]", countFields)] = strconv.FormatFloat(v.Lon, 'f', 10, 64)
+	for k, v := range p.FieldsPoint {
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[0][fields][%d][value][lat]", countFields)] = strconv.FormatFloat(v.Lat, 'f', 10, 64)
+		paramsMap[fmt.Sprintf("params[0][fields][%d][value][lon]", countFields)] = strconv.FormatFloat(v.Lon, 'f', 10, 64)
 		countFields++
 	}
-	// fieldsFiles
-	for k, fileNames := range inputParams.FieldsFiles {
+	for k, fileNames := range p.FieldsFile {
 		for _, fileName := range fileNames {
-			params[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-			params[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = fileName
+			paramsMap[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+			paramsMap[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = fileName
 			countFields++
 		}
 	}
 
-	// Получение ответа
+	return paramsMap
+}
 
-	var resp StockInsertResponse
-	if err := request(ctx, apiKey, methodURL, params, &resp); err != nil {
+// StockInsert - поиск объектов в CRM. Документация: https://www.intrumnet.com/api/#stock-insert
+//
+// Ограничение: 1 запрос == 1 объект
+func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertParams) (*StockInsertResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
+
+	// Валидация
+	if p == nil {
+		return nil, newErrNilParams(methodURL)
+	}
+	// Обязательные поля
+	if p.Type <= 0 {
+		return nil, newErrEmptyRequiredFields(methodURL)
+	}
+
+	// Запрос
+	resp := &StockInsertResponse{}
+	if err := request(ctx, apiKey, methodURL, p.params(), resp); err != nil {
 		return nil, err
 	}
 
-	return &resp, nil
+	return resp, nil
 }
