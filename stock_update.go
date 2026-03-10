@@ -30,6 +30,9 @@ type StockUpdateParams struct {
 	//		"{знач1},{знач2}..." - для полей типа 'multiselect'
 	Fields map[int64]string
 
+	FieldsCoords map[int64]CoordsVal // Поле с координатами (относится к fields)
+	FieldsFiles  map[int64][]string  // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
+
 	// TODO: Добавить больше параметров запроса
 	// Проблема конечно в том что нормальной документации нет
 	// и приходится вычленять параметры из примеров...
@@ -107,6 +110,22 @@ func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUp
 			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
 		}
 		countFields++
+	}
+
+	// fieldsCoords
+	for k, v := range inParams.FieldsCoords {
+		p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+		p[fmt.Sprintf("params[0][fields][%d][value][lat]", countFields)] = strconv.FormatFloat(v.Lat, 'f', 10, 64)
+		p[fmt.Sprintf("params[0][fields][%d][value][lon]", countFields)] = strconv.FormatFloat(v.Lon, 'f', 10, 64)
+		countFields++
+	}
+	// fieldsFiles
+	for k, fileNames := range inParams.FieldsFiles {
+		for _, fileName := range fileNames {
+			p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
+			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = fileName
+			countFields++
+		}
 	}
 
 	// Запрос

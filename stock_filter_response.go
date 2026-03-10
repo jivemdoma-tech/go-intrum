@@ -329,6 +329,12 @@ func (s *Stock) FieldDecimalOrZero(id int64) float64 {
 	return result
 }
 
+// FieldFilesOrZero возвращает значение поля (files) по id.
+func (s *Stock) FieldFilesOrZero(id int64) []string {
+	result, _ := s.FieldFile(id)
+	return result
+}
+
 // FieldPrice возвращает значение поля (price) по id.
 func (s *Stock) FieldPrice(id int64) (float64, bool) { return s.FieldDecimal(id) }
 
