@@ -9,6 +9,29 @@ import (
 	"time"
 )
 
+// TODO: Реализовать оставшиеся поля StockFilterParams:
+//  Nested
+//  IndexFields
+//  Order
+//  OrderField
+//  Date
+//  DateField
+//  GroupID
+//  Copy
+//  ObjectGroups
+//  CountTotal
+//  OnlyPrimaryID
+//  OnlyCountField
+//  SumField
+//  Log
+// TODO: Реализоваться оставшиеся поля в StockFilterResponse.StockFilterData:
+//  Count
+// TODO: Реализовать оставшиеся поля в StockFilterResponse.StockFilterData.Stock:
+//  Count
+//  Log
+//  Copy
+//  GroupID
+
 const StockFilterMaxLimit int64 = 500
 
 // StockFilter - поиск объектов в CRM. Документация: https://www.intrumnet.com/api/#stock-search
@@ -22,6 +45,7 @@ func StockFilter(ctx context.Context, subdomain, apiKey string, p *StockFilterPa
 	if p == nil {
 		return nil, newErrEmptyParams(methodURL)
 	}
+
 	// Обязательные поля
 	if p.Type <= 0 && len(p.ByIDs) == 0 {
 		return nil, newErrEmptyRequiredParams(methodURL)
@@ -118,22 +142,6 @@ type StockFilterParams struct {
 	Publish     string
 	Limit       int64   // Кол-во объектов в ответе.
 	SliceFields []int64 // Массив ID полей, значения которых будут в ответе. По умолчанию выводятся все.
-
-	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для paramsMap в методе params.
-	//  Nested
-	//  IndexFields
-	//  Order
-	//  OrderField
-	//  Date
-	//  DateField
-	//  GroupID
-	//  Copy
-	//  ObjectGroups
-	//  CountTotal
-	//  OnlyPrimaryID
-	//  OnlyCountField
-	//  SumField
-	//  Log
 }
 
 // clone возвращает shallow-копию StockFilterParams.
@@ -151,17 +159,13 @@ func (p StockFilterParams) cloneWithPage(page int64) *StockFilterParams {
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockFilterParams) params() map[string]string {
 	// Выделение памяти
-	paramsMap := make(map[string]string,
-		// Единичные поля
-		8+
-			// Слайсы
-			len(p.ByIDs)+
-			len(p.Manager)+
-			len(p.Groups)+
-			len(p.SliceFields)+
-			// Мапы
-			len(p.Fields)*2,
-	)
+	size := 8                  // Одиночные типы
+	size += len(p.ByIDs)       // Слайс
+	size += len(p.Manager)     // Слайс
+	size += len(p.Groups)      // Слайс
+	size += len(p.SliceFields) // Слайс
+	size += len(p.Fields) * 2  // Мапа (ключ + значение)
+	paramsMap := make(map[string]string, size)
 
 	// type
 	addToSingularParams(paramsMap, "type", p.Type)
@@ -230,7 +234,6 @@ type (
 	}
 	StockFilterData struct {
 		List []Stock `json:"list"`
-		// Count bool `json:"count"` // TODO: Реализовать. Проблема: может быть int или bool
 	}
 	Stock struct {
 		ID                   int64                `json:"id,string"`                // ID объекта
@@ -247,12 +250,6 @@ type (
 		StockActivityDate    time.Time            `json:"stock_activity_date"`      // Дата последней активности
 		Publish              bool                 `json:"publish"`                  // Активен или удален
 		Fields               map[int64]StockField `json:"fields"`                   // Поля
-
-		// TODO: Оставшиеся поля.
-		//  Count any `json:"count"`
-		//  Log any `json:"log"`
-		//  Copy int64 `json:"copy,string"`
-		//  GroupID int64 `json:"group_id,string"`
 	}
 	StockField struct {
 		ID    int64  `json:"id,string"`
@@ -571,12 +568,12 @@ func (s *Stock) FieldPoint(id int64) (Point, bool) {
 		y, _ = valueMap["y"]
 	)
 
-	point, err := NewPointFromStrings([2]string{x, y})
+	point, err := NewPointFromStrings(x, y)
 	if err != nil {
 		return Point{}, false
 	}
 
-	return point, true
+	return *point, true
 }
 
 // FieldPointOrZero возвращает значение поля (point) по id.
