@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-
-	"golang.org/x/sync/errgroup"
 )
 
 // StockInsert - добавление объекта в CRM. Документация: https://www.intrumnet.com/api/#stock-insert
@@ -32,37 +30,6 @@ func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertPa
 	}
 
 	return resp, nil
-}
-
-// StockInsertConcurrent - добавление объектов в CRM.
-//
-// Документация: https://www.intrumnet.com/api/#stock-insert
-//
-// Лимит одновременных запросов устанавливается в n. Диапазон: 1-8.
-func StockInsertConcurrent(ctx context.Context, subdomain, apiKey string, n int, params []*StockInsertParams) error {
-	const (
-		nMin int = 1
-		nMax int = 8
-	)
-	n = min(max(n, nMin), nMax)
-
-	// Валидация
-	if len(params) == 0 {
-		return nil
-	}
-
-	// Параллельные запросы до первой ошибки
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(n)
-	for _, p := range params {
-		p := p
-		g.Go(func() error {
-			_, err := StockInsert(ctx, subdomain, apiKey, p)
-			return err
-		})
-	}
-
-	return g.Wait()
 }
 
 // StockInsertParams - параметры запроса.
