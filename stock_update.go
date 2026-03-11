@@ -6,133 +6,172 @@ import (
 	"strconv"
 )
 
-type StockUpdateParams struct {
-	// ID существующего объекта
-	//	! ОБЯЗАТЕЛЬНО !
-	ID int64
+// TODO: Реализовать оставшиеся поля StockUpdateParams.
+//  Списка полей нет, т.к. нет полноценной документации по методу, только примеры.
+// TODO: Реализовать в StockUpdateParams.Fields изменение полей типов: file, attach
 
-	Parent int64  // ID категории объекта
-	Name   string // Наименование объекта
-
-	// ID гл. ответственного
-	//	Ввод -1 удаляет гл. ответственного
-	Author int64
-	// ID доп. ответственных
-	//	Ввод []int64{} удаляет доп. ответственных
-	AdditionalAuthor []int64
-	// ID контакта, прикрепленного к объекту
-	//	Ввод -1 открепляет контакт
-	RelatedWithCustomer int64
-
-	// Доп. поля
-	//	Key: ID поля
-	//	Value: Значение поля
-	//		"{знач1},{знач2}..." - для полей типа 'multiselect'
-	Fields map[int64]string
-
-	FieldsCoords map[int64]Point    // Поле с координатами (относится к fields)
-	FieldsFiles  map[int64][]string // Файлы, в массиве указывать название файла на сервере интрум (относится к fileds)
-
-	// TODO: Добавить больше параметров запроса
-	// Проблема конечно в том что нормальной документации нет
-	// и приходится вычленять параметры из примеров...
-}
-
-// Ссылка на метод: https://www.intrumnet.com/api/#stock-update
-//
-//	! ВНИМАНИЕ ! Ограничение 1 запрос == 1 объект
-func StockUpdate(ctx context.Context, subdomain, apiKey string, inParams StockUpdateParams) (*StockUpdateResponse, error) {
+// StockUpdate - редактирование объекта в CRM. Документация: https://www.intrumnet.com/api/#stock-update
+func StockUpdate(ctx context.Context, subdomain, apiKey string, p *StockUpdateParams) (*StockUpdateResponse, error) {
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/update", subdomain)
 
-	// Обязательность ввода параметров
-	if inParams.ID == 0 {
+	// Валидация
+	if err := validateRequestArgs(methodURL, subdomain, apiKey); err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, newErrEmptyParams(methodURL)
+	}
+
+	// Обязательные поля
+	if p.ID <= 0 {
 		return nil, newErrEmptyRequiredParams(methodURL)
 	}
 
-	// Параметры запроса
-	p := make(map[string]string, 8+
-		len(inParams.AdditionalAuthor)+
-		len(inParams.Fields)*2)
-
-	// id
-	p["params[0][id]"] = strconv.FormatInt(inParams.ID, 10)
-	// parent
-	if v := inParams.Parent; v > 0 {
-		p["params[0][parent]"] = strconv.FormatInt(v, 10)
-	}
-	// name
-	switch v := inParams.Name; {
-	case v == " ":
-		p["params[0][name]"] = ""
-	case v != "":
-		p["params[0][name]"] = v
-	}
-	// author
-	switch v := inParams.Author; {
-	case v > 0:
-		p["params[0][author]"] = strconv.FormatInt(v, 10)
-	case v < 0:
-		p["params[0][author]"] = "0"
-	}
-	// additional_author
-	switch vSlice := inParams.AdditionalAuthor; {
-	case vSlice == nil:
-		break
-	case len(vSlice) == 0:
-		p["params[0][additional_author]"] = "false"
-	default:
-		for i, v := range vSlice {
-			if v == 0 {
-				continue
-			}
-			k := fmt.Sprintf("params[0][additional_author][%d]", i)
-			p[k] = strconv.FormatInt(v, 10)
-		}
-	}
-	// related_with_customer
-	switch v := inParams.RelatedWithCustomer; {
-	case v > 0:
-		p["params[0][related_with_customer]"] = strconv.FormatInt(v, 10)
-	case v < 0:
-		p["params[0][related_with_customer]"] = "0"
-	}
-	// fields
-	countFields := 0
-	for k, v := range inParams.Fields {
-		if k <= 0 || v == "" {
-			continue
-		}
-		p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-		switch v {
-		case " ":
-			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = ""
-		default:
-			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = v
-		}
-		countFields++
-	}
-
-	// fieldsCoords
-	for k, v := range inParams.FieldsCoords {
-		p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-		p[fmt.Sprintf("params[0][fields][%d][value][lat]", countFields)] = strconv.FormatFloat(v.Lat, 'f', 10, 64)
-		p[fmt.Sprintf("params[0][fields][%d][value][lon]", countFields)] = strconv.FormatFloat(v.Lon, 'f', 10, 64)
-		countFields++
-	}
-	// fieldsFiles
-	for k, fileNames := range inParams.FieldsFiles {
-		for _, fileName := range fileNames {
-			p[fmt.Sprintf("params[0][fields][%d][id]", countFields)] = strconv.FormatInt(k, 10)
-			p[fmt.Sprintf("params[0][fields][%d][value]", countFields)] = fileName
-			countFields++
-		}
-	}
-
 	// Запрос
-	resp := new(StockUpdateResponse)
-	if err := request(ctx, apiKey, methodURL, p, resp); err != nil {
+	resp := &StockUpdateResponse{}
+	if err := request(ctx, apiKey, methodURL, p.params(), resp); err != nil {
 		return nil, err
 	}
 
 	return resp, nil
+}
+
+// =====================================================================================================================
+// Request
+// =====================================================================================================================
+
+// StockUpdateParams - параметры запроса StockUpdate.
+//
+// Обязательные поля:
+//   - ID
+//
+// Основные параметры запроса:
+//   - ID:                  Id существующего объекта.
+//   - Name:                Редактирование названия объекта. Передайте new("") для удаления.
+//   - Manager:             Редактирование id главного ответственного. Передайте new(0) для удаления.
+//   - AdditionalManagers:  Редактирование массива id доп. ответственных. Передайте []int64{} для удаления.
+//   - RelatedWithCustomer: Редактирование id прикрепленного контакта. Передайте new(0) для удаления.
+//   - Fields:              Редактирование массива id полей и значений. Для удаления поля передайте nil по ключу.
+type StockUpdateParams struct {
+	ID                  int64   // Id существующего объекта.
+	Category            int64   // Редактирование id категории объекта.
+	Name                *string // Редактирование названия объекта. Передайте new("") для удаления.
+	Manager             *int64  // Редактирование id главного ответственного. Передайте new(0) для удаления.
+	AdditionalManagers  []int64 // Редактирование массива id доп. ответственных. Передайте []int64{} для удаления.
+	RelatedWithCustomer *int64  // Редактирование id прикрепленного контакта. Передайте new(0) для удаления.
+	// Fields: Редактирование массива id полей и значений.
+	//
+	// Для типа (multiselect) возможно указывать несколько вариантов:
+	//  "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
+	//
+	// Не работает для типов: point, file, attach.
+	Fields      map[int64]*string
+	FieldsPoint map[int64]*Point // Аналогично Fields для типа "point".
+}
+
+// params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
+func (p StockUpdateParams) params() map[string]string {
+	// Выделение памяти
+	size := 5                         // Одиночные типы
+	size += len(p.AdditionalManagers) // Слайс
+	size += len(p.Fields) * 2         // Мапа (ключ + значение)
+	size += len(p.FieldsPoint) * 3    // Мапа (ключ + 2 значения)
+	paramsMap := make(map[string]string, size)
+
+	// id
+	paramsMap["params[0][id]"] = strconv.FormatInt(p.ID, 10)
+	// parent
+	if v := p.Category; v > 0 {
+		paramsMap["params[0][parent]"] = strconv.FormatInt(v, 10)
+	}
+	// name
+	if pV := p.Name; pV != nil {
+		paramsMap["params[0][name]"] = *pV
+	}
+	// author
+	if pV := p.Manager; pV != nil {
+		v := max(*pV, 0)
+		paramsMap["params[0][author]"] = strconv.FormatInt(v, 10)
+	}
+	// additional_author
+	switch vSlice := p.AdditionalManagers; {
+	case vSlice == nil:
+		break
+	case len(vSlice) == 0:
+		paramsMap["params[0][additional_author]"] = "false"
+	default:
+		for i, v := range vSlice {
+			if v <= 0 {
+				continue
+			}
+			k, v := fmt.Sprintf("params[0][additional_author][%d]", i), strconv.FormatInt(v, 10)
+			paramsMap[k] = v
+		}
+	}
+	// related_with_customer
+	if pV := p.RelatedWithCustomer; pV != nil {
+		v := max(*pV, 0)
+		paramsMap["params[0][related_with_customer]"] = strconv.FormatInt(v, 10)
+	}
+	// fields
+	fieldsCount := 0
+	for k, pV := range p.Fields {
+		if k == 0 {
+			continue
+		}
+		// ID
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		// Value
+		paramsMap[fmt.Sprintf("params[0][fields][%d][value]", fieldsCount)] = func() string {
+			if pV == nil {
+				return ""
+			}
+			return *pV
+		}()
+
+		fieldsCount++
+	}
+	// fields (point)
+	for k, point := range p.FieldsPoint {
+		if k == 0 {
+			continue
+		}
+		// ID
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		// Value
+		switch latStr, lonStr := point.StringLat(), point.StringLon(); {
+		case latStr == "" || lonStr == "":
+			paramsMap[fmt.Sprintf("params[0][fields][%d][value]", fieldsCount)] = ""
+		default:
+			paramsMap[fmt.Sprintf("params[0][fields][%d][value][lat]", fieldsCount)] = latStr
+			paramsMap[fmt.Sprintf("params[0][fields][%d][value][lon]", fieldsCount)] = lonStr
+		}
+
+		fieldsCount++
+	}
+
+	return paramsMap
+}
+
+// =====================================================================================================================
+// Response
+// =====================================================================================================================
+
+type StockUpdateResponse struct {
+	Status  string `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
+	Data    bool   `json:"data,omitempty"`
+}
+
+func (r *StockUpdateResponse) GetErrorMessage() string {
+	switch {
+	case r == nil:
+		return ""
+	default:
+		return ""
+	case r.Status != "" && r.Message != "":
+		return r.Status + ": " + r.Message
+	case r.Message != "":
+		return r.Message
+	}
 }

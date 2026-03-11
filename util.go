@@ -100,21 +100,35 @@ type Point struct {
 	Lon float64 // Долгота
 }
 
-// NewPoint создает Point из [2]float64.
-func NewPoint(point [2]float64) Point { return Point{Lat: point[0], Lon: point[1]} }
+// NewPoint возвращает Point.
+func NewPoint(lat, lon float64) *Point { return &Point{Lat: lat, Lon: lon} }
 
-// NewPointFromStrings парсит [2]string и возвращает Point.
-func NewPointFromStrings(point [2]string) (Point, error) {
-	parsedLat, err := strconv.ParseFloat(point[0], 64)
+// NewPointFromStrings парсит строковые значения координат и возвращает Point.
+func NewPointFromStrings(latStr, lonStr string) (*Point, error) {
+	lat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
-		return Point{}, fmt.Errorf("failed to parse lat: %w", err)
+		return nil, fmt.Errorf("failed to parse lat: %w", err)
 	}
-	parsedLon, err := strconv.ParseFloat(point[1], 64)
+	lon, err := strconv.ParseFloat(lonStr, 64)
 	if err != nil {
-		return Point{}, fmt.Errorf("failed to parse lon: %w", err)
+		return nil, fmt.Errorf("failed to parse lon: %w", err)
 	}
 
-	return Point{Lat: parsedLat, Lon: parsedLon}, nil
+	return &Point{Lat: lat, Lon: lon}, nil
+}
+
+func (p *Point) StringLat() string {
+	if p == nil {
+		return ""
+	}
+	return strconv.FormatFloat(p.Lat, 'f', 10, 64)
+}
+
+func (p *Point) StringLon() string {
+	if p == nil {
+		return ""
+	}
+	return strconv.FormatFloat(p.Lon, 'f', 10, 64)
 }
 
 // Добавление в параметры запроса
