@@ -72,10 +72,10 @@ type StockUpdateParams struct {
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockUpdateParams) params() map[string]string {
 	// Выделение памяти
-	size := 5                         // Одиночные типы
-	size += len(p.AdditionalManagers) // Слайс
-	size += len(p.Fields) * 2         // Мапа (ключ + значение)
-	size += len(p.FieldsPoint) * 3    // Мапа (ключ + 2 значения)
+	size := 5 // Поля с простыми типами
+	size += len(p.AdditionalManagers)
+	size += len(p.Fields) * 2
+	size += len(p.FieldsPoint) * 3
 	paramsMap := make(map[string]string, size)
 
 	// id
@@ -115,12 +115,12 @@ func (p StockUpdateParams) params() map[string]string {
 	}
 	// fields
 	fieldsCount := 0
-	for k, pV := range p.Fields {
-		if k == 0 {
+	for id, pV := range p.Fields {
+		if id <= 0 {
 			continue
 		}
 		// ID
-		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(id, 10)
 		// Value
 		paramsMap[fmt.Sprintf("params[0][fields][%d][value]", fieldsCount)] = func() string {
 			if pV == nil {
@@ -132,12 +132,12 @@ func (p StockUpdateParams) params() map[string]string {
 		fieldsCount++
 	}
 	// fields (point)
-	for k, point := range p.FieldsPoint {
-		if k == 0 {
+	for id, point := range p.FieldsPoint {
+		if id <= 0 {
 			continue
 		}
 		// ID
-		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[0][fields][%d][id]", fieldsCount)] = strconv.FormatInt(id, 10)
 		// Value
 		switch latStr, lonStr := point.StringLat(), point.StringLon(); {
 		case latStr == "" || lonStr == "":
