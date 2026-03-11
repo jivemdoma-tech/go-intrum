@@ -8,6 +8,63 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// StockInsert - добавление объекта в CRM. Документация: https://www.intrumnet.com/api/#stock-insert
+func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertParams) (*StockInsertResponse, error) {
+	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
+
+	// Валидация
+	if err := validateRequestArgs(methodURL, subdomain, apiKey); err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, newErrEmptyParams(methodURL)
+	}
+
+	// Обязательные поля
+	if p.Type <= 0 {
+		return nil, newErrEmptyRequiredParams(methodURL)
+	}
+
+	// Запрос
+	resp := &StockInsertResponse{}
+	if err := request(ctx, apiKey, methodURL, p.params(), resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// StockInsertConcurrent - добавление объектов в CRM.
+//
+// Документация: https://www.intrumnet.com/api/#stock-insert
+//
+// Лимит одновременных запросов устанавливается в n. Диапазон: 1-8.
+func StockInsertConcurrent(ctx context.Context, subdomain, apiKey string, n int, params []*StockInsertParams) error {
+	const (
+		nMin int = 1
+		nMax int = 8
+	)
+	n = min(max(n, nMin), nMax)
+
+	// Валидация
+	if len(params) == 0 {
+		return nil
+	}
+
+	// Параллельные запросы до первой ошибки
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(n)
+	for _, p := range params {
+		p := p
+		g.Go(func() error {
+			_, err := StockInsert(ctx, subdomain, apiKey, p)
+			return err
+		})
+	}
+
+	return g.Wait()
+}
+
 // StockInsertParams - параметры запроса.
 //
 // Обязательные поля:
@@ -32,15 +89,13 @@ type StockInsertParams struct {
 	// Для типа (multiselect) возможно указывать несколько вариантов:
 	//  "{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ},{ЗНАЧЕНИЕ}".
 	Fields      map[int64]string
-	FieldsPoint map[int64]Point // Аналогично Fields для типа "point".
-	FieldsFile  map[int64][]string        // Аналогично Fields для типа "file".
+	FieldsPoint map[int64]Point    // Аналогично Fields для типа "point".
+	FieldsFile  map[int64][]string // Аналогично Fields для типа "file".
 
 	// TODO: Оставшиеся поля. При реализации полей адаптируйте выделение памяти для paramsMap в методе params.
 	//  GroupID
 	//  Copy
 }
-
-
 
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockInsertParams) params() map[string]string {
@@ -101,61 +156,4 @@ func (p StockInsertParams) params() map[string]string {
 	}
 
 	return paramsMap
-}
-
-// StockInsert - добавление объекта в CRM.
-//
-// Документация: https://www.intrumnet.com/api/#stock-insert
-func StockInsert(ctx context.Context, subdomain, apiKey string, p *StockInsertParams) (*StockInsertResponse, error) {
-	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/stock/insert", subdomain)
-
-	// Валидация
-	if err := validateRequestArgs(methodURL, subdomain, apiKey); err != nil {
-		return nil, err
-	}
-	if p == nil {
-		return nil, newErrEmptyParams(methodURL)
-	}
-	if p.Type <= 0 {
-		return nil, newErrEmptyRequiredParams(methodURL)
-	}
-
-	// Запрос
-	resp := &StockInsertResponse{}
-	if err := request(ctx, apiKey, methodURL, p.params(), resp); err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-// StockInsertConcurrent - добавление объектов в CRM.
-//
-// Документация: https://www.intrumnet.com/api/#stock-insert
-//
-// Лимит одновременных запросов устанавливается в n. Диапазон: 1-8.
-func StockInsertConcurrent(ctx context.Context, subdomain, apiKey string, n int, params []*StockInsertParams) error {
-	const (
-		nMin int = 1
-		nMax int = 8
-	)
-	n = min(max(n, nMin), nMax)
-
-	// Валидация
-	if len(params) == 0 {
-		return nil
-	}
-
-	// Параллельные запросы до первой ошибки
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(n)
-	for _, p := range params {
-		p := p
-		g.Go(func() error {
-			_, err := StockInsert(ctx, subdomain, apiKey, p)
-			return err
-		})
-	}
-
-	return g.Wait()
 }
