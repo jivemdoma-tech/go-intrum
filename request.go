@@ -12,6 +12,11 @@ import (
 )
 
 const (
+	primaryPort      string = "81"
+	backupPort       string = "444"
+	backupDelayShort        = time.Minute
+	backupDelayLong         = 5 * time.Minute
+
 	statusAccessDeny         string = "ACCESS_DENY"
 	statusLimitExceeded      string = "LIMIT_EXCEEDED"
 	statusBadRequest         string = "BAD_REQUEST"
@@ -20,10 +25,7 @@ const (
 )
 
 // Клиент для запросов к Intrum API
-var (
-	client    = http.Client{Timeout: 10 * time.Minute}
-	requestFn = request // For test purposes
-)
+var client = http.Client{Timeout: 10 * time.Minute}
 
 // Интерфейс, принимающий структуру API-ответа.
 type respStruct interface {
@@ -31,12 +33,6 @@ type respStruct interface {
 }
 
 func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]string, r respStruct) (err error) {
-	const (
-		primaryPort  string = "81"
-		backupPort   string = "444"
-		duration1Min        = time.Minute
-		duration5Min        = 5 * time.Minute
-	)
 	// Обработка паники
 	defer func() {
 		if r := recover(); r != nil {
@@ -84,7 +80,7 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("failed to do request for method %s: %w", u.Path, err)
 			}
 			// Повторный запрос
-			time.Sleep(duration1Min)
+			time.Sleep(backupDelayShort)
 			continue
 		}
 
@@ -105,10 +101,10 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 			timeout := func() time.Duration {
 				switch resp.StatusCode {
 				default:
-					return duration1Min
+					return backupDelayShort
 				// Ошибка на стороне сервера (502, 504)
 				case http.StatusBadGateway, http.StatusGatewayTimeout:
-					return duration5Min
+					return backupDelayLong
 				}
 			}()
 			select {
@@ -136,11 +132,11 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
 			// Повторный запрос через 5 минут
 			case strings.Contains(errMsg, statusServerIsOverloaded):
-				time.Sleep(duration5Min)
+				time.Sleep(backupDelayLong)
 				continue
 			// Повторный запрос через минуту
 			default:
-				time.Sleep(duration1Min)
+				time.Sleep(backupDelayShort)
 				continue
 			}
 		}

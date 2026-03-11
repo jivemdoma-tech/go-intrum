@@ -556,11 +556,11 @@ func (s *Stock) FieldPriceOrZero(id int64) float64 { return s.FieldDecimalOrZero
 func (s *Stock) FieldFile(id int64) ([]string, bool) { return s.FieldMultiselect(id) }
 
 // FieldPoint возвращает значение поля (point) по id.
-func (s *Stock) FieldPoint(id int64) (Point, bool) {
+func (s *Stock) FieldPoint(id int64) (*Point, bool) {
 	// Проверка: поле существует
 	valueMap, exists := s.fieldMap(id)
 	if !exists {
-		return Point{}, false
+		return nil, false
 	}
 
 	var (
@@ -570,14 +570,14 @@ func (s *Stock) FieldPoint(id int64) (Point, bool) {
 
 	point, err := NewPointFromStrings(x, y)
 	if err != nil {
-		return Point{}, false
+		return nil, false
 	}
 
-	return *point, true
+	return point, true
 }
 
 // FieldPointOrZero возвращает значение поля (point) по id.
-func (s *Stock) FieldPointOrZero(id int64) Point {
+func (s *Stock) FieldPointOrZero(id int64) *Point {
 	result, _ := s.FieldPoint(id)
 	return result
 }
