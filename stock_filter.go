@@ -210,14 +210,16 @@ func (p StockFilterParams) params() map[string]string {
 		addToSingularParams(paramsMap, "limit", v)
 	}
 	// slice_fields (SliceFields + Fields)
-	sliceFields := make([]int64, 0, len(p.SliceFields)+len(p.Fields))
-	sliceFields = append(sliceFields, p.SliceFields...)
-	for id := range p.Fields {
-		if id != 0 {
-			sliceFields = append(sliceFields, id)
+	if len(p.SliceFields) != 0 {
+		sliceFields := make([]int64, 0, len(p.SliceFields)+len(p.Fields))
+		sliceFields = append(sliceFields, p.SliceFields...)
+		for id := range p.Fields {
+			if id != 0 {
+				sliceFields = append(sliceFields, id)
+			}
 		}
+		addSliceToSingularParams(paramsMap, "slice_fields", sliceFields)
 	}
-	addSliceToSingularParams(paramsMap, "slice_fields", sliceFields)
 
 	return paramsMap
 }
