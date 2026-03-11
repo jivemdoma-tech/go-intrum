@@ -159,12 +159,12 @@ func (p StockFilterParams) cloneWithPage(page int64) *StockFilterParams {
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
 func (p StockFilterParams) params() map[string]string {
 	// Выделение памяти
-	size := 8                  // Одиночные типы
-	size += len(p.ByIDs)       // Слайс
-	size += len(p.Manager)     // Слайс
-	size += len(p.Groups)      // Слайс
-	size += len(p.SliceFields) // Слайс
-	size += len(p.Fields) * 2  // Мапа (ключ + значение)
+	size := 8 // Поля с простыми типами
+	size += len(p.ByIDs)
+	size += len(p.Manager)
+	size += len(p.Groups)
+	size += len(p.SliceFields)
+	size += len(p.Fields) * 2
 	paramsMap := make(map[string]string, size)
 
 	// type
@@ -188,11 +188,11 @@ func (p StockFilterParams) params() map[string]string {
 	addToSingularParams(paramsMap, "stock_creator_id", p.StockCreatorID)
 	// fields
 	fieldsCount := 0
-	for k, v := range p.Fields {
-		if k == 0 || v == "" {
+	for id, v := range p.Fields {
+		if id == 0 || v == "" {
 			continue
 		}
-		paramsMap[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(k, 10)
+		paramsMap[fmt.Sprintf("params[fields][%d][id]", fieldsCount)] = strconv.FormatInt(id, 10)
 		paramsMap[fmt.Sprintf("params[fields][%d][value]", fieldsCount)] = v
 		fieldsCount++
 	}
