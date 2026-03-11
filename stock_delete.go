@@ -36,6 +36,10 @@ func StockDelete(ctx context.Context, subdomain, apiKey string, ids ...int64) (*
 	return resp, nil
 }
 
+// =====================================================================================================================
+// Response
+// =====================================================================================================================
+
 type StockDeleteResponse struct {
 	Status  string `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`
