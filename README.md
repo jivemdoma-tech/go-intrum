@@ -21,7 +21,7 @@ go get -u github.com/jivemdoma-tech/go-intrum
 |                                 |                       |                     |               |
 | Добавление объектов             | /stock/insert         |        Готов        |               |
 | Редактирование объектов         | /stock/update         |        Готов        |               |
-| Удаление объекта                | /stock/delete         | Требуется доработка |               |
+| Удаление объекта                | /stock/delete         |        Готов        |               |
 | Восстановление объекта          | /stock/alive          |                     |               |
 | Добавление коммментариев        | /stock/addComment     |                     |               |
 |                                 |                       |                     |               |
