@@ -542,12 +542,6 @@ func (s *Stock) FieldDecimalOrZero(id int64) float64 {
 	return result
 }
 
-// FieldFilesOrZero возвращает значение поля (files) по id.
-func (s *Stock) FieldFilesOrZero(id int64) []string {
-	result, _ := s.FieldFile(id)
-	return result
-}
-
 // FieldPrice возвращает значение поля (price) по id.
 func (s *Stock) FieldPrice(id int64) (float64, bool) { return s.FieldDecimal(id) }
 
@@ -556,6 +550,12 @@ func (s *Stock) FieldPriceOrZero(id int64) float64 { return s.FieldDecimalOrZero
 
 // FieldFile возвращает значение поля (file) по id.
 func (s *Stock) FieldFile(id int64) ([]string, bool) { return s.FieldMultiselect(id) }
+
+// FieldFileOrZero возвращает значение поля (files) по id.
+func (s *Stock) FieldFileOrZero(id int64) []string {
+	result, _ := s.FieldFile(id)
+	return result
+}
 
 // FieldPoint возвращает значение поля (point) по id.
 func (s *Stock) FieldPoint(id int64) (*Point, bool) {
