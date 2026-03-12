@@ -160,32 +160,32 @@ func (s *Sale) GetFieldMultiselect(fieldID int64) []string {
 func (s *Sale) GetFieldDate(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 
-	return parseDate(vStr)
+	return ParseDate(vStr)
 }
 
 // Тип поля: "datetime".
 func (s *Sale) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := s.GetFieldText(fieldID)
 
-	return parseDatetime(vStr)
+	return ParseDatetime(vStr)
 }
 
 // Тип поля: "integer".
 func (s *Sale) GetFieldInteger(fieldID int64) int64 {
 	vStr := s.GetFieldText(fieldID)
-	return parseInt(vStr)
+	return ParseInt(vStr)
 }
 
 // Тип поля: "decimal".
 func (s *Sale) GetFieldDecimal(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
-	return parseFloat(vStr)
+	return ParseFloat(vStr)
 }
 
 // Тип поля: "price".
 func (s *Sale) GetFieldPrice(fieldID int64) float64 {
 	vStr := s.GetFieldText(fieldID)
-	return parseFloat(vStr)
+	return ParseFloat(vStr)
 }
 
 // Тип поля: "file".
@@ -208,7 +208,7 @@ func (s *Sale) GetFieldIntegerRange(fieldID int64) [2]int64 {
 	if m == nil {
 		return [2]int64{}
 	}
-	return parseRange(m, parseInt)
+	return ParseRange(m, ParseInt)
 }
 
 // Тип поля: "decimal_range".
@@ -217,7 +217,7 @@ func (s *Sale) GetFieldDecimalRange(fieldID int64) [2]float64 {
 	if m == nil {
 		return [2]float64{}
 	}
-	return parseRange(m, parseFloat)
+	return ParseRange(m, ParseFloat)
 }
 
 // Тип поля: "date_range".
@@ -226,7 +226,7 @@ func (s *Sale) GetFieldDateRange(fieldID int64) [2]time.Time {
 	if m == nil {
 		return [2]time.Time{}
 	}
-	return parseRange(m, parseDate)
+	return ParseRange(m, ParseDate)
 }
 
 // Тип поля: "datetime_range".
@@ -235,7 +235,7 @@ func (s *Sale) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 	if m == nil {
 		return [2]time.Time{}
 	}
-	return parseRange(m, parseDatetime)
+	return ParseRange(m, ParseDatetime)
 }
 
 // Тип поля: "attach".

@@ -303,9 +303,9 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	// Обработка полей и добавление в оригинальную структуру
 
 	// (time.Time) Поля типа datetime
-	s.DateCreate = parseDatetime(aux.DateCreate)
-	s.LastModify = parseDatetime(aux.LastModify)
-	s.StockActivityDate = parseDatetime(aux.StockActivityDate)
+	s.DateCreate = ParseDatetime(aux.DateCreate)
+	s.LastModify = ParseDatetime(aux.LastModify)
+	s.StockActivityDate = ParseDatetime(aux.StockActivityDate)
 
 	// (bool) Publish
 	newPublish, _ := strconv.ParseBool(aux.Publish)
@@ -482,7 +482,7 @@ func (s *Stock) FieldDate(id int64) (time.Time, bool) {
 		return time.Time{}, false
 	}
 
-	return parseDate(valueStr), true
+	return ParseDate(valueStr), true
 }
 
 // FieldDateOrZero возвращает значение поля (date) по id.
@@ -499,7 +499,7 @@ func (s *Stock) FieldDatetime(id int64) (time.Time, bool) {
 		return time.Time{}, false
 	}
 
-	return parseDatetime(valueStr), true
+	return ParseDatetime(valueStr), true
 }
 
 // FieldDatetimeOrZero возвращает значение поля (datetime) по id.
@@ -516,7 +516,7 @@ func (s *Stock) FieldInteger(id int64) (int64, bool) {
 		return 0, false
 	}
 
-	return parseInt(valueStr), true
+	return ParseInt(valueStr), true
 }
 
 // FieldIntegerOrZero возвращает значение поля (integer) по id.
@@ -533,7 +533,7 @@ func (s *Stock) FieldDecimal(id int64) (float64, bool) {
 		return 0, false
 	}
 
-	return parseFloat(valueStr), true
+	return ParseFloat(valueStr), true
 }
 
 // FieldDecimalOrZero возвращает значение поля (decimal) по id.
@@ -592,7 +592,7 @@ func (s *Stock) FieldIntegerRange(id int64) ([2]int64, bool) {
 		return [2]int64{}, false
 	}
 
-	return parseRange(valueMap, parseInt), true
+	return ParseRange(valueMap, ParseInt), true
 }
 
 // FieldDecimalRange возвращает значение поля (decimal_range) по id.
@@ -603,7 +603,7 @@ func (s *Stock) FieldDecimalRange(id int64) ([2]float64, bool) {
 		return [2]float64{}, false
 	}
 
-	return parseRange(valueMap, parseFloat), true
+	return ParseRange(valueMap, ParseFloat), true
 }
 
 // FieldDateRange возвращает значение поля (date_range) по id.
@@ -614,7 +614,7 @@ func (s *Stock) FieldDateRange(id int64) ([2]time.Time, bool) {
 		return [2]time.Time{}, false
 	}
 
-	return parseRange(valueMap, parseDate), true
+	return ParseRange(valueMap, ParseDate), true
 }
 
 // FieldDatetimeRange возвращает значение поля (datetime_range) по id.
@@ -625,7 +625,7 @@ func (s *Stock) FieldDatetimeRange(id int64) ([2]time.Time, bool) {
 		return [2]time.Time{}, false
 	}
 
-	return parseRange(valueMap, parseDatetime), true
+	return ParseRange(valueMap, ParseDatetime), true
 }
 
 // FieldAttach возвращает значение поля (attach) по id.
@@ -638,7 +638,7 @@ func (s *Stock) FieldAttach(id int64) ([]int64, bool) {
 
 	valueInt64Slice := make([]int64, 0, len(fieldStringSlice))
 	for _, vStr := range fieldStringSlice {
-		if vInt64 := parseInt(vStr); vInt64 != 0 {
+		if vInt64 := ParseInt(vStr); vInt64 != 0 {
 			valueInt64Slice = append(valueInt64Slice, vInt64)
 		}
 	}

@@ -182,32 +182,32 @@ func (p *Purchaser) GetFieldMultiselect(fieldID int64) []string {
 func (p *Purchaser) GetFieldDate(fieldID int64) time.Time {
 	vStr := p.GetFieldText(fieldID)
 
-	return parseDate(vStr)
+	return ParseDate(vStr)
 }
 
 // datetime
 func (p *Purchaser) GetFieldDatetime(fieldID int64) time.Time {
 	vStr := p.GetFieldText(fieldID)
 
-	return parseDatetime(vStr)
+	return ParseDatetime(vStr)
 }
 
 // integer
 func (p *Purchaser) GetFieldInteger(fieldID int64) int64 {
 	vStr := p.GetFieldText(fieldID)
-	return parseInt(vStr)
+	return ParseInt(vStr)
 }
 
 // decimal
 func (p *Purchaser) GetFieldDecimal(fieldID int64) float64 {
 	vStr := p.GetFieldText(fieldID)
-	return parseFloat(vStr)
+	return ParseFloat(vStr)
 }
 
 // price
 func (p *Purchaser) GetFieldPrice(fieldID int64) float64 {
 	vStr := p.GetFieldText(fieldID)
-	return parseFloat(vStr)
+	return ParseFloat(vStr)
 }
 
 // file
@@ -230,7 +230,7 @@ func (p *Purchaser) GetFieldIntegerRange(fieldID int64) [2]int64 {
 	if !ok {
 		return [2]int64{}
 	}
-	return parseRange(m, parseInt)
+	return ParseRange(m, ParseInt)
 }
 
 // decimal_range
@@ -239,7 +239,7 @@ func (p *Purchaser) GetFieldDecimalRange(fieldID int64) [2]float64 {
 	if !ok {
 		return [2]float64{}
 	}
-	return parseRange(m, parseFloat)
+	return ParseRange(m, ParseFloat)
 }
 
 // date_range
@@ -248,7 +248,7 @@ func (p *Purchaser) GetFieldDateRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, parseDate)
+	return ParseRange(m, ParseDate)
 }
 
 // datetime_range
@@ -257,7 +257,7 @@ func (p *Purchaser) GetFieldDatetimeRange(fieldID int64) [2]time.Time {
 	if !ok {
 		return [2]time.Time{}
 	}
-	return parseRange(m, parseDatetime)
+	return ParseRange(m, ParseDatetime)
 }
 
 // attach

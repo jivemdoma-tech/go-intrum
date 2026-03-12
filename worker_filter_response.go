@@ -139,13 +139,13 @@ func (w *WorkerFilterData) GetFieldSelect(fieldID int64) string {
 // GetFieldInteger возвращает int64 значение поля.
 func (w *WorkerFilterData) GetFieldInteger(fieldID int64) int64 {
 	vStr := w.GetFieldText(fieldID)
-	return parseInt(vStr)
+	return ParseInt(vStr)
 }
 
 // GetFieldDecimal возвращает float64 значение поля.
 func (w *WorkerFilterData) GetFieldDecimal(fieldID int64) float64 {
 	vStr := w.GetFieldText(fieldID)
-	return parseFloat(vStr)
+	return ParseFloat(vStr)
 }
 
 // TODO все остальные типы данных
