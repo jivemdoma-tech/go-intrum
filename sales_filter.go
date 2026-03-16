@@ -415,7 +415,17 @@ func (s *Sale) FieldPrice(id int64) (float64, bool) { return s.FieldDecimal(id) 
 func (s *Sale) FieldPriceOrZero(id int64) float64 { return s.FieldDecimalOrZero(id) }
 
 // FieldFile возвращает значение поля (file) по id.
-func (s *Sale) FieldFile(id int64) ([]string, bool) { return s.FieldMultiselect(id) }
+func (s *Sale) FieldFile(id int64) ([]string, bool) {
+	v, exists := s.FieldText(id)
+	if !exists {
+		return nil, false
+	}
+
+	v = strings.TrimPrefix(v, "[")
+	v = strings.TrimSuffix(v, "]")
+
+	return strings.Fields(v), true
+}
 
 // FieldFileOrZero возвращает значение поля (files) по id.
 func (s *Sale) FieldFileOrZero(id int64) []string {
