@@ -232,7 +232,7 @@ type (
 	StockFilterResponse struct {
 		Status  string          `json:"status,omitempty"`
 		Message string          `json:"message,omitempty"`
-		Data    StockFilterData `json:"data"`
+		Data    StockFilterData `json:"data,omitempty"`
 	}
 	StockFilterData struct {
 		List []Stock `json:"list"`
@@ -281,8 +281,6 @@ func (s *Stock) UnmarshalJSON(data []byte) error {
 	// Вспомогательная структура (Приведение типа к alias)
 	aux := &struct {
 		*alias
-
-		// Нужные поля
 
 		// Дата + время
 		DateCreate        string `json:"date_add"`
