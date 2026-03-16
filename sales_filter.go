@@ -507,17 +507,68 @@ func (s *Sale) FieldDatetimeRange(id int64) ([2]time.Time, bool) {
 // FieldAttach возвращает значение поля (attach) по id.
 func (s *Sale) FieldAttach(id int64) ([]int64, bool) {
 	// Проверка: поле существует
-	fieldStringSlice, exists := s.FieldMultiselect(id)
+	f, exists := s.field(id)
 	if !exists {
 		return nil, false
 	}
 
-	valueInt64Slice := make([]int64, 0, len(fieldStringSlice))
-	for _, vStr := range fieldStringSlice {
-		if vInt64 := ParseInt(vStr); vInt64 != 0 {
-			valueInt64Slice = append(valueInt64Slice, vInt64)
-		}
+	// Значение поля 'attach' имеет структуру 'map[string][]map[string]string':
+	// "77777": {
+	//     "id": "66666",
+	//     "datatype": "attach",
+	//     "value": [
+	//         {
+	//             "object": "employee",
+	//             "id": "55555",
+	//             "count": "1",
+	//             "comment": ""
+	//         },
+	//         {
+	//             "object": "employee",
+	//             "id": "44444",
+	//             "count": "1",
+	//             "comment": ""
+	//         }
+	//     ]
+	// }
+
+	fValueSlice, ok := f.Value.([]any)
+	if !ok {
+		return nil, false
+	}
+	if len(fValueSlice) == 0 {
+		return nil, true
 	}
 
-	return valueInt64Slice, true
+	result := make([]int64, 0, len(fValueSlice))
+	for _, vRaw := range fValueSlice {
+		vMap, ok := vRaw.(map[string]any)
+		if !ok || len(vMap) == 0 {
+			continue
+		}
+
+		idRaw, ok := vMap["id"]
+		if !ok || idRaw == nil {
+			continue
+		}
+
+		if id, err := strconv.ParseInt(fmt.Sprint(idRaw), 10, 64); err == nil {
+			result = append(result, id)
+		}
+	}
+	if len(result) == 0 {
+		return nil, true
+	}
+
+	return result, true
+}
+
+// FieldAttachOrZero возвращает значение поля (attach) по id.
+func (s *Sale) FieldAttachOrZero(id int64) []int64 {
+	switch v, exists := s.FieldAttach(id); {
+	case !exists, len(v) == 0:
+		return nil
+	default:
+		return v
+	}
 }
