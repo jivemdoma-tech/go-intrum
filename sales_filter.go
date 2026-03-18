@@ -40,6 +40,40 @@ func SalesFilter(ctx context.Context, subdomain, apiKey string, p *SalesFilterPa
 	return resp, nil
 }
 
+// SalesFilterAll - поиск сделок в CRM по всем страницам. Документация: https://www.intrumnet.com/api/#sales-filter
+func SalesFilterAll(ctx context.Context, subdomain, apiKey string, p *SalesFilterParams) ([]Sale, error) {
+	result := make([]Sale, 0, 500)
+	for page := int64(1); ; page++ {
+		// Shallow-копирование структуры для итерации
+		pageParams := p.cloneWithPage(page)
+		// Установка максимального кол-ва элементов в ответе
+		if pageParams.Limit != SalesFilterMaxLimit {
+			pageParams.Limit = SalesFilterMaxLimit
+		}
+		// Запрос
+		resp, err := SalesFilter(ctx, subdomain, apiKey, pageParams)
+		if err != nil {
+			return nil, err
+		}
+		stock := resp.Data.List
+
+		if len(stock) == 0 {
+			break
+		}
+
+		result = append(result, stock...)
+
+		if len(stock) < int(pageParams.Limit) {
+			break
+		}
+	}
+	if len(result) == 0 {
+		return nil, ErrNothingFound
+	}
+
+	return result, nil
+}
+
 // =====================================================================================================================
 // Request
 // =====================================================================================================================
@@ -69,6 +103,18 @@ type SalesFilterParams struct {
 	Publish string
 	Limit   int64 // Кол-во объектов в ответе.
 	Page    int64 // Номер страницы ответа. Начинается с 1. Игнорируется StockFilterAll.
+}
+
+// clone возвращает shallow-копию StockFilterParams.
+func (p SalesFilterParams) clone() *SalesFilterParams {
+	return new(p)
+}
+
+// cloneWithPage возвращает shallow-копию StockFilterParams с указанной страницей.
+func (p SalesFilterParams) cloneWithPage(page int64) *SalesFilterParams {
+	pageParams := p.clone()
+	pageParams.Page = page
+	return pageParams
 }
 
 // params возвращает параметры запроса в формате map[string]string (с эффективным выделением памяти).
