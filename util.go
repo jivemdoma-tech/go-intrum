@@ -25,9 +25,9 @@ const (
 
 	// Форматы bool
 
-	BoolYes    string = "1"
-	BoolNo     string = "0"
-	BoolIgnore string = "ignore"
+	BoolYes    string = "1"      // "Да"
+	BoolNo     string = "0"      // "Нет"
+	BoolIgnore string = "ignore" // "Да" + "Нет"
 )
 
 var (
