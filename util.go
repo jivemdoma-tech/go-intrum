@@ -22,6 +22,12 @@ const (
 	DateLayout       string = "2006-01-02"          // Формат даты Intrum
 	DateLayoutUI     string = "02.01.2006"          // Формат даты Intrum (UI)
 	TimeLayout       string = "15:04:05"            // Формат времени Intrum
+
+	// Форматы bool
+
+	BoolYes    string = "1"
+	BoolNo     string = "0"
+	BoolIgnore string = "ignore"
 )
 
 var (
