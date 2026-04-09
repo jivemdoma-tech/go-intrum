@@ -88,7 +88,7 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 
 		// Чтение ответа
 		body, err := io.ReadAll(resp.Body)
-		resp.Body.Close() // Закрытие чтения тела ответа
+		_ = resp.Body.Close() // Закрытие чтения тела ответа
 		if err != nil {
 			return fmt.Errorf("failed to read response body from method %s: %w", u.Path, err)
 		}
