@@ -14,7 +14,7 @@ import (
 const (
 	primaryPort      string = "81"
 	backupPort       string = "444"
-	backupDelayShort        = time.Minute
+	backupDelayShort        = 30 * time.Second
 	backupDelayLong         = 5 * time.Minute
 
 	statusAccessDeny         string = "ACCESS_DENY"
@@ -92,25 +92,38 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 		if err != nil {
 			return fmt.Errorf("failed to read response body from method %s: %w", u.Path, err)
 		}
+		switch {
 		// Non-2xx status code
-		if resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode != http.StatusNotImplemented {
+		case resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode != http.StatusNotImplemented:
 			if isBackup {
 				return fmt.Errorf("%d status code from method %s", resp.StatusCode, u.Path)
 			}
 			// Таймаут + повторный запрос
 			timeout := func() time.Duration {
 				switch resp.StatusCode {
-				default:
-					return backupDelayShort
 				// Ошибка на стороне сервера (502, 504)
 				case http.StatusBadGateway, http.StatusGatewayTimeout:
 					return backupDelayLong
+				// Другая ошибка
+				default:
+					return backupDelayShort
 				}
 			}()
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-time.After(timeout):
+				continue
+			}
+		// Пустое тело ответа
+		case len(body) == 0:
+			if isBackup {
+				return fmt.Errorf("empty response body with status code %d from method %s", resp.StatusCode, u.Path)
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backupDelayShort):
 				continue
 			}
 		}
