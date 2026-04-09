@@ -28,8 +28,7 @@ func SalesUpdate(ctx context.Context, subdomain, apiKey string, inputParams *Sal
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/sales/update", subdomain)
 
 	// Обязательность параметров
-	switch inputParams.ID {
-	case 0:
+	if inputParams.ID == 0 {
 		return nil, fmt.Errorf("error create request for method sales update: id param is required")
 	}
 
