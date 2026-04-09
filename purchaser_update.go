@@ -28,8 +28,8 @@ func PurchaserUpdate(ctx context.Context, subdomain, apiKey string, inputParams 
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/purchaser/update", subdomain)
 
 	// Обязательность параметров
-	switch {
-	case inputParams.ID == 0:
+	switch inputParams.ID {
+	case 0:
 		return nil, fmt.Errorf("failed to create request for method purchaser update: id param is required")
 	}
 

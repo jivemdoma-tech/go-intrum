@@ -30,8 +30,8 @@ func ApplicationsUpdate(ctx context.Context, subdomain, apiKey string, inputPara
 	methodURL := fmt.Sprintf("http://%s.intrumnet.com:81/sharedapi/applications/update", subdomain)
 
 	// Обязательность параметров
-	switch {
-	case inputParams.ID == 0:
+	switch inputParams.ID {
+	case 0:
 		return nil, fmt.Errorf("failed to create request for method applications update: id param is required")
 	}
 

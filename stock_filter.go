@@ -133,8 +133,9 @@ type StockFilterParams struct {
 	//	Меньше или равно: "<= {ЗНАЧЕНИЕ}"
 	//	Между двумя значениям: "{ЗНАЧЕНИЕ} & {ЗНАЧЕНИЕ}"
 	Fields              map[int64]string
-	RelatedWithCustomer int64 // ID контакта, прикрепленного к объекту.
-	Page                int64 // Номер страницы ответа. Начинается с 1. Игнорируется StockFilterAll.
+	RelatedWithCustomer int64        // ID контакта, прикрепленного к объекту.
+	Page                int64        // Номер страницы ответа. Начинается с 1. Игнорируется StockFilterAll.
+	Date                [2]time.Time // Выборка за определенный период. Пример: {from: "2015-10-29", to: "2015-11-19"}.
 	// Активность объектов.
 	//  Активные: "1" (по умолчанию)
 	//  Удаленные: "0"
@@ -200,6 +201,11 @@ func (p StockFilterParams) params() map[string]string {
 	addToSingularParams(paramsMap, "related_with_customer", p.RelatedWithCustomer)
 	// page
 	addToSingularParams(paramsMap, "page", p.Page)
+	// date
+	if !p.Date[0].IsZero() && !p.Date[1].IsZero() {
+		paramsMap["params[date][from]"] = p.Date[0].Format(DatetimeLayout)
+		paramsMap["params[date][to]"] = p.Date[1].Format(DatetimeLayout)
+	}
 	// publish
 	addBoolToSingularParams(paramsMap, "publish", p.Publish)
 	// limit
