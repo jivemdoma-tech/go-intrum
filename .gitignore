@@ -210,3 +210,4 @@ fabric.properties
 
 ### Etc
 .test/**
+/test

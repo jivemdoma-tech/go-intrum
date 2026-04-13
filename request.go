@@ -80,8 +80,12 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("failed to do request for method %s: %w", u.Path, err)
 			}
 			// Повторный запрос
-			time.Sleep(backupDelayShort)
-			continue
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backupDelayShort):
+				continue
+			}
 		}
 
 		// Ответ
@@ -145,12 +149,20 @@ func request(ctx context.Context, apiKey, reqURL string, reqParams map[string]st
 				return fmt.Errorf("response error from method %s: %s", u.Path, errMsg)
 			// Повторный запрос через 5 минут
 			case strings.Contains(errMsg, statusServerIsOverloaded):
-				time.Sleep(backupDelayLong)
-				continue
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(backupDelayLong):
+					continue
+				}
 			// Повторный запрос через минуту
 			default:
-				time.Sleep(backupDelayShort)
-				continue
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(backupDelayShort):
+					continue
+				}
 			}
 		}
 
